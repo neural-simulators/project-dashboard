@@ -656,7 +656,7 @@
           settling pairs) and scored on two held-out sets of 48: tasks never trained on in the same rooms, and all
           of rooms 11 to 14. The variants are A, a deterministic regressor; B, rectified flow matching; Diffusion
           Forcing; and C, the JEPA latent predictor, each with 1.26 M weights (C 1.66 M with its target encoder),
-          plus a 0.22 M version of A and B and two loss ablations. Metrics: position RMSE over the objects that
+          plus a redesigned JEPA (C2, 1.55 M), a 0.22 M version of A and B and two loss ablations. Metrics: position RMSE over the objects that
           moved, the end-point error of the launched object, rotation error, and ghost motion (still objects
           predicted to move more than 1 cm), each against a baseline that predicts no motion. This is a pipeline
           check on a tiny dataset, not a benchmark result.
@@ -666,21 +666,33 @@
             position error falls to 0.17 m against 0.91 m for "nothing moves"; on unseen tasks and unseen rooms it is
             roughly halved (0.46 to 0.59 m against 0.93 to 1.14 m).</li>
           <li><strong>Order of the variants:</strong> regressor and flow matching tie on the test sets, Diffusion
-            Forcing is a little behind, JEPA barely beats the baseline. That last result was expected: predicting an
-            embedding and decoding it with a linear probe helps when the target is high-dimensional and noisy, not
-            when it is an exact 15-number state.</li>
+            Forcing is a little behind. The first JEPA barely beat the baseline; its redesign (C2) is level with the
+            regressor.</li>
+          <li><strong>Why the first JEPA lost, and the fix.</strong> Its targets embedded each object's whole
+            description, so most of every target never changes (shape, mass, identity). The predictor learned that
+            part within 250 steps and then got almost no signal about motion, and a linear read-out trained only on
+            true embeddings had to decode its guesses. The redesign embeds only the 15 numbers that change, trains a
+            decoder together with that encoder, and also trains the decoder on the predictor's own outputs. Position
+            error in new rooms falls from 0.72 m to 0.46 m (0.53 m without the last part).</li>
           <li><strong>Two failures the numbers expose.</strong> Every object that stays still is predicted to move
             more than 1 cm, and raising the weight of still objects in the loss from 0.1 to 1.0, or adding the
             position-velocity consistency and box-overlap penalty terms, changes this little (0.84 to 0.94 for the
             regressor, 1.0 for the flow model). Rotation is not learned at all. Both point to the data (96 samples)
             rather than the objective; the simulator-backed data generator is the next step.</li>
+          <li><strong>The benchmark's own evaluator rejects every predicted trajectory.</strong> Submitted as if they
+            were a model's answers, none of the 58 held-out predictions passes. Predicted objects overlap by a median
+            of 15 cm (regressor) to 34 cm (flow matching, one sample), positions do not follow the predicted
+            velocities, and the predictions show the goal reached in 3 (regressor) and 11 (flow matching) of the 37
+            launches where PhysX reached it. Lower position error than the baseline is not yet a physically
+            consistent trajectory; the consistency and overlap losses at scale, and far more data, come next.</li>
           <li><strong>Counterfactuals already work in the right direction.</strong> On 35 PhysX-graded twin launches
             (same scene, same object, different speed) the regressor shifts its predicted end point the way PhysX did
             on 34, including 11 of the 12 tasks it never saw; the speed sweep below follows the trend but misses the
-            saturation after the collision. A single sample of the flow model is noisier (26 of 35); its fair test, the average of several samples, is still being computed.</li>
+            saturation after the collision. Averaged over eight samples, the flow model gets 31 of 35 right (a single
+            sample: 26), Diffusion Forcing 27, and the redesigned JEPA 33.</li>
         </ul>
       </div>
-      <div class="wm-status" id="toy-status">Status: first runs complete. Next: the data generator, and scoring the predicted trajectories with the benchmark's own evaluator (goal satisfaction, contacts, penetration).</div>
+      <div class="wm-status" id="toy-status">Status: first runs and evaluator scoring complete. Next: the simulator-backed data generator.</div>
       <div class="table-container">
         <table class="table is-striped is-fullwidth wm-table" id="toy-results-table">
           <thead>
@@ -707,7 +719,7 @@
 
       <!-- this block's data and renderer (deferred) -->
       <script defer src="./static/data/toy_world_model.js?v=df1ba1d188"></script>
-      <script defer src="./static/js/toy_world_model/results.js?v=68980bab35"></script>
+      <script defer src="./static/js/toy_world_model/results.js?v=72ad043103"></script>
     </div>
   </section>
   <!-- ---------- end result: toy_world_model ---------- -->
