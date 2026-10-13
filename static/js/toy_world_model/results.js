@@ -35,7 +35,7 @@
     var config = primary ? primary.config : null;
     var models = [];
     R.rows.forEach(function (r) {
-      if ((r.variant === 'still' || r.config === config) && models.indexOf(r.model) < 0) models.push(r.model);
+      if ((r.variant === 'still' || r.config === config || /^jepa2/.test(r.variant)) && models.indexOf(r.model) < 0) models.push(r.model);
     });
     var cell = function (model, split, key) {
       var r = R.rows.filter(function (row) { return row.model === model && row.split === split; })[0];
@@ -60,7 +60,7 @@
     models.forEach(function (m) {
       var isBase = R.rows.filter(function (r) { return r.model === m; })[0].variant === 'still';
       var row = h('tr', isBase ? 'wm-baseline' : null);
-      row.appendChild(h('td', 'wm-model', m.replace(/ \((default losses|baseline)\)$/, '')));
+      row.appendChild(h('td', 'wm-model', m.replace(/ \((default losses|baseline|JEPA redesign)\)$/, '')));
       columns.forEach(function (c, i) {
         var v = cell(m, c[0], c[1]);
         var td = h('td', null, fmt(v, c[3]));
