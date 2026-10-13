@@ -167,6 +167,32 @@ that many seconds and starts paused, so screenshots are reproducible.
   end of the block) inject rendered results into the empty
   `<div id="toy-results">` container (it is hidden while empty).
 
+## Benchmark results block and page
+
+`#result-benchmark_v31` in `index.html` and the full page `benchmark.html`
+show the protocol v3.1 campaigns of the language models (GPT-5.4 and
+Qwen3-VL-30B Thinking): the headline table, the difficulty tiers, real
+examples with the renders, frame strips, short videos, measured checks,
+verdicts and reviewer comments, and an animated pipeline. Everything is
+rendered by `static/js/benchmark/render.js` and
+`static/js/benchmark/anim_pipeline.js` from `static/data/benchmark_results.js`
+(`window.BM_RESULTS`), which `tools/extract_benchmark_results.py` generates
+from the simagent repository together with the media under
+`static/images/benchmark/` (480 px JPEG renders, 4-frame strips) and
+`static/media/benchmark/` (480 px H.264 clips, two seconds each):
+
+```bash
+/path/to/simagent/.envs/isaac/bin/python tools/extract_benchmark_results.py   # needs Pillow and imageio-ffmpeg
+python3 tools/check_page.py && python3 tools/check_page.py --page benchmark.html
+```
+
+The example tasks are listed in `EXAMPLES` at the top of the extractor (a mix
+of rooms, task families and verdicts); composite examples are picked
+automatically, one per family. Campaigns that are still running show their
+evaluated attempts and a "still running" note; re-run the extractor to refresh.
+Models with reasoning switched off, feedback rounds and the yes/no questions are
+deliberately not shown.
+
 ## Template and license
 
 The page layout is adapted from the [Nerfies](https://nerfies.github.io)

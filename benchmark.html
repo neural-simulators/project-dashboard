@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Benchmark results: language models editing physical scenes</title>
+  <meta name="description" content="GPT-5.4 and Qwen3-VL-30B Thinking edit rigid-body indoor scenes from instructions; the PhysX simulator judges every answer, with real examples.">
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="stylesheet" href="./static/css/project.css">
+  <link rel="stylesheet" href="./static/css/benchmark.css">
+  <link rel="icon" href="./static/images/favicon.svg">
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script defer src="./static/js/project.js"></script>
+  <script defer src="./static/data/benchmark_results.js"></script>
+  <script defer src="./static/js/benchmark/render.js"></script>
+  <script defer src="./static/js/benchmark/anim_pipeline.js"></script>
+</head>
+<body>
+
+<section class="hero wm-hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-2 publication-title">Can a language model edit a physical scene?</h1>
+          <h2 class="subtitle is-4 wm-subtitle">GPT-5.4 and Qwen3-VL-30B Thinking rearrange furniture and launch objects in simulated rooms; the PhysX simulator judges every answer</h2>
+          <p class="wm-hero-note">Every number, picture and video below is a real record of the benchmark.
+            <a href="./index.html#results">Back to the landing page</a>.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="wm-panel" id="benchmark">
+<section class="section">
+<div class="container is-max-desktop">
+
+  <div class="wm-section" id="bm-plain">
+    <h2 class="title is-4">In plain words</h2>
+    <ol class="bm-points">
+      <li><strong>The task.</strong> A simulated living room with 24 to 34 objects and an instruction in everyday language: "bring the red chair closer to the table",
+        "roll the red ball so that it hits the blue ball within one and a half seconds", "toss the red ball over the rim of the blue open box".</li>
+      <li><strong>What the model gets.</strong> Two rendered views of the room and the scene as a list of objects with their positions, sizes, masses and friction,
+        plus the rules by which the answer will be checked. One call, no tools, no second try.</li>
+      <li><strong>What it returns.</strong> For a <em>static edit</em>: the new position and orientation of each object it moves. For a <em>launch task</em>: one
+        velocity for one object (written as a small program in the main runs, or directly as numbers in the newest run).</li>
+      <li><strong>How it is judged.</strong> The answer is applied in the PhysX physics engine exactly as sent. The simulator then measures what the instruction
+        asked for (distances, angles, contacts, where things end up, whether they came to rest) and whether anything overlaps or leaves the room.
+        A separate reviewer AI looks at the rendered result and comments; its opinion is recorded but can never overturn a measurement.</li>
+    </ol>
+  </div>
+
+  <div class="wm-section" id="bm-pipeline">
+    <h2 class="title is-4">The pipeline, animated</h2>
+    <p class="bm-lead">Five stages, from the room to the verdict. The texts quote one real GPT-5.4 attempt; switch between a static edit and a launch task.</p>
+    <div class="wm-anim" id="bm-anim-pipeline">
+      <div class="bm-toggle">
+        <button class="button is-small is-light" type="button" data-kind="static" aria-pressed="true">Static edit (room 1: book between the cups)</button>
+        <button class="button is-small is-light" type="button" data-kind="launch" aria-pressed="false">Launch task (room 1: hit the blue ball)</button>
+      </div>
+      <div class="wm-svg-scroll">
+        <svg class="wm-diagram" viewBox="0 0 900 192" role="img" aria-label="Pipeline: scene and instruction, language model, answer, PhysX simulation, verdict and reviewer."></svg>
+      </div>
+      <div class="wm-controls">
+        <button class="button is-small is-light bm-play" type="button" aria-pressed="true">Pause</button>
+        <p class="wm-caption"></p>
+      </div>
+    </div>
+    <h3 class="title is-5">What goes in and what comes out, on the static example</h3>
+    <div class="bm-io" data-bm="io" data-sample="static"></div>
+    <details class="bm-more"><summary>The same for the launch example</summary>
+      <div class="bm-io" data-bm="io" data-sample="launch"></div>
+    </details>
+  </div>
+
+  <div class="wm-section" id="bm-results">
+    <h2 class="title is-4">Results at a glance</h2>
+    <p class="bm-lead">Goal met means every measured check passed in the simulator. An answer the model could not produce in the required form counts as a failure
+      and is listed separately. Random answers are launches drawn uniformly inside the allowed range, or for static edits a random placement of the object on its
+      surface; their pass rate tells how much of a task is luck.</p>
+    <div class="table-container" data-bm="table"></div>
+    <p class="content">
+      <strong>What stands out.</strong> GPT-5.4 meets the goal in most tasks of every finished set, including the throws over a barrier or box rim, where a random launch
+      almost never works. Qwen3-VL-30B Thinking solves fewer than half of the tasks in every set; on the launch tasks a sizeable share of its program answers never
+      produced a usable launch at all. Asked for the velocity directly as numbers instead of a program, the Qwen model does better (last complete row of the table once
+      the run finishes), so part of its gap was the programming, not the physics. The reviewer AI agreed with the simulator on 99 percent of the attempts it saw.
+    </p>
+    <h3 class="title is-5">How hard is a task?</h3>
+    <p class="content">We grade difficulty by luck: for every task we draw random answers from its own allowed range, run them through the same checks, and count the
+      passes. A task that random answers pass half the time is easy; one they almost never pass is hard. Every static edit and every throw is hard by this measure;
+      the floor launches spread across all three tiers. The counts below cover the static edits, launches and throws.</p>
+    <div class="bm-tiers" data-bm="tiers"></div>
+  </div>
+
+  <div class="wm-section" id="bm-static">
+    <h2 class="title is-4">Static edits: examples</h2>
+    <p class="bm-lead">Six rooms, six kinds of edit. Left to right: the room the model saw, one reference answer, and the two models' results rendered exactly as
+      answered. Under each card: the measured checks, the verdict and the reviewer's comment.</p>
+    <div data-bm="examples" data-type="static"></div>
+  </div>
+
+  <div class="wm-section" id="bm-launch">
+    <h2 class="title is-4">Launch tasks: examples</h2>
+    <p class="bm-lead">The strips show the simulation at 0, 0.67, 1.33 and 2 seconds; hover a card to play its videos together. The reference launch is one
+      way to meet the goal, not the only one.</p>
+    <div data-bm="examples" data-type="launch"></div>
+  </div>
+
+  <div class="wm-section" id="bm-throw">
+    <h2 class="title is-4">Throws over a barrier or box rim: examples</h2>
+    <p class="bm-lead">The ball must fly: a launch along the floor cannot solve these, and random launches succeed about one time in ten.</p>
+    <div data-bm="examples" data-type="throw"></div>
+  </div>
+
+  <div class="wm-section" id="bm-direct">
+    <h2 class="title is-4">Velocity as numbers instead of a program</h2>
+    <p class="bm-lead">The same launch and throw tasks, answered with the velocity directly as JSON. This removes programming skill from the measurement and leaves
+      only the physical judgment.</p>
+    <div data-bm="examples" data-type="direct"></div>
+  </div>
+
+  <div class="wm-section" id="bm-composite">
+    <h2 class="title is-4">Composite tasks: several objects at once</h2>
+    <p class="bm-lead">The newest and hardest set: knock a chair over, shove the dining table half a metre with the cups still on it, and throw the ball over the
+      barrier, all in one answer with one velocity per object. Every requirement must hold at once, and the launched objects can disturb each other.
+      Six task families in fourteen rooms.</p>
+    <div data-bm="examples" data-type="composite"></div>
+  </div>
+
+  <div class="wm-section" id="bm-status">
+    <h2 class="title is-4">Status</h2>
+    <div data-bm="status"></div>
+    <p class="wm-note">Variants with reasoning switched off, feedback rounds and the yes/no forecasting questions are not shown here.</p>
+  </div>
+
+</div>
+</section>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+          <p>This website is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+            The page layout is adapted from the <a href="https://nerfies.github.io">Nerfies</a> project page template.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -84,9 +84,10 @@ def is_local(url):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--root", default=str(Path(__file__).resolve().parents[1]))
+    parser.add_argument("--page", default="index.html", help="page to check; the block convention is enforced for index.html only")
     args = parser.parse_args(argv)
     root = Path(args.root)
-    text = (root / "index.html").read_text(encoding="utf-8")
+    text = (root / args.page).read_text(encoding="utf-8")
     checker = Checker()
     checker.feed(text)
     checker.close()
@@ -102,7 +103,7 @@ def main(argv=None):
         if not target.is_file():
             errors.append("line %d: missing local file %s" % (line, url))
     for kind in ("proposal", "result"):
-        if not any(b[0] == kind for b in checker.blocks):
+        if args.page == "index.html" and not any(b[0] == kind for b in checker.blocks):
             errors.append("no <section class=\"section %s\"> block found" % kind)
     data = root / "static" / "data" / "world_model.js"
     if not data.is_file():
@@ -111,7 +112,7 @@ def main(argv=None):
         first_code_line = next((ln for ln in data.read_text(encoding="utf-8").splitlines() if not ln.startswith("//")), "")
         if not first_code_line.startswith("window.WM_SAMPLE"):
             errors.append("%s does not start with window.WM_SAMPLE" % data)
-    print("index.html: %d links, %d local, %d element(s) left open, %d unique id(s), %d error(s)" % (
+    print("%s: %d links, %d local, %d element(s) left open, %d unique id(s), %d error(s)" % (args.page,
         len(checker.links), local, len(checker.stack), len(checker.ids), len(errors)))
     for kind, ident, line in checker.blocks:
         print("  block: %-8s id=%s (line %d)" % (kind, ident, line))
