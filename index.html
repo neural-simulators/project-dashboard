@@ -448,8 +448,7 @@
           <li><strong>Counterfactuals already work in the right direction.</strong> On 35 PhysX-graded twin launches
             (same scene, same object, different speed) the regressor shifts its predicted end point the way PhysX did
             on 34, including 11 of the 12 tasks it never saw; the speed sweep below follows the trend but misses the
-            saturation after the collision. The stochastic variants need several samples averaged to show the same
-            behaviour.</li>
+            saturation after the collision. A single sample of the flow model is noisier (26 of 35); its fair test, the average of several samples, is still being computed.</li>
         </ul>
       </div>
       <div class="wm-status" id="toy-status">Status: first runs complete. Next: the data generator, and scoring the predicted trajectories with the benchmark's own evaluator (goal satisfaction, contacts, penetration).</div>
