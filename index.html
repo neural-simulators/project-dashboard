@@ -419,21 +419,40 @@
   <!-- ---------- result: toy_world_model ---------- -->
   <section class="section result" id="result-toy_world_model">
     <div class="container is-max-desktop">
-      <h2 class="title is-3">Toy world-model experiment (first training run)</h2>
+      <h2 class="title is-3">Toy world-model experiment: first training runs</h2>
       <div class="content">
         <p>
-          Two variants are trained, A (a deterministic regressor) and B (flow matching), each in two sizes: a tiny
-          transformer of 4 layers and width 128 (1.26 M weights, over-parameterised on purpose) and a smaller one of
-          2 layers and width 64 (0.22 M weights), for 2,000 steps on 96 samples: 64 launches and drops drawn evenly
-          over the benchmark's difficulty tiers (random answers pass under 15 percent, between, or 50 percent and
-          more of the time) plus 32 static-edit settling pairs, all from stored PhysX evidence in rooms 1 to 10. Two
-          test sets of 48 samples are held out: tasks in the same rooms that were not trained on, and all of rooms 11
-          to 14. The metrics are the end-point error of the launched object in metres, the position RMSE over objects
-          that moved, the ghost-motion rate (still objects predicted to move more than 1 cm) and the rotation error in
-          degrees, each against a "nothing moves" baseline. This is a pipeline check, not a benchmark result.
+          Four variants of the world model were trained from scratch for 2,000 steps on 96 stored PhysX samples from
+          rooms 1 to 10 (64 launches and drops spread evenly over the benchmark's difficulty tiers, 32 static-edit
+          settling pairs) and scored on two held-out sets of 48: tasks never trained on in the same rooms, and all
+          of rooms 11 to 14. The variants are A, a deterministic regressor; B, rectified flow matching; Diffusion
+          Forcing; and C, the JEPA latent predictor, each with 1.26 M weights (C 1.66 M with its target encoder),
+          plus a 0.22 M version of A and B and two loss ablations. Metrics: position RMSE over the objects that
+          moved, the end-point error of the launched object, rotation error, and ghost motion (still objects
+          predicted to move more than 1 cm), each against a baseline that predicts no motion. This is a pipeline
+          check on a tiny dataset, not a benchmark result.
         </p>
+        <ul>
+          <li><strong>The models learn, and transfer weakly.</strong> On the training samples the regressor's
+            position error falls to 0.17 m against 0.91 m for "nothing moves"; on unseen tasks and unseen rooms it is
+            roughly halved (0.46 to 0.59 m against 0.93 to 1.14 m).</li>
+          <li><strong>Order of the variants:</strong> regressor and flow matching tie on the test sets, Diffusion
+            Forcing is a little behind, JEPA barely beats the baseline. That last result was expected: predicting an
+            embedding and decoding it with a linear probe helps when the target is high-dimensional and noisy, not
+            when it is an exact 15-number state.</li>
+          <li><strong>Two failures the numbers expose.</strong> Every object that stays still is predicted to move
+            more than 1 cm, and raising the weight of still objects in the loss from 0.1 to 1.0, or adding the
+            position-velocity consistency and box-overlap penalty terms, changes this little (0.84 to 0.94 for the
+            regressor, 1.0 for the flow model). Rotation is not learned at all. Both point to the data (96 samples)
+            rather than the objective; the simulator-backed data generator is the next step.</li>
+          <li><strong>Counterfactuals already work in the right direction.</strong> On 35 PhysX-graded twin launches
+            (same scene, same object, different speed) the regressor shifts its predicted end point the way PhysX did
+            on 34, including 11 of the 12 tasks it never saw; the speed sweep below follows the trend but misses the
+            saturation after the collision. The stochastic variants need several samples averaged to show the same
+            behaviour.</li>
+        </ul>
       </div>
-      <div class="wm-status" id="toy-status">Status: the first training run is in progress; its numbers will appear here.</div>
+      <div class="wm-status" id="toy-status">Status: first runs complete. Next: the data generator, and scoring the predicted trajectories with the benchmark's own evaluator (goal satisfaction, contacts, penetration).</div>
       <div class="table-container">
         <table class="table is-striped is-fullwidth wm-table" id="toy-results-table">
           <thead>
@@ -457,6 +476,10 @@
         </table>
       </div>
       <div id="toy-results"></div>
+
+      <!-- this block's data and renderer (deferred) -->
+      <script defer src="./static/data/toy_world_model.js"></script>
+      <script defer src="./static/js/toy_world_model/results.js"></script>
     </div>
   </section>
   <!-- ---------- end result: toy_world_model ---------- -->

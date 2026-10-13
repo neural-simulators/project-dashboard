@@ -88,3 +88,10 @@ body { color: var(--wm-text); }
 /* web figures (SVG, 900 px wide) stay readable: scroll on narrow screens instead of shrinking */
 .wm-web-figure { display: block; width: 900px; max-width: none; height: auto; margin: 0 auto; }
 .wm-count td:last-child { white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+/* results block: rendered table and charts */
+.wm-table td.wm-best { font-weight: 600; color: #1f6feb; }
+.wm-table tr.wm-baseline td { color: #767676; }
+.wm-table td.wm-muted { color: #767676; white-space: nowrap; }
+.wm-chart-title { font-weight: 600; margin: 0 0 .35rem; color: #333; }
+.wm-table td.wm-model { white-space: nowrap; }
