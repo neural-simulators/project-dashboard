@@ -17,6 +17,14 @@
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function pct(a, b) { return b ? Math.round(100 * a / b) + '%' : ''; }
   function fmtVec(v) { return '(' + v.map(function (x) { return (Math.round(x * 100) / 100).toFixed(2); }).join(', ') + ')'; }
+  function launches(list) {   /* one line per launched object; the spin only when there is one */
+    if (!list || !list.length) return '';
+    return list.map(function (a) {
+      var spin = a.angular_velocity && a.angular_velocity.some(function (x) { return Math.abs(x) > 1e-9; });
+      return '<span class="bm-launch">' + (list.length > 1 && a.label ? esc(a.label) + ': ' : 'launch ') + esc(fmtVec(a.linear_velocity)) + ' m/s' +
+        (spin ? ', spin ' + esc(fmtVec(a.angular_velocity)) + ' rad/s' : '') + '</span>';
+    }).join('');
+  }
   function badge(status) {
     var cls = status === 'pass' ? 'pass' : (status === 'fail' ? 'fail' : 'noanswer');
     var text = status === 'pass' ? 'goal met' : (status === 'fail' ? 'goal failed' : (status === 'no answer' ? 'no usable answer' : status));
@@ -57,7 +65,8 @@
         h += '<td class="' + cls + '"><b>' + m.passed + '</b> of ' + t.tasks + ' <span class="pc">' + pct(m.passed, t.tasks) + '</span>' +
           (m.no_answer ? '<span class="sub">' + m.no_answer + ' without a usable answer</span>' : '') + '</td>';
       });
-      h += '<td class="num">' + (t.chance_mean == null ? '<span class="muted">in progress</span>' : Math.round(100 * t.chance_mean) + '%') + '</td></tr>';
+      h += '<td class="num">' + (t.chance_mean == null ? '<span class="muted">in progress</span>' : Math.round(100 * t.chance_mean) + '%' +
+        (t.graded < t.tasks ? '<span class="sub">' + t.graded + ' of ' + t.tasks + ' tasks graded so far</span>' : '')) + '</td></tr>';
     });
     h += '</tbody></table>';
     h += '<p class="bm-legend"><span style="--bm-swatch:#eaf6ec">the better of the two</span><span style="--bm-swatch:#fdecee">under 40% of the tasks</span><span style="--bm-swatch:#fff8e8">the two models differ by 30 points or more</span></p>';
@@ -90,18 +99,16 @@
   }
   function dynamicCard(ex, headline) {
     var cols = [];
-    var tl = ex.truth.launch && ex.truth.launch.length ? ex.truth.launch.map(function (a) { return fmtVec(a.linear_velocity); }).join(' ') + ' m/s' : '';
     cols.push('<div class="bm-col"><figure><video src="./' + ex.truth.video + '" poster="./' + ex.truth.poster + '" muted playsinline preload="metadata" aria-label="Reference launch in the simulator"></video>' +
-      '<figcaption><b>Reference</b> <span class="bm-badge truth">one launch that works</span>' + (tl ? '<span class="bm-launch">launch ' + esc(tl) + '</span>' : '') + '</figcaption></figure>' +
+      '<figcaption><b>Reference</b> <span class="bm-badge truth">' + (ex.truth.launch && ex.truth.launch.length > 1 ? 'one set of launches that works' : 'one launch that works') + '</span>' + launches(ex.truth.launch) + '</figcaption></figure>' +
       '<p class="bm-what">What is checked</p>' + checkList(ex.truth.requirements) + '</div>');
     KEYS.forEach(function (k) {
       var m = ex.models[k];
-      var launch = m.answer && m.answer.length ? m.answer.map(function (a) { return fmtVec(a.linear_velocity); }).join(' ') + ' m/s' : '';
       var media = m.video ? '<video src="./' + m.video + '" poster="./' + m.poster + '" muted playsinline preload="metadata" aria-label="' + esc(P[k]) + ' launch in the simulator"></video>'
         : '<div class="bm-noimg"><span>' + esc(m.error || 'no usable answer') + '</span></div>';
-      cols.push('<div class="bm-col"><figure>' + media + '<figcaption><b>' + esc(P[k]) + '</b> ' + badge(m.status) + (launch ? '<span class="bm-launch">launch ' + esc(launch) + '</span>' : '') + '</figcaption></figure>' +
+      cols.push('<div class="bm-col"><figure>' + media + '<figcaption><b>' + esc(P[k]) + '</b> ' + badge(m.status) + launches(m.answer) + '</figcaption></figure>' +
         '<p class="bm-what">Measured</p>' + (m.lines.length ? checkList(m.lines) : '<p class="bm-meta">nothing to simulate</p>') +
-        (m.forecast_error_m != null ? '<p class="bm-meta">Its own forecast of where the ball ends: off by ' + m.forecast_error_m + ' m.</p>' : '') + reviewer(m.reviewer) + '</div>');
+        (m.forecast_error_m != null ? '<p class="bm-meta">Its own forecast of where the launched object ends: off by ' + m.forecast_error_m + ' m.</p>' : '') + reviewer(m.reviewer) + '</div>');
     });
     return '<div class="bm-card bm-dynamic">' + header(ex, headline) +
       '<div class="bm-playrow"><button class="button is-small is-light" type="button">Play all three together</button><span class="bm-meta">or hover over the clips</span></div>' +

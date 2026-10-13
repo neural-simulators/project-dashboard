@@ -53,7 +53,9 @@ EXAMPLES = {
               'b2_room_05_toss_over_rim_into_box', 'b2_room_11_lob_over_barrier_into_box'],
     'direct': ['b2_room_02_ball_hit_blue_deadline', 'b2_room_10_off_table_into_open_box', 'b2_room_01_toss_over_rim_into_box',
                'b2_room_14_lob_over_barrier_into_box'],
-    'composite': None,  # chosen automatically: the first evaluated case of each family
+    # one task where GPT-5.4 meets the goal (three objects) and one where it fails (the chair does not tip); a Qwen success is
+    # appended automatically when one exists (pick_contrasts covers the case where none of these is evaluated yet)
+    'composite': ['b2_room_03_topple_chair_shove_table_and_wall_rebound', 'b2_room_01_shove_table_and_topple_chair'],
 }
 FAMILY_LABELS = {
     'chair_approach': 'Bring a chair closer to the table', 'chairs_gather_and_face': 'Gather two chairs and face the table',
@@ -106,6 +108,29 @@ def status_of(folder):
     return 'pending', record, {}, reviewed
 
 
+def pick_contrasts(rows):
+    """Examples chosen by verdict: one where GPT-5.4 meets the goal and one where it fails, covering a Qwen success and a Qwen
+    failure when they exist; a simulated failure (with a clip) is preferred over a rejected answer, and families differ."""
+    done = {t: r for t, r in rows.items() if all(r['models'][p]['status'] in ('pass', 'fail', 'no answer') for p in PROVIDERS)}
+    def find(gpt, qwen, avoid):
+        for task_id in sorted(done):
+            r = done[task_id]
+            if r['family'] in avoid:
+                continue
+            if r['models']['gpt54']['status'] == gpt and r['models']['qwen30t']['status'] in qwen:
+                return task_id
+        return None
+    picks = []
+    for gpt, qwen in (('pass', ('pass',)), ('fail', ('fail',)), ('pass', ('fail',)), ('fail', ('pass', 'no answer')), ('pass', ('no answer',)), ('fail', ('no answer',))):
+        if len(picks) >= 2 and any(done[t]['models']['qwen30t']['status'] == 'pass' for t in picks) and \
+                any(done[t]['models']['gpt54']['status'] == 'fail' for t in picks) or len(picks) >= 3:
+            break
+        task_id = find(gpt, qwen, {done[t]['family'] for t in picks})
+        if task_id and task_id not in picks:
+            picks.append(task_id)
+    return picks
+
+
 # ---------- plain-language wording ----------
 def name_of(labels, key):
     return 'the ' + labels.get(key, key)
@@ -137,15 +162,24 @@ def predicate_text(p, labels):
     return kind.replace('_', ' ')
 
 
-def region_name(goal, manifest):
+def region_name(goal, manifest, spec=None):
     for container in manifest.get('containers', []):
         inner = container.get('interior_bounds_world_m') or {}
         if inner and all(abs(a - b) < 1e-6 for a, b in zip(inner.get('min', []), goal['bounds_min'])):
             return 'inside the ' + container['label']
+    room = manifest['room_bounds_m']
+    if goal['bounds_min'][0] <= room['min'][0] + 1e-6 and goal['bounds_max'][0] >= room['max'][0] - 1e-6 and goal['bounds_min'][2] > .3:
+        return 'still up on the table'          # composite shove: whatever stood on the table must stay on it
+    kinds = {(g['kind'], g.get('object_id')) for g in (spec or {}).get('goal_requirements', [])}
+    if ('tilt', goal['object_id']) in kinds:
+        return 'near where it stood'
+    if any(g['kind'] == 'contact_deadline' and goal['object_id'] in g['object_ids'] and any('wall' in str(i) or i == 'o004' for i in g['object_ids'])
+           for g in (spec or {}).get('goal_requirements', [])):
+        return 'back on the open floor in front of the wall'
     return 'inside the target area'
 
 
-def requirement_text(g, labels, manifest):
+def requirement_text(g, labels, manifest, spec=None):
     n = lambda k: name_of(labels, k)
     kind = g['kind']
     if kind == 'contact_deadline':
@@ -158,7 +192,8 @@ def requirement_text(g, labels, manifest):
         pairs = g['pairs']
         return ', then '.join('%s hits %s' % (n(a), n(b)) for a, b in pairs) + ', within %.1f s' % g.get('deadline_s', 2.)
     if kind == 'end_region':
-        return '%s ends %s' % (n(g['object_id']), region_name(g, manifest))
+        where = region_name(g, manifest, spec)
+        return ('%s stays on the table' % n(g['object_id'])) if where == 'still up on the table' else '%s ends %s' % (n(g['object_id']), where)
     if kind == 'displacement':
         return '%s moves %.2f to %.2f m' % (n(g['object_id']), g.get('min_distance_m', 0.), min(g.get('max_distance_m', 4.), 4.))
     if kind == 'speed':
@@ -338,10 +373,11 @@ def main():
 
         wanted = EXAMPLES.get(key)
         if wanted is None:
-            seen, wanted = set(), []
-            for task_id in sorted(rows):
-                if rows[task_id]['family'] not in seen and all(rows[task_id]['models'][p]['status'] in ('pass', 'fail', 'no answer') for p in PROVIDERS):
-                    seen.add(rows[task_id]['family']); wanted.append(task_id)
+            wanted = pick_contrasts(rows)
+        elif key == 'composite':
+            qwen_pass = [t for t in sorted(rows) if rows[t]['models']['qwen30t']['status'] == 'pass' and t not in wanted]
+            if qwen_pass and not any(rows.get(t, {}).get('models', {}).get('qwen30t', {}).get('status') == 'pass' for t in wanted):
+                wanted = wanted + qwen_pass[:1]
         chosen = []
         for task_id in wanted:
             if task_id not in rows or any(rows[task_id]['models'][p]['status'] == 'pending' for p in PROVIDERS):
@@ -358,9 +394,9 @@ def main():
                        'chance': row['chance'], 'tier': row['tier'], 'models': {}, 'truth': {}}
             out_images, out_media = images_dir / task_id, media_dir / task_id
             if dynamic:
-                example['truth']['requirements'] = [requirement_text(g, labels, manifest) for g in spec.get('goal_requirements', [])]
+                example['truth']['requirements'] = [requirement_text(g, labels, manifest, spec) for g in spec.get('goal_requirements', [])]
                 launch = load(witness / 'witness_launch.json') if (witness / 'witness_launch.json').is_file() else None
-                example['truth']['launch'] = launch
+                example['truth']['launch'] = [dict(a, label=labels.get(a['id'], a['id'])) for a in launch] if launch else launch
                 save_jpeg(witness / 'frames' / 'frame_000.png', out_images / 'truth_poster.jpg')
                 copy_clip(witness / 'rollout.mp4', out_media / 'truth.mp4', ffmpeg)
                 example['truth'].update(poster=rel(out_images / 'truth_poster.jpg'), video=rel(out_media / 'truth.mp4'))
@@ -396,7 +432,7 @@ def main():
                     entry['error'] = 'no usable answer: ' + (record.get('error') or record.get('contract_error') or '')[:120]
                 if dynamic and result:
                     entry['lines'] = plain_goal_lines(result.get('goal_lines'))
-                    entry['answer'] = result.get('launch')
+                    entry['answer'] = [dict(a, label=labels.get(a['id'], a['id'])) for a in (result.get('launch') or [])]
                     forecast = result.get('self_prediction') or {}
                     if forecast.get('status') == 'scored':
                         entry['forecast_error_m'] = round(forecast['endpoint_error_m'], 2)
