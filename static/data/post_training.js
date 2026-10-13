@@ -6265,6 +6265,160 @@ window.POST_TRAINING_DATA = {
   ],
   "task_id": "b2_room_02_lob_over_barrier_into_box"
  },
+ "mixed": {
+  "arms": {
+   "base": "done",
+   "dpo": "done",
+   "grpo": "pending"
+  },
+  "changes": {
+   "dpo|test": {
+    "gained": [
+     {
+      "family": "box_travel_distance_band",
+      "task_id": "b2_room_06_box_travel_distance_band",
+      "tier": "easy"
+     },
+     {
+      "family": "three_ball_contact_chain",
+      "task_id": "b2_room_09_three_ball_contact_chain",
+      "tier": "hard"
+     }
+    ],
+    "lost": [],
+    "sign_test_p": 0.5
+   },
+   "dpo|train": {
+    "gained": [
+     {
+      "family": "airborne_ball_into_open_box",
+      "task_id": "b2_room_03_airborne_ball_into_open_box",
+      "tier": "easy"
+     },
+     {
+      "family": "wall_rebound_return_zone",
+      "task_id": "b2_room_04_wall_rebound_return_zone",
+      "tier": "easy"
+     },
+     {
+      "family": "box_travel_distance_band",
+      "task_id": "b2_room_05_box_travel_distance_band",
+      "tier": "medium"
+     },
+     {
+      "family": "three_ball_contact_chain",
+      "task_id": "b2_room_08_three_ball_contact_chain",
+      "tier": "hard"
+     },
+     {
+      "family": "ball_hit_blue_deadline",
+      "task_id": "b2_room_11_ball_hit_blue_deadline",
+      "tier": "medium"
+     },
+     {
+      "family": "three_ball_contact_chain",
+      "task_id": "b2_room_14_three_ball_contact_chain",
+      "tier": "hard"
+     }
+    ],
+    "lost": [
+     {
+      "family": "glancing_ball_impact",
+      "task_id": "b2_room_10_glancing_ball_impact",
+      "tier": "medium"
+     }
+    ],
+    "sign_test_p": 0.125
+   }
+  },
+  "dpo_sampling": {
+   "by_kind": {
+    "launch": {
+     "completions": 392,
+     "passes": 101
+    },
+    "static": {
+     "completions": 200,
+     "passes": 0
+    }
+   },
+   "group_size": 8,
+   "pairs": 38,
+   "prompts": 74
+  },
+  "dpo_training": {
+   "pair_accuracy_last": 1.0,
+   "pairs": 38,
+   "prompts": 21,
+   "steps": 10
+  },
+  "groups": {
+   "test|launch|easy": {
+    "base": 1,
+    "chance": 2.5,
+    "dpo": 2,
+    "gpt54": 4,
+    "qwen30t": 3,
+    "tasks": 4
+   },
+   "test|launch|hard": {
+    "base": 3,
+    "chance": 2.0,
+    "dpo": 4,
+    "gpt54": 19,
+    "qwen30t": 10,
+    "tasks": 21
+   },
+   "test|launch|medium": {
+    "base": 2,
+    "chance": 1.75,
+    "dpo": 2,
+    "gpt54": 6,
+    "qwen30t": 3,
+    "tasks": 6
+   },
+   "test|static|all": {
+    "base": 0,
+    "chance": 0.4133,
+    "dpo": 0,
+    "gpt54": 15,
+    "qwen30t": 6,
+    "tasks": 17
+   },
+   "train|launch|easy": {
+    "base": 3,
+    "chance": 4.688,
+    "dpo": 5,
+    "gpt54": 6,
+    "qwen30t": 3,
+    "tasks": 7
+   },
+   "train|launch|hard": {
+    "base": 2,
+    "chance": 3.312,
+    "dpo": 4,
+    "gpt54": 32,
+    "qwen30t": 14,
+    "tasks": 32
+   },
+   "train|launch|medium": {
+    "base": 3,
+    "chance": 3.251,
+    "dpo": 4,
+    "gpt54": 9,
+    "qwen30t": 5,
+    "tasks": 10
+   },
+   "train|static|all": {
+    "base": 0,
+    "chance": 0.1198,
+    "dpo": 0,
+    "gpt54": 22,
+    "qwen30t": 11,
+    "tasks": 25
+   }
+  }
+ },
  "results": {
   "arms": [
    {
@@ -9646,7 +9800,7 @@ window.POST_TRAINING_DATA = {
   }
  },
  "source": {
-  "generated_at": "2026-10-13T09:08:58+00:00",
+  "generated_at": "2026-10-13T14:22:04+00:00",
   "generator": "tools/extract_post_training_sample.py",
   "job_outputs": "runs/rl/poc_static10",
   "manifests": {

@@ -449,6 +449,62 @@ def experiment_record(root):
     return {"groups": groups, "rule": split["rule"]}
 
 
+MIXED_RUNS = {"base": Path("runs/rl/mixed_v1"), "dpo": Path("runs/rl/mixed_v1_dpo"), "grpo": Path("runs/rl/mixed_v1")}
+
+
+def mixed_results(root):
+    """Simulator verdicts of the untrained model and each trained arm on the mixed split, with chance and reference rates.
+
+    Arms without both evaluations are reported as pending. For every trained arm the tasks it gained or lost
+    against the untrained model are listed, with an exact two-sided sign test on those discordant tasks.
+    """
+    split = {t["task_id"]: t for t in load(root / "data/rl/mixed_v1/split.json")["tasks"]}
+    arms = {}
+    for arm, run in MIXED_RUNS.items():
+        parts = {}
+        for part in ("train", "test"):
+            path = root / run / ("eval_%s_%s" % (arm, part)) / "summary.json"
+            if path.is_file():
+                parts[part] = {r["task_id"]: r for r in load(path)["rows"]}
+        arms[arm] = parts if len(parts) == 2 else None
+    groups, out = {}, {"arms": {}, "groups": {}, "changes": {}}
+    for task_id, row in split.items():
+        key = "%s|%s|%s" % (row["split"], row["kind"], row["tier"] if row["kind"] == "launch" else "all")
+        g = groups.setdefault(key, {"tasks": 0, "chance": 0.0, "qwen30t": 0, "gpt54": 0})
+        g["tasks"] += 1
+        g["chance"] += row["chance_rate"] or 0.0
+        for provider in ("qwen30t", "gpt54"):
+            g[provider] += (row["references"] or {}).get(provider) in PASSES
+        for arm, parts in arms.items():
+            if parts:
+                g[arm] = g.get(arm, 0) + bool(parts[row["split"]][task_id]["pass"])
+    out["groups"] = groups
+    for arm, parts in arms.items():
+        out["arms"][arm] = "done" if parts else "pending"
+        if not parts or arm == "base":
+            continue
+        for part in ("train", "test"):
+            base, trained = arms["base"][part], parts[part]
+            gained = sorted(t for t in trained if trained[t]["pass"] and not base[t]["pass"])
+            lost = sorted(t for t in trained if base[t]["pass"] and not trained[t]["pass"])
+            n, k = len(gained) + len(lost), min(len(gained), len(lost))
+            p_value = min(1.0, 2 * sum(math.comb(n, i) for i in range(k + 1)) / 2 ** n) if n else 1.0
+            out["changes"]["%s|%s" % (arm, part)] = {"gained": [{"task_id": t, "family": split[t]["family"], "tier": split[t]["tier"]} for t in gained],
+                                                     "lost": [{"task_id": t, "family": split[t]["family"], "tier": split[t]["tier"]} for t in lost],
+                                                     "sign_test_p": p_value}
+    sampling = root / MIXED_RUNS["dpo"] / "rollouts_base/summary.json"
+    receipt = root / "checkpoints/rl/mixed_v1_dpo/dpo/training_receipt.json"
+    if sampling.is_file():
+        sample = load(sampling)
+        out["dpo_sampling"] = {"prompts": sample["prompts"], "group_size": sample["group_size"], "pairs": sample["pairs_written"],
+                               "by_kind": {k: {"completions": v["completions"], "passes": v["passes"]} for k, v in sample["by_kind"].items()}}
+    if receipt.is_file():
+        r = load(receipt)
+        out["dpo_training"] = {"pairs": r["pairs"], "prompts": r["prompts"], "steps": r["global_step"],
+                               "pair_accuracy_last": r["metrics"].get("rewards/accuracies", {}).get("last")}
+    return out
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     repo = Path(__file__).resolve().parents[1]
@@ -566,7 +622,7 @@ def main(argv=None):
     group = launch_group(root, LAUNCH_GROUP_TASK, next(e for e in examples if e["task_id"] == LAUNCH_GROUP_TASK))
     sample = {"scenes": {manifest["scene_id"]: scene_record(manifest), manifest8["scene_id"]: scene_record(manifest8)},
               "static_case": static_case, "dpo_pair": dpo_pair, "results": results, "constants": CONSTANTS,
-              "examples": examples, "launch_group": group, "experiment": experiment_record(root),
+              "examples": examples, "launch_group": group, "experiment": experiment_record(root), "mixed": mixed_results(root),
               "source": {"manifests": {tid: str(b.relative_to(root) / "scene_manifest.json") for tid, b in bundles.items()},
                          "private_specs": {tid: "evaluation/benchmark_v2/%s.json" % tid for tid in bundles},
                          "witness_receipt": str(QUALIFICATION / "cases" / STATIC_TASK / "qualification.json"),

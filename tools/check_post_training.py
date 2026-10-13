@@ -18,7 +18,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from check_page import Checker, is_local  # noqa: E402
 
 REQUIRED_IDS = ('proposal-post_training', 'result-post_training_poc', 'pt-examples', 'pt-grpo', 'pt-dpo', 'pt-experiment-table',
-                'pt-strip', 'pt-status', 'pt-results-table', 'pt-failed-checks')
+                'pt-mixed-table', 'pt-mixed-findings')
 
 
 def js_balance(text):

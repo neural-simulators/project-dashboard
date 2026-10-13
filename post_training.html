@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="./static/css/bulma.min.css?v=58b2865922">
   <link rel="stylesheet" href="./static/css/index.css?v=747bae5899">
   <link rel="stylesheet" href="./static/css/project.css?v=bb5cffe6b9">
-  <link rel="stylesheet" href="./static/css/post_training.css?v=7a2a57df7f">
+  <link rel="stylesheet" href="./static/css/post_training.css?v=750ba8efc2">
   <link rel="icon" href="./static/images/favicon.svg">
   <!-- standalone preview of the two post-training blocks; tools/install_post_training_block.py copies them into index.html -->
   <script defer src="./static/js/project.js?v=e201439f2a"></script>
@@ -178,12 +178,12 @@
         <div class="table-container">
           <table class="table is-fullwidth is-narrow wm-table pt-experiment" id="pt-experiment-table"></table>
         </div>
-        <p class="wm-note">Numbers for the trained models appear in the Results tab when the run finishes.</p>
+        <p class="wm-note">The trained models' numbers are in the Results tab: DPO has finished, GRPO is still training.</p>
       </div>
 
       <!-- this block's data and script (deferred: they run after the page is parsed, in this order, after project.js) -->
-      <script defer src="./static/data/post_training.js?v=cbf8b14fdb"></script>
-      <script defer src="./static/js/post_training/main.js?v=b000f86309"></script>
+      <script defer src="./static/data/post_training.js?v=691bd4a2fc"></script>
+      <script defer src="./static/js/post_training/main.js?v=010a381790"></script>
     </div>
   </section>
   <!-- ---------- end proposal: post_training ---------- -->
@@ -191,36 +191,17 @@
   <!-- ---------- result: post_training_poc ---------- -->
   <section class="section result" id="result-post_training_poc">
     <div class="container is-max-desktop">
-      <h2 class="title is-3">Post-training: first run and the run in progress</h2>
+      <h2 class="title is-3">Post-training the 7B model: first results</h2>
       <div class="content">
-        <p>The first run trained the 7B model on ten static edits, one per task family, and judged every arm on those same ten tasks: an
-          overfitting check of the machinery, not a benchmark result. It completed the untrained model's evaluation and the sampling that
-          feeds the offline baselines before it was stopped to free GPUs. The run in progress is the real first experiment: a mix of static
-          edits and launch tasks of every difficulty tier, split into training and held-out test tasks, with the simulator's verdicts
-          for the untrained model, GRPO and DPO reported next to the campaign models on the same tasks.</p>
+        <p>Qwen2.5-7B was trained on 74 benchmark tasks (25 static edits and 49 launches of every difficulty) and then judged by the
+          simulator on 48 held-out tasks it never trained on. DPO has finished; GRPO is still training.</p>
       </div>
-      <div class="wm-status" id="pt-status">Status: loading the records of the first run.</div>
-      <div class="table-container">
-        <table class="table is-striped is-fullwidth wm-table" id="pt-results-table">
-          <thead><tr><th>Arm</th><th>Simulator passes on the 10 training tasks</th><th>Valid answers</th><th>Reward-program passes</th>
-            <th>Reward-program pass rate on 50 unseen procedural prompts</th><th>Training</th></tr></thead>
-          <tbody><tr><td>untrained model</td><td class="pending">pending</td><td class="pending">pending</td><td class="pending">pending</td><td class="pending">pending</td><td class="pending">pending</td></tr></tbody>
-        </table>
-      </div>
-      <h3 class="title is-6">Why the untrained model fails (checks failed per case, 10 cases)</h3>
-      <div id="pt-failed-checks" class="pt-mono">pending</div>
-      <h3 class="title is-6">Reward of 16 sampled answers per prompt, one row per training task</h3>
-      <div class="wm-anim pt-anim pt-strip">
-        <canvas id="pt-strip" width="900" height="300" aria-label="Reward of each of 16 samples for each of the ten prompts"></canvas>
-      </div>
-      <p class="wm-note">Every row is one prompt; every dot one sampled answer; the amber tick is the group mean. Rows whose dots spread carry a
-        learning signal (10 of 10 did). The single dot at 1.0 in room 8 is the one answer of 160 that passed every check; 9 answers in other
-        rooms were not valid edits and scored 0.05.</p>
-      <h3 class="title is-6">Run in progress: mixed static edits and launch tasks with a held-out test set</h3>
-      <div class="wm-status" id="pt-mixed-status">Status: in progress. 74 training tasks (25 static edits, 49 launch tasks: 7 easy, 10 medium, 32 hard) and 48 held-out
-        test tasks (17 static edits, 31 launch tasks: 4 easy, 6 medium, 21 hard). On the test tasks the 30B thinking model passes 6 of 17 static edits and
-        16 of 31 launches; GPT-5.4 passes 15 and 29.</div>
-      <div id="pt-mixed-results"></div>
+      <h3 class="title is-6">Held-out tasks passed in the simulator</h3>
+      <div class="table-container"><table class="table is-fullwidth is-narrow wm-table pt-mixed-table" id="pt-mixed-table"></table></div>
+      <ul class="pt-findings" id="pt-mixed-findings"></ul>
+      <p class="wm-note">"Random answers" is the number of tasks random launches inside the allowed range (random placements for static
+        edits) would pass on average, measured in the simulator for each task. Difficulty tiers use the same measurement. DPO learned from
+        pairs of the model's own answers to the training tasks, a better and a worse one, scored as described in the Post-training tab.</p>
     </div>
   </section>
   <!-- ---------- end result: post_training_poc ---------- -->

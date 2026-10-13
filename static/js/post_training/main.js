@@ -919,8 +919,52 @@
     html += '<tr><td>Held-out test tasks</td>' + cols.map(function (c) { return '<td>' + cell('test', c, 'tasks') + '</td>'; }).join('') + '</tr>';
     html += '<tr><td>Test tasks passed by Qwen3-VL-30B thinking</td>' + cols.map(function (c) { return '<td>' + cell('test', c, 'qwen30t') + '</td>'; }).join('') + '</tr>';
     html += '<tr><td>Test tasks passed by GPT-5.4</td>' + cols.map(function (c) { return '<td>' + cell('test', c, 'gpt54') + '</td>'; }).join('') + '</tr>';
-    html += '<tr><td>Test tasks passed by the untrained 7B</td>' + cols.map(function () { return '<td class="pending">in progress</td>'; }).join('') + '</tr></tbody>';
-    table.innerHTML = html;
+    var M = D.mixed || { arms: {}, groups: {} };
+    [['base', 'Test tasks passed by the untrained 7B'], ['dpo', '... after DPO'], ['grpo', '... after GRPO']].forEach(function (arm) {
+      var done = M.arms[arm[0]] === 'done';
+      html += '<tr><td>' + arm[1] + '</td>' + cols.map(function (c) { var b = M.groups['test|' + c[0] + '|' + c[1]]; return done && b ? '<td>' + b[arm[0]] + '</td>' : '<td class="pending">in progress</td>'; }).join('') + '</tr>';
+    });
+    table.innerHTML = html + '</tbody>';
+  }
+
+  var FAMILY_NAMES = { box_travel_distance_band: 'slide the box a set distance', three_ball_contact_chain: 'three-ball chain', ball_hit_blue_deadline: 'hit the blue ball in time',
+                       lob_over_barrier_into_box: 'lob over a barrier into a box', toss_over_rim_into_box: 'toss into a box', wall_rebound_return_zone: 'wall rebound',
+                       airborne_ball_into_open_box: 'airborne ball into a box', glancing_ball_impact: 'glancing impact' };
+  function familyName(f) { return FAMILY_NAMES[f] || f.replace(/_/g, ' '); }
+  function fillMixed() {
+    var M = D.mixed, table = document.getElementById('pt-mixed-table'), status = document.getElementById('pt-mixed-status'), list = document.getElementById('pt-mixed-findings');
+    if (!M || !table) { return; }
+    var g = function (kind, tier) { return M.groups['test|' + kind + '|' + tier] || {}; };
+    var tiers = ['easy', 'medium', 'hard'], launchTotal = function (key) { return tiers.reduce(function (sum, t) { return sum + (g('launch', t)[key] || 0); }, 0); };
+    var nLaunch = launchTotal('tasks'), nStatic = g('static', 'all').tasks || 0;
+    var rows = [['chance', 'Random answers (expected)', 'chance'], ['base', 'Qwen2.5-7B, untrained', 'base'], ['dpo', 'Qwen2.5-7B after DPO', 'dpo'],
+                ['grpo', 'Qwen2.5-7B after GRPO', 'grpo'], ['qwen30t', 'Qwen3-VL-30B thinking', 'qwen30t'], ['gpt54', 'GPT-5.4', 'gpt54']];
+    var html = '<thead><tr><th>Model</th><th>Static edits (' + nStatic + ')</th>' + tiers.map(function (t) { return '<th>Launches, ' + t + ' (' + (g('launch', t).tasks || 0) + ')</th>'; }).join('') +
+      '<th>All launches (' + nLaunch + ')</th></tr></thead><tbody>';
+    rows.forEach(function (r) {
+      var pending = (r[0] === 'base' || r[0] === 'dpo' || r[0] === 'grpo') && M.arms[r[0]] !== 'done';
+      var cls = r[0] === 'dpo' || r[0] === 'grpo' ? ' class="pt-row-trained"' : (r[0] === 'chance' ? ' class="pt-row-chance"' : '');
+      if (pending) { html += '<tr' + cls + '><td>' + r[1] + '</td><td colspan="5" class="pending">still training</td></tr>'; return; }
+      var fmtv = function (v) { return r[0] === 'chance' ? fmt(v, 1) : String(v); }, total = launchTotal(r[2]);
+      html += '<tr' + cls + '><td>' + r[1] + '</td><td>' + fmtv(g('static', 'all')[r[2]] || 0) + '</td>' + tiers.map(function (t) { return '<td>' + fmtv(g('launch', t)[r[2]] || 0) + '</td>'; }).join('') +
+        '<td><span class="pt-bar" style="width:6rem"><span style="width:' + fmt(100 * total / nLaunch, 1) + '%;background:' + (r[0] === 'chance' ? '#adb5bd' : (r[0] === 'base' ? '#7fa6e0' : (r[0] === 'dpo' || r[0] === 'grpo' ? C.blue : '#55606e'))) + '"></span></span> <b>' + fmtv(total) + '</b></td></tr>';
+    });
+    table.innerHTML = html + '</tbody>';
+    if (status) { status.textContent = 'DPO: finished. GRPO: still training; its row fills in when it is evaluated.'; }
+    if (!list || M.arms.dpo !== 'done') { return; }
+    var test = M.changes['dpo|test'], train = M.changes['dpo|train'], base = launchTotal('base'), dpo = launchTotal('dpo'), chance = launchTotal('chance');
+    var trainG = function (key) { return tiers.reduce(function (sum, t) { return sum + ((M.groups['train|launch|' + t] || {})[key] || 0); }, 0); };
+    var names = function (items) { return items.map(function (x) { return familyName(x.family) + ', ' + x.tier; }).join('; '); };
+    var items = [
+      '<b>Held-out launches: ' + base + ' \u2192 ' + dpo + ' of ' + nLaunch + '.</b> The untrained model passes about as many as random launches would (' + fmt(chance, 1) +
+        '). After DPO it gains ' + test.gained.length + ' task' + (test.gained.length === 1 ? '' : 's') + (test.gained.length ? ' [' + esc(names(test.gained)) + ']' : '') +
+        ' and loses ' + test.lost.length + '. With this few tasks the gain is not yet reliable (sign test p = ' + fmt(test.sign_test_p, 2) + ').',
+      '<b>Training launches: ' + trainG('base') + ' \u2192 ' + trainG('dpo') + ' of ' + trainG('tasks') + '</b> (' + train.gained.length + ' gained, ' + train.lost.length + ' lost).',
+      '<b>Static edits: 0 before and after.</b> ' + (M.dpo_sampling ? 'Not one of the model\u2019s ' + M.dpo_sampling.by_kind.static.completions + ' sampled static answers passed, so DPO had no good static answer to learn from. ' : '') +
+        'GRPO\u2019s partial-credit reward is the next test of whether that can change.',
+      '<b>The gap remains large:</b> on the same ' + nLaunch + ' launches Qwen3-VL-30B thinking passes ' + launchTotal('qwen30t') + ' and GPT-5.4 ' + launchTotal('gpt54') + '.'
+    ];
+    list.innerHTML = items.map(function (it) { return '<li>' + it + '</li>'; }).join('');
   }
 
   function fillResults() {
@@ -986,6 +1030,7 @@
       Widget('pt-grpo', [grpoStaticScene(), grpoLaunchScene()], { aspect: 0.82, minH: 360, maxH: 480, representative: 2 });
       Widget('pt-dpo', [dpoStaticScene(), dpoLaunchScene()], { aspect: 0.82, minH: 360, maxH: 480, representative: 0 });
       fillExperiment();
+      fillMixed();
       fillResults();
       var pending = null;
       function redraw() { if (pending) { clearTimeout(pending); } pending = setTimeout(fillResults, 120); }

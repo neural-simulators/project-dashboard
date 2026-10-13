@@ -65,3 +65,11 @@
   .pt-canvas, .pt-side { flex-basis: auto; width: 100%; }
   .pt-side { min-height: 0; }
 }
+.pt-mixed-table td, .pt-mixed-table th { text-align: center; vertical-align: middle; }
+.pt-mixed-table td:first-child, .pt-mixed-table th:first-child, .pt-mixed-table td:last-child { text-align: left; }
+.pt-mixed-table tr.pt-row-trained td { background: #f2f7ff; font-weight: 600; }
+.pt-mixed-table tr.pt-row-chance td { color: var(--wm-muted); }
+.pt-findings { margin: 0.8rem 0 0.4rem 1.2rem; list-style: disc; }
+.pt-findings li { margin: 0.35rem 0; line-height: 1.5; }
+.pt-mixed-table td:first-child { white-space: nowrap; }
+.pt-mixed-table td:last-child { white-space: nowrap; }
