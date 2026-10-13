@@ -1,0 +1,86 @@
+/* Project page styles, layered over the Nerfies template (static/css/index.css).
+   Muted base with three bright accents used sparingly:
+   red for the acted object and the loss, blue for the model and its predicted
+   direction, amber for the pulse that shows where attention belongs. */
+:root {
+  --wm-bg: #fafbfc;
+  --wm-text: #333;
+  --wm-border: #d9dee5;
+  --wm-muted: #767676;
+  --wm-red: #d7263d;
+  --wm-blue: #1f6feb;
+  --wm-amber: #f5a623;
+  --wm-slate: #55606e;
+}
+
+html, body { background: var(--wm-bg); }
+body { color: var(--wm-text); }
+[hidden] { display: none !important; }
+
+/* hero */
+.wm-hero { background: #fff; border-bottom: 1px solid var(--wm-border); }
+.wm-hero .publication-title { color: #222; }
+.wm-subtitle { font-family: 'Google Sans', sans-serif; color: var(--wm-muted); margin-bottom: 1.25rem; }
+.wm-hero-note { color: var(--wm-muted); font-size: 0.95rem; margin-top: 0.75rem; }
+.wm-hero-note a { color: var(--wm-blue); }
+.wm-hero-note a:hover { text-decoration: underline; }
+
+/* tabs */
+.wm-tabs { margin-top: 1.5rem; margin-bottom: 0; }
+.wm-tabs a { font-family: 'Google Sans', sans-serif; color: var(--wm-muted); }
+.wm-tabs li.is-active a { color: var(--wm-blue); border-color: var(--wm-border); background: #fff; }
+
+/* blocks: one <section class="section proposal|result" id="proposal-<slug>|result-<slug>"> per contribution */
+.wm-panel .section { padding-top: 2rem; padding-bottom: 2rem; }
+.wm-panel .section + .section { border-top: 3px double var(--wm-border); }
+.wm-section { padding: 1.25rem 0; }
+.wm-section + .wm-section { border-top: 1px solid var(--wm-border); }
+.wm-section .title, .wm-panel .title { font-family: 'Google Sans', sans-serif; color: #222; }
+.wm-section .content p, .wm-section .content li { color: var(--wm-text); }
+.wm-lead { color: var(--wm-muted); margin-bottom: 1rem; }
+.wm-closing { color: var(--wm-muted); border-top: 1px solid var(--wm-border); padding-top: 1rem; margin-top: 0.5rem; }
+.wm-closing code, .wm-note code { color: var(--wm-text); background: #f1f3f6; }
+.wm-accent-red { color: var(--wm-red); }
+.wm-accent-blue { color: var(--wm-blue); }
+
+/* figures */
+.wm-figure { max-width: 900px; margin: 1rem auto; text-align: center; }
+.wm-figure img { max-width: 100%; height: auto; display: block; margin: 0 auto;
+  border: 1px solid var(--wm-border); border-radius: 6px; background: #fff; }
+.wm-figure figcaption { font-size: 0.9rem; color: var(--wm-muted); margin-top: 0.5rem; text-align: left; }
+.wm-figure figcaption a { color: var(--wm-blue); }
+
+/* animations and diagrams */
+.wm-anim { max-width: 900px; margin: 1rem auto; padding: 0.75rem;
+  border: 1px solid var(--wm-border); border-radius: 6px; background: #fff; }
+.wm-anim canvas { display: block; width: 100%; }
+.wm-anim svg, .wm-figure svg { display: block; width: 100%; height: auto; }
+.wm-svg-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.wm-svg-scroll svg { min-width: 640px; }
+.wm-controls { display: flex; align-items: flex-start; gap: 0.75rem; margin-top: 0.6rem; flex-wrap: wrap; }
+.wm-controls .button { flex: 0 0 auto; min-width: 5rem; border-color: var(--wm-border); color: var(--wm-text); }
+.wm-controls .button[aria-pressed="true"] { border-color: var(--wm-blue); color: var(--wm-blue); }
+.wm-caption { flex: 1 1 16rem; margin: 0; color: var(--wm-muted); font-size: 0.9rem; line-height: 1.4; min-height: 2.6em; }
+.wm-live { margin: 0.5rem 0 0; min-height: 1.4em; color: var(--wm-text); font-size: 0.85rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow-wrap: anywhere; }
+.wm-note { margin-top: 0.6rem; color: var(--wm-muted); font-size: 0.85rem; line-height: 1.4; }
+.wm-diagram text { font-family: 'Noto Sans', sans-serif; }
+
+/* results */
+.wm-status { margin: 1rem 0; padding: 0.75rem 1rem; border-left: 4px solid var(--wm-amber); border-radius: 4px;
+  background: #fff8e8; color: var(--wm-text); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9rem; }
+.wm-table th { color: #222; white-space: nowrap; }
+.wm-table td, .wm-table th { border-color: var(--wm-border); }
+.wm-table td.pending { color: var(--wm-muted); font-style: italic; }
+#toy-results:empty { display: none; }
+
+/* footer */
+.footer { background: #fff; border-top: 1px solid var(--wm-border); color: var(--wm-muted); }
+.footer a { color: var(--wm-blue); }
+
+@media (max-width: 600px) {
+  .wm-anim { padding: 0.5rem; }
+  .wm-hero .publication-title { font-size: 1.9rem; }
+  .wm-subtitle { font-size: 1.1rem; }
+  .wm-caption { flex-basis: 100%; }
+}

@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="1296pt" height="518.4pt" viewBox="0 0 1296 518.4" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-10-12T22:49:23.047803</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.9.1, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 518.4 
+L 1296 518.4 
+L 1296 0 
+L 0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 29.57472 236.1312 
+L 291.31488 236.1312 
+Q 301.5792 236.1312 301.5792 225.86688 
+L 301.5792 74.46816 
+Q 301.5792 64.20384 291.31488 64.20384 
+L 29.57472 64.20384 
+Q 19.3104 64.20384 19.3104 74.46816 
+L 19.3104 225.86688 
+Q 19.3104 236.1312 29.57472 236.1312 
+z
+" clip-path="url(#pecf28b0284)" style="fill: #ddf3de; stroke: #5fa860; stroke-width: 1.8; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 350.33472 236.1312 
+L 509.43168 236.1312 
+Q 519.696 236.1312 519.696 225.86688 
+L 519.696 74.46816 
+Q 519.696 64.20384 509.43168 64.20384 
+L 350.33472 64.20384 
+Q 340.0704 64.20384 340.0704 74.46816 
+L 340.0704 225.86688 
+Q 340.0704 236.1312 350.33472 236.1312 
+z
+" clip-path="url(#pecf28b0284)" style="fill: #9bc8fa; stroke: #13457e; stroke-width: 2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 581.28192 236.1312 
+L 855.85248 236.1312 
+Q 866.1168 236.1312 866.1168 225.86688 
+L 866.1168 74.46816 
+Q 866.1168 64.20384 855.85248 64.20384 
+L 581.28192 64.20384 
+Q 571.0176 64.20384 571.0176 74.46816 
+L 571.0176 225.86688 
+Q 571.0176 236.1312 581.28192 236.1312 
+z
+" clip-path="url(#pecf28b0284)" style="fill: #ffffff; stroke: #13457e; stroke-width: 2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 914.87232 236.1312 
+L 1266.42528 236.1312 
+Q 1276.6896 236.1312 1276.6896 225.86688 
+L 1276.6896 74.46816 
+Q 1276.6896 64.20384 1266.42528 64.20384 
+L 914.87232 64.20384 
+Q 904.608 64.20384 904.608 74.46816 
+L 904.608 225.86688 
+Q 904.608 236.1312 914.87232 236.1312 
+z
+" clip-path="url(#pecf28b0284)" style="fill: #ffffff; stroke: #13457e; stroke-width: 2; stroke-linejoin: miter"/>
+   </g>
+   <g id="line2d_1">
+    <path d="M 1090.6488 236.1312 
+L 1090.6488 266.92416 
+" clip-path="url(#pecf28b0284)" style="fill: none; stroke: #4d4d4d; stroke-width: 1.8; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_2">
+    <path d="M 1090.6488 266.92416 
+L 160.4448 266.92416 
+" clip-path="url(#pecf28b0284)" style="fill: none; stroke: #4d4d4d; stroke-width: 1.8; stroke-linecap: square"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 29.57472 389.685427 
+L 631.32048 389.685427 
+Q 641.5848 389.685427 641.5848 379.421107 
+L 641.5848 307.98144 
+Q 641.5848 297.71712 631.32048 297.71712 
+L 29.57472 297.71712 
+Q 19.3104 297.71712 19.3104 307.98144 
+L 19.3104 379.421107 
+Q 19.3104 389.685427 29.57472 389.685427 
+z
+" clip-path="url(#pecf28b0284)" style="fill: #ffffff; stroke: #850c0a; stroke-width: 1.4; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 664.67952 389.685427 
+L 1266.42528 389.685427 
+Q 1276.6896 389.685427 1276.6896 379.421107 
+L 1276.6896 307.98144 
+Q 1276.6896 297.71712 1266.42528 297.71712 
+L 664.67952 297.71712 
+Q 654.4152 297.71712 654.4152 307.98144 
+L 654.4152 379.421107 
+Q 654.4152 389.685427 664.67952 389.685427 
+z
+" clip-path="url(#pecf28b0284)" style="fill: #ffffff; stroke: #850c0a; stroke-width: 1.4; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 29.57472 467.735316 
+L 1266.42528 467.735316 
+Q 1276.6896 467.735316 1276.6896 457.470996 
+L 1276.6896 415.346227 
+Q 1276.6896 405.081907 1266.42528 405.081907 
+L 29.57472 405.081907 
+Q 19.3104 405.081907 19.3104 415.346227 
+L 19.3104 457.470996 
+Q 19.3104 467.735316 29.57472 467.735316 
+z
+" clip-path="url(#pecf28b0284)" style="fill: #f0f0f0; stroke: #cfcece; stroke-width: 1.4; stroke-linejoin: miter"/>
+   </g>
+   <g id="text_1">
+    <text style="font: 700 15px 'DejaVu Sans'; text-anchor: start" x="19.3104" y="31.978136" transform="rotate(-0 19.3104 31.978136)">D. The step-by-step alternative: an autoregressive next-step predictor</text>
+   </g>
+   <g id="text_2">
+    <text style="font: 700 9.8px 'DejaVu Sans'; text-anchor: start" x="30.85776" y="83.197669" transform="rotate(-0 30.85776 83.197669)">State at frame t</text>
+   </g>
+   <g id="text_3">
+    <text style="font: 8.1px 'DejaVu Sans'" transform="translate(30.85776 110.132814)">N object tokens rebuilt from the current</text>
+    <text style="font: 8.1px 'DejaVu Sans'" transform="translate(30.85776 119.818516)">state: pose and velocity at frame t plus the</text>
+    <text style="font: 8.1px 'DejaVu Sans'" transform="translate(30.85776 129.504217)">last 4 frames (60 extra channels); geometry</text>
+    <text style="font: 8.1px 'DejaVu Sans'" transform="translate(30.85776 139.189919)">and physical channels unchanged. Action token</text>
+    <text style="font: 8.1px 'DejaVu Sans'" transform="translate(30.85776 148.875621)">(matters only when an intervention is</text>
+    <text style="font: 8.1px 'DejaVu Sans'" transform="translate(30.85776 158.561322)">scheduled at this step) and global token.</text>
+   </g>
+   <g id="text_4">
+    <text style="fill: #4d4d4d; font: 8.1px 'DejaVu Sans'" transform="translate(30.85776 193.530414)">Pairwise geometry bias recomputed from the</text>
+    <text style="fill: #4d4d4d; font: 8.1px 'DejaVu Sans'" transform="translate(30.85776 203.216116)">current poses at every step, so contact</text>
+    <text style="fill: #4d4d4d; font: 8.1px 'DejaVu Sans'" transform="translate(30.85776 212.901817)">proximity is always up to date.</text>
+   </g>
+   <g id="patch_9">
+    <path d="M 308.713291 150.16752 
+Q 320.825363 150.16752 330.924974 150.16752 
+" clip-path="url(#pecf28b0284)" style="fill: none; stroke: #4d4d4d; stroke-width: 1.8; stroke-linecap: round"/>
+    <path d="M 324.524974 146.96752 
+L 330.924974 150.16752 
+L 324.524974 153.36752 
+z
+" clip-path="url(#pecf28b0284)" style="fill: #4d4d4d; stroke: #4d4d4d; stroke-width: 1.8; stroke-linecap: round"/>
+   </g>
+   <g id="text_5">
+    <text style="fill: #272727; font: 700 9.4px 'DejaVu Sans'" transform="translate(405.412356 124.66084)">the same</text>
+    <text style="fill: #272727; font: 700 9.4px 'DejaVu Sans'" transform="translate(398.009856 135.901037)">transformer</text>
+    <text style="fill: #272727; font: 700 9.4px 'DejaVu Sans'" transform="translate(388.678887 147.141234)">12 blocks x 512</text>
+    <text style="fill: #272727; font: 700 9.4px 'DejaVu Sans'" transform="translate(429.8832 158.381431)"/>
+    <text style="fill: #272727; font: 700 9.4px 'DejaVu Sans'" transform="translate(386.904637 169.621628)">about 30 tokens</text>
+    <text style="fill: #272727; font: 700 9.4px 'DejaVu Sans'" transform="translate(407.78145 180.861825)">per step</text>
+   </g>
+   <g id="patch_10">
+    <path d="M 526.830404 150.16752 
+Q 545.359139 150.16752 561.875413 150.16752 
+" clip-path="url(#pecf28b0284)" style="fill: none; stroke: #4d4d4d; stroke-width: 1.8; stroke-linecap: round"/>
+    <path d="M 555.475413 146.96752 
+L 561.875413 150.16752 
+L 555.475413 153.36752 
+z
+" clip-path="url(#pecf28b0284)" style="fill: #4d4d4d; stroke: #4d4d4d; stroke-width: 1.8; stroke-linecap: round"/>
+   </g>
+   <g id="text_6">
+    <text style="font: 700 9.4px 'DejaVu Sans'; text-anchor: start" x="582.56496" y="82.893731" transform="rotate(-0 582.56496 82.893731)">Change over one frame (1/30 s), per movable object</text>
+   </g>
+   <g id="text_7">
+    <text style="font: 8.1px 'DejaVu Sans'" transform="translate(582.56496 110.132814)">position change (3), rotation change (3, axis-</text>
+    <text style="font: 8.1px 'DejaVu Sans'" transform="translate(582.56496 119.818516)">angle; at most 1.9 rad per frame at the fastest</text>
+    <text style="font: 8.1px 'DejaVu Sans'" transform="translate(582.56496 129.504217)">measured spin), new velocity (3), new spin (3)</text>
+   </g>
+   <g id="text_8">
+    <text style="font: 7.6px 'DejaVu Sans Mono'" transform="translate(582.56496 172.662227)">frame 15 -&gt; 16, red ball (PhysX truth):</text>
+    <text style="font: 7.6px 'DejaVu Sans Mono'" transform="translate(582.56496 181.802534)">  moves by (+0.065, +0.000, -0.056) m</text>
+    <text style="font: 7.6px 'DejaVu Sans Mono'" transform="translate(582.56496 190.94284)">  velocity (1.95, 0.00, -1.53)</text>
+    <text style="font: 7.6px 'DejaVu Sans Mono'" transform="translate(582.56496 200.083146)">        -&gt; (1.95, 0.00, -1.85) m/s</text>
+   </g>
+   <g id="patch_11">
+    <path d="M 873.250891 150.16752 
+Q 885.362963 150.16752 895.462574 150.16752 
+" clip-path="url(#pecf28b0284)" style="fill: none; stroke: #4d4d4d; stroke-width: 1.8; stroke-linecap: round"/>
+    <path d="M 889.062574 146.96752 
+L 895.462574 150.16752 
+L 889.062574 153.36752 
+z
+" clip-path="url(#pecf28b0284)" style="fill: #4d4d4d; stroke: #4d4d4d; stroke-width: 1.8; stroke-linecap: round"/>
+   </g>
+   <g id="text_9">
+    <text style="font: 700 9.4px 'DejaVu Sans'; text-anchor: start" x="916.15536" y="82.893731" transform="rotate(-0 916.15536 82.893731)">Integrate and repeat</text>
+   </g>
+   <g id="text_10">
+    <text style="font: 8.1px 'DejaVu Sans'" transform="translate(916.15536 110.132814)">pose(t+1) = pose(t) + change, velocities replaced. The new</text>
+    <text style="font: 8.1px 'DejaVu Sans'" transform="translate(916.15536 119.818516)">state becomes the next input: 60 passes from the post-launch</text>
+    <text style="font: 8.1px 'DejaVu Sans'" transform="translate(916.15536 129.504217)">state, then frames[] is written as in the other variants.</text>
+    <text style="font: 8.1px 'DejaVu Sans'" transform="translate(916.15536 139.189919)">Any state along the way can be edited and the rollout</text>
+    <text style="font: 8.1px 'DejaVu Sans'" transform="translate(916.15536 148.875621)">continued from it.</text>
+   </g>
+   <g id="patch_12">
+    <path d="M 160.4448 264.924892 
+Q 160.4448 252.16864 160.4448 241.42485 
+" clip-path="url(#pecf28b0284)" style="fill: none; stroke: #4d4d4d; stroke-width: 1.8; stroke-linecap: round"/>
+    <path d="M 157.2448 247.82485 
+L 160.4448 241.42485 
+L 163.6448 247.82485 
+z
+" clip-path="url(#pecf28b0284)" style="fill: #4d4d4d; stroke: #4d4d4d; stroke-width: 1.8; stroke-linecap: round"/>
+   </g>
+   <g id="text_11">
+    <text style="fill: #4d4d4d; font: 8.6px 'DejaVu Sans'; text-anchor: middle" x="622.3392" y="257.437389" transform="rotate(-0 622.3392 257.437389)">repeat for t = 0 ... 59</text>
+   </g>
+   <g id="text_12">
+    <text style="fill: #850c0a; font: 700 9.4px 'DejaVu Sans'; text-anchor: start" x="30.85776" y="316.407011" transform="rotate(-0 30.85776 316.407011)">Training: teacher forcing</text>
+   </g>
+   <g id="text_13">
+    <text style="font: 8.1px 'DejaVu Sans'" transform="translate(30.85776 342.363054)">Every stored PhysX transition (state t -&gt; state t+1) is one example, so the 60 transitions of a trajectory</text>
+    <text style="font: 8.1px 'DejaVu Sans'" transform="translate(30.85776 352.048756)">train in parallel. Loss: squared error on the normalised change, objects that stay still weighted 0.1; the</text>
+    <text style="font: 8.1px 'DejaVu Sans'" transform="translate(30.85776 361.734457)">kinematic-consistency term carries over, and the first-contact head becomes "who touches whom in the next</text>
+    <text style="font: 8.1px 'DejaVu Sans'" transform="translate(30.85776 371.420159)">frame".</text>
+   </g>
+   <g id="text_14">
+    <text style="fill: #850c0a; font: 700 9.4px 'DejaVu Sans'; text-anchor: start" x="665.96256" y="316.407011" transform="rotate(-0 665.96256 316.407011)">Keeping errors from piling up</text>
+   </g>
+   <g id="text_15">
+    <text style="font: 8.1px 'DejaVu Sans'" transform="translate(665.96256 342.363054)">At rollout time the model sees its own slightly wrong states, which it never saw in training. Remedies: (1)</text>
+    <text style="font: 8.1px 'DejaVu Sans'" transform="translate(665.96256 352.048756)">add small noise to the input state during training so the model learns to pull a drifted state back; (2)</text>
+    <text style="font: 8.1px 'DejaVu Sans'" transform="translate(665.96256 361.734457)">unroll 8 steps during training and apply the loss to all of them; (3) optional per-step flow head that</text>
+    <text style="font: 8.1px 'DejaVu Sans'" transform="translate(665.96256 371.420159)">samples the change instead of regressing it, for grazing contacts.</text>
+   </g>
+   <g id="text_16">
+    <text style="fill: #272727; font: 8.6px 'DejaVu Sans'" transform="translate(305.982703 428.49809)">Joint model (B): one sampling run for all 60 frames, pair geometry from frame 0 only, no error pile-up, fixed horizon. Step model (D): 60 passes, pair geometry</text>
+    <text style="fill: #272727; font: 8.6px 'DejaVu Sans'" transform="translate(298.869563 438.781674)">recomputed every step so contacts are always current, errors pile up, any horizon, edit the state at any step. Diffusion Forcing sits between them: one network, a</text>
+    <text style="fill: #272727; font: 8.6px 'DejaVu Sans'" transform="translate(524.264813 449.065259)">separate noise level per frame, frames denoised in order.</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="pecf28b0284">
+   <rect x="6.48" y="5.184" width="1283.04" height="508.032"/>
+  </clipPath>
+ </defs>
+</svg>
