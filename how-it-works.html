@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>How models are prompted · Neural Simulators</title>
+  <meta name="description" content="How GPT-5.4 and Qwen3-VL-30B Thinking are prompted to edit a simulated room, what they send back, and how the physics simulator judges it, animated on real prompts and answers.">
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="stylesheet" href="./static/css/project.css">
+  <link rel="stylesheet" href="./static/css/how_it_works.css">
+  <link rel="icon" href="./static/images/favicon.svg">
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script defer src="./static/js/project.js"></script>
+  <script defer src="./static/data/how_it_works.js"></script>
+  <script defer src="./static/js/how_it_works/overview.js"></script>
+  <script defer src="./static/js/how_it_works/prompt.js"></script>
+  <script defer src="./static/js/how_it_works/answer.js"></script>
+</head>
+<body>
+
+<section class="hero wm-hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-2 publication-title">How the models are prompted</h1>
+          <p class="subtitle is-4 wm-subtitle">What GPT-5.4 and Qwen3-VL-30B Thinking see, what they send back, and how the simulator judges it, on real prompts and answers</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="container is-max-desktop">
+  <div class="tabs is-centered is-boxed wm-tabs">
+    <ul>
+      <li><a href="./index.html#design"><span class="icon is-small"><i class="fas fa-drafting-compass" aria-hidden="true"></i></span><span>World model</span></a></li>
+      <li><a href="./index.html#post-training"><span class="icon is-small"><i class="fas fa-graduation-cap" aria-hidden="true"></i></span><span>Post-training</span></a></li>
+      <li class="is-active"><a href="./how-it-works.html" aria-current="page"><span class="icon is-small"><i class="fas fa-comment-dots" aria-hidden="true"></i></span><span>How models are prompted</span></a></li>
+      <li><a href="./index.html#results"><span class="icon is-small"><i class="fas fa-chart-bar" aria-hidden="true"></i></span><span>Results</span></a></li>
+      <li><a href="./end-to-end.html"><span class="icon is-small"><i class="fas fa-route" aria-hidden="true"></i></span><span>End-to-end study</span></a></li>
+    </ul>
+  </div>
+</div>
+
+<div class="wm-panel" id="hw">
+<section class="section">
+<div class="container is-max-desktop">
+
+  <div class="wm-section" id="hw-loop">
+    <h2 class="title is-4">1. One attempt, start to finish</h2>
+    <div class="wm-anim" id="hw-anim-overview">
+      <div class="wm-svg-scroll">
+        <svg class="wm-diagram" viewBox="0 0 940 230" role="img" aria-label="Room, prompt, model, answer, simulator, verdict, with a pulse moving along the arrows."></svg>
+      </div>
+      <div class="wm-controls">
+        <button class="button is-small is-light" type="button" aria-pressed="true">Pause</button>
+        <p class="wm-caption"></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="wm-section" id="hw-input">
+    <h2 class="title is-4">2. What the model receives</h2>
+    <p class="hw-lead">The real prompt, drawn to scale and filled in part by part.</p>
+    <div class="wm-anim" id="hw-anim-prompt">
+      <div class="hw-switch">
+        <button class="button is-small" type="button" data-example="static" aria-pressed="true">Static edit: book between the cups</button>
+        <button class="button is-small" type="button" data-example="code" aria-pressed="false">Throw, answered with a program</button>
+        <button class="button is-small" type="button" data-example="numbers" aria-pressed="false">Throw, answered with numbers</button>
+      </div>
+      <canvas width="900" height="470" aria-label="The prompt's parts appear one by one: instruction, two images, conventions, checks, answer format, the scene as data, task data."></canvas>
+      <div class="wm-controls">
+        <button class="button is-small is-light hw-play" type="button" aria-pressed="true">Pause</button>
+        <p class="wm-caption"></p>
+      </div>
+      <p class="hw-legend"><span style="--sw:#f59f00">instruction</span><span style="--sw:#12b886">images</span><span style="--sw:#7048e8">checks</span>
+        <span style="--sw:#1098ad">answer format</span><span style="--sw:#8da2c0">scene data</span><span style="--sw:#c3cad5">conventions</span></p>
+    </div>
+  </div>
+
+  <div class="wm-section" id="hw-output">
+    <h2 class="title is-4">3. What comes back, and what the simulator does with it</h2>
+    <p class="hw-lead">Real answers from both models next to the reference, then the simulation and the measured checks.</p>
+    <div class="wm-anim" id="hw-anim-answer">
+      <div class="hw-switch">
+        <button class="button is-small" type="button" data-example="static" aria-pressed="true">Static edit: new poses</button>
+        <button class="button is-small" type="button" data-example="code" aria-pressed="false">Throw: a program</button>
+        <button class="button is-small" type="button" data-example="numbers" aria-pressed="false">Throw: numbers</button>
+      </div>
+      <canvas width="900" height="560" aria-label="Three columns, reference, GPT-5.4 and Qwen: the answer types out, the simulator plays it, the checks light up."></canvas>
+      <div class="wm-controls">
+        <button class="button is-small is-light hw-play" type="button" aria-pressed="true">Pause</button>
+        <p class="wm-caption"></p>
+      </div>
+      <p class="hw-legend"><span style="--sw:#2b8a3e">reference</span><span style="--sw:#1f6feb">GPT-5.4</span><span style="--sw:#c2255c">Qwen3-VL-30B Thinking</span></p>
+    </div>
+  </div>
+
+  <div class="wm-section" id="hw-fair">
+    <h2 class="title is-4">4. The same conditions for both models</h2>
+    <div class="hw-same" id="hw-same"></div>
+  </div>
+
+</div>
+</section>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+          <p>This website is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+            The page layout is adapted from the <a href="https://nerfies.github.io">Nerfies</a> project page template.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+<script>
+  /* section 4: five small cards from the data file */
+  document.addEventListener('DOMContentLoaded', function () {
+    var el = document.getElementById('hw-same'), D = window.HW_DATA;
+    if (!el || !D) return;
+    var colours = ['#f59f00', '#12b886', '#1f6feb', '#7048e8', '#2b8a3e'];
+    el.innerHTML = D.same_for_both.map(function (c, i) {
+      return '<div style="--c:' + colours[i % colours.length] + '"><b>' + c[0] + '</b><small>' + c[1] + '</small></div>';
+    }).join('');
+  });
+</script>
+</body>
+</html>

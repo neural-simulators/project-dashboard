@@ -203,6 +203,21 @@ without re-encoding, writes first-frame posters, and outlines the close-up area
 on the overview render. Variants with reasoning switched off, feedback rounds
 and the yes/no questions are deliberately not shown.
 
+## How models are prompted (page)
+
+`how-it-works.html`, linked as a tab from the landing page, shows on real
+records what GPT-5.4 and Qwen3-VL-30B Thinking receive and return: an icon
+overview of one attempt (`static/js/how_it_works/overview.js`), the real prompt
+drawn to scale and filled in part by part with its actual text and images
+(`prompt.js`), and three columns (reference, GPT-5.4, Qwen) where the real
+answers type out (JSON poses, a program excerpt with its real line numbers, or
+the launch as numbers), the simulator plays them (floor plan, or the ball's
+recorded side-view path) and the measured checks decide (`answer.js`). Data:
+`static/data/how_it_works.js` (`window.HW_DATA`) and the input views under
+`static/images/how_it_works/`, written by `tools/extract_how_it_works.py` (run
+with the simagent Isaac interpreter; the program excerpts are the line ranges
+in `CODE_EXCERPTS`).
+
 ## Template and license
 
 The page layout is adapted from the [Nerfies](https://nerfies.github.io)

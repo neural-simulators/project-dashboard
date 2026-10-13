@@ -15,7 +15,6 @@
   <script defer src="./static/js/project.js"></script>
   <script defer src="./static/data/benchmark_results.js"></script>
   <script defer src="./static/js/benchmark/render.js"></script>
-  <script defer src="./static/js/benchmark/anim_pipeline.js"></script>
 </head>
 <body>
 
@@ -69,43 +68,10 @@
     <div data-bm="featured"></div>
   </div>
 
-  <div class="wm-section" id="bm-plain">
+  <div class="wm-section" id="bm-how">
     <h2 class="title is-4">How the benchmark works</h2>
-    <ol class="bm-points">
-      <li><strong>The task.</strong> A simulated living room with 24 to 34 objects and an instruction in everyday language: "bring the red chair closer to the table",
-        "roll the red ball so that it hits the blue ball within one and a half seconds", "toss the red ball over the rim of the blue open box".</li>
-      <li><strong>What the model gets.</strong> Two rendered views of the room and the scene as a list of objects with their positions, sizes, masses and friction,
-        plus the rules by which the answer will be checked. One call, no tools, no second try.</li>
-      <li><strong>What it returns.</strong> For a <em>static edit</em>: the new position and orientation of each object it moves. For a <em>launch task</em>: one
-        velocity for one object (written as a small program in the main runs, or directly as numbers in the newest run).</li>
-      <li><strong>How it is judged.</strong> The answer is applied in the PhysX physics engine exactly as sent. The simulator then measures what the instruction
-        asked for (distances, angles, contacts, where things end up, whether they came to rest) and whether anything overlaps or leaves the room.
-        A separate reviewer AI looks at the rendered result and comments; its opinion is recorded but can never overturn a measurement.</li>
-    </ol>
-  </div>
-
-
-  <div class="wm-section" id="bm-pipeline">
-    <h3 class="title is-5">The pipeline, animated</h3>
-    <p class="bm-lead">Five stages, from the room to the verdict. The texts quote one real GPT-5.4 attempt; switch between a static edit and a launch task.</p>
-    <div class="wm-anim" id="bm-anim-pipeline">
-      <div class="bm-toggle">
-        <button class="button is-small is-light" type="button" data-kind="static" aria-pressed="true">Static edit (room 1: book between the cups)</button>
-        <button class="button is-small is-light" type="button" data-kind="launch" aria-pressed="false">Launch task (room 1: hit the blue ball)</button>
-      </div>
-      <div class="wm-svg-scroll">
-        <svg class="wm-diagram" viewBox="0 0 900 192" role="img" aria-label="Pipeline: scene and instruction, language model, answer, PhysX simulation, verdict and reviewer."></svg>
-      </div>
-      <div class="wm-controls">
-        <button class="button is-small is-light bm-play" type="button" aria-pressed="true">Pause</button>
-        <p class="wm-caption"></p>
-      </div>
-    </div>
-    <h3 class="title is-5">What goes in and what comes out, on the static example</h3>
-    <div class="bm-io" data-bm="io" data-sample="static"></div>
-    <details class="bm-more"><summary>The same for the launch example</summary>
-      <div class="bm-io" data-bm="io" data-sample="launch"></div>
-    </details>
+    <p class="bm-lead">What each model sees, what it sends back and how the simulator judges it, animated on real prompts and answers:
+      <a href="./how-it-works.html">How models are prompted</a>.</p>
   </div>
 
   <div class="wm-section" id="bm-static">

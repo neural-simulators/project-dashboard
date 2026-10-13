@@ -1,0 +1,30 @@
+/* "How models are prompted" page, layered over project.css.
+   Muted base (paper, slate, light grays) with vibrant accents used for meaning:
+   reference green, GPT-5.4 blue, Qwen magenta; prompt parts amber (instruction), teal (images), violet (checks), cyan (answer format). */
+:root {
+  --hw-ref: #2b8a3e;
+  --hw-gpt: #1f6feb;
+  --hw-qwen: #c2255c;
+  --hw-instruction: #f59f00;
+  --hw-images: #12b886;
+  --hw-checks: #7048e8;
+  --hw-output: #1098ad;
+  --hw-scene: #8da2c0;
+  --hw-rules: #c3cad5;
+}
+#hw .hw-lead { color: var(--wm-muted); margin-bottom: 0.75rem; max-width: 52rem; }
+#hw .wm-anim { max-width: 940px; }
+#hw .hw-switch { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.6rem; }
+#hw .hw-switch .button { border-color: var(--wm-border); color: var(--wm-slate); }
+#hw .hw-switch .button[aria-pressed="true"] { border-color: var(--hw-gpt); color: #fff; background: var(--hw-gpt); }
+#hw .hw-legend { display: flex; flex-wrap: wrap; gap: 0.35rem 1rem; margin-top: 0.5rem; font-size: 0.8rem; color: var(--wm-muted); }
+#hw .hw-legend span::before { content: ""; display: inline-block; width: 0.75rem; height: 0.75rem; border-radius: 3px; margin-right: 0.35rem;
+  vertical-align: -0.08rem; background: var(--sw, #ccc); }
+#hw .hw-same { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.6rem; margin-top: 0.5rem; }
+#hw .hw-same div { background: #fff; border: 1px solid var(--wm-border); border-top: 4px solid var(--c, var(--hw-gpt)); border-radius: 6px; padding: 0.6rem 0.7rem; }
+#hw .hw-same b { display: block; font-family: 'Google Sans', sans-serif; font-size: 0.95rem; color: #222; }
+#hw .hw-same small { color: var(--wm-muted); font-size: 0.78rem; line-height: 1.3; display: block; margin-top: 0.15rem; }
+#hw canvas { display: block; width: 100%; }
+@media (max-width: 760px) {
+  #hw .hw-same { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
