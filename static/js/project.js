@@ -220,21 +220,24 @@
       ctx.fillText('z (m)', v.left + 4, v.top + 4);
       ctx.textBaseline = 'alphabetic';
       ctx.fillText('floor', v.left + 4, v.z(0) - 4);
-      /* barrier */
-      var bx0 = v.x(b.position[0] - b.size[0] / 2), bx1 = v.x(b.position[0] + b.size[0] / 2);
-      var bz0 = v.z(b.position[2] - b.size[2] / 2), bz1 = v.z(b.position[2] + b.size[2] / 2);
-      ctx.fillStyle = COLORS.barrier;
-      ctx.fillRect(bx0, bz1, Math.max(2, bx1 - bx0), bz0 - bz1);
-      ctx.textAlign = 'center';
-      ctx.fillStyle = COLORS.muted;
-      ctx.fillText(b.label, (bx0 + bx1) / 2, bz1 - 5);
-      /* blue ball */
-      ctx.fillStyle = COLORS.ballBlue;
-      ctx.beginPath(); ctx.arc(v.x(bluePos[0]), v.z(bluePos[1]), blue.radius_m * s, 0, 2 * Math.PI); ctx.fill();
-      if (!opts.noBlueLabel) {
+      if (!opts.minimal) {                       /* minimal: floor and axes only (the flow animation shows one object) */
+        /* barrier */
+        var bx0 = v.x(b.position[0] - b.size[0] / 2), bx1 = v.x(b.position[0] + b.size[0] / 2);
+        var bz0 = v.z(b.position[2] - b.size[2] / 2), bz1 = v.z(b.position[2] + b.size[2] / 2);
+        ctx.fillStyle = COLORS.barrier;
+        ctx.fillRect(bx0, bz1, Math.max(2, bx1 - bx0), bz0 - bz1);
+        ctx.textAlign = 'center';
         ctx.fillStyle = COLORS.muted;
-        ctx.fillText(blue.label, v.x(bluePos[0]), v.z(bluePos[1] + blue.radius_m) - 5);
+        ctx.fillText(b.label, (bx0 + bx1) / 2, bz1 - 5);
+        /* blue ball */
+        ctx.fillStyle = COLORS.ballBlue;
+        ctx.beginPath(); ctx.arc(v.x(bluePos[0]), v.z(bluePos[1]), blue.radius_m * s, 0, 2 * Math.PI); ctx.fill();
+        if (!opts.noBlueLabel) {
+          ctx.fillStyle = COLORS.muted;
+          ctx.fillText(blue.label, v.x(bluePos[0]), v.z(bluePos[1] + blue.radius_m) - 5);
+        }
       }
+      ctx.textAlign = 'center';
       /* red ball start, dashed outline */
       if (opts.redStart) {
         ctx.strokeStyle = COLORS.red; ctx.lineWidth = 1.2; ctx.setLineDash([3, 3]);

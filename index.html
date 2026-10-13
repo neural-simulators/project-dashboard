@@ -49,9 +49,6 @@
               </a>
             </span>
           </div>
-          <p class="wm-hero-note">
-            <a href="http://localhost:18097">Benchmark dashboard (internal, SSH tunnel to ccvl38:8097)</a>
-          </p>
         </div>
       </div>
     </div>
@@ -98,24 +95,34 @@
     <div class="container is-max-desktop">
       <h2 class="title is-3">World model: scene-graph flow matching</h2>
       <p class="wm-lead">
-        One proposal in eight short sections. The numbers are measured on the benchmark's 462 qualified tasks and
+        One proposal in seven short sections. The numbers are measured on the benchmark's 462 qualified tasks and
         on one sample task from room 1, "Send the red ball over the gray barrier so that it comes down and hits the
         blue ball within one and a half seconds, without touching the barrier", whose real PhysX rollout also drives
         the animations below.
       </p>
 
       <div class="wm-section" id="world_model-overview">
-        <h3 class="title is-4">1. In one paragraph</h3>
+        <h3 class="title is-4">1. Abstract</h3>
         <div class="content">
           <p>
             A network that reads the initial scene graph, one token per object, together with the action, and
-            predicts the state of every movable object at each of the 60 future frames (2 s at 30 Hz); it is
-            trained on PhysX rollouts. The benchmark it is scored on has 462 tasks with 24 to 34 objects per scene
-            (15 to 19 of them movable). A token here is one vector of 76 numbers plus 3 ids per object, not a word
-            piece: the sample room is 27 objects + 1 action + 1 global token = 29 tokens, while the same room
-            written as text costs 12,844 word pieces. Video of the same two seconds from one 640x480 camera costs
-            10,800 to 37,200 tokens, and the evaluator's 15 mm tolerance is 1.5 pixels there.
+            predicts the state of every movable object at each of the 60 future frames (2 s at 30 Hz). It is
+            trained on PhysX rollouts of the benchmark's 462 tasks (24 to 34 objects per scene, 15 to 19 of them
+            movable). A token here is one vector of numbers per object, not a word piece.
           </p>
+          <p>Why feed the scene graph rather than text or video? Count what the same room costs as input:</p>
+        </div>
+        <div class="table-container">
+          <table class="table is-narrow is-fullwidth wm-table wm-count">
+            <thead><tr><th>Representation of the sample room</th><th>How it adds up</th><th>Tokens</th></tr></thead>
+            <tbody>
+              <tr><td>Scene graph, one token per object</td><td>27 objects &times; 1 token each (76 numbers + 3 ids per token)</td><td>27</td></tr>
+              <tr><td></td><td>+ 1 action token + 1 global token</td><td><strong>29</strong></td></tr>
+              <tr><td>The same room as text, the prompt the language models read</td><td>about 475 word pieces per object</td><td>12,844</td></tr>
+              <tr><td>The same two seconds as video, one 640 &times; 480 camera, 61 frames</td><td>depending on the video tokenizer</td><td>10,800 to 37,200</td></tr>
+              <tr><td>Precision available in that video</td><td colspan="2">the evaluator's 15 mm tolerance is 1.5 pixels, or 0.19 pixels after 8&times; latent compression</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -135,14 +142,12 @@
           </ul>
         </div>
         <figure class="wm-figure">
-          <a href="./static/images/world_model/world_model_a_inputs_outputs.svg" title="Open the SVG version">
-            <img src="./static/images/world_model/world_model_a_inputs_outputs.png"
-                 alt="Panel A: the sample task's object rows on the left, the action and global tokens, and the 18 by 60 output tensor on the right, with the red and blue ball rows filled in."
-                 loading="lazy">
-          </a>
-          <figcaption>Panel A, input and output on the sample task: object rows in, one slot per movable object and
-            frame out. Drawn from the real manifest and PhysX rollout
-            (<a href="./static/images/world_model/world_model_a_inputs_outputs.svg">SVG</a>).</figcaption>
+          <div class="wm-svg-scroll">
+            <img class="wm-web-figure" src="./static/images/world_model/web_io.svg" width="900" height="470"
+                 alt="The sample task's object rows on the left, the 29 tokens and the transformer in the middle, and the 18 by 60 output grid on the right with the red and blue ball rows filled in.">
+          </div>
+          <figcaption>Input and output on the sample task: object rows in, one slot per movable object and frame out.
+            Every number comes from the real manifest and PhysX rollout.</figcaption>
         </figure>
         <div class="wm-anim" id="anim-pipeline">
           <div class="wm-svg-scroll">
@@ -163,26 +168,22 @@
           <ul>
             <li><strong>Mix:</strong> x1 is the stored PhysX trajectory tensor, normalised; x0 is Gaussian noise of
               the same shape; tau is drawn from a logit-normal distribution and x_tau = (1 - tau) x0 + tau x1.</li>
-            <li><strong>Loss:</strong> the network outputs u_hat, the predicted direction from noise to truth; the
-              main loss is the mean of w (u_hat - (x1 - x0))^2 with w = 1.0 for objects that move in the truth and
-              0.1 for objects that stay still (92 percent of them, measured). Extra losses: kinematic consistency
-              (weight 0.1; positions must match velocities frame to frame, the evaluator's own rule), a
-              first-contact head (weight 0.1; sample truth: the red ball hits the blue ball at 0.87 s) and a
-              penetration proxy (weight 0.05, to be ablated).</li>
+            <li><strong>Loss:</strong> the network outputs u_hat, its guess of the direction from the noise sample
+              to the truth; the loss is the mean of w (u_hat - (x1 - x0))^2, with w = 1 for objects that move in
+              the truth and 0.1 for the ones that stay still (92 percent of them). Two small extra terms keep
+              positions consistent with velocities and predict each object's first contact.</li>
             <li><strong>Prediction, and the control:</strong> start from noise and take 32 Euler steps along u_hat.
               Variant A, the deterministic control, is the same network with no noise, one pass and a squared error
               on the trajectory.</li>
           </ul>
         </div>
         <figure class="wm-figure">
-          <a href="./static/images/world_model/world_model_b_training.svg" title="Open the SVG version">
-            <img src="./static/images/world_model/world_model_b_training.png"
-                 alt="Panel B: the stored PhysX trajectory is mixed with noise, the network predicts the direction back to the truth, and the squared error is the loss."
-                 loading="lazy">
-          </a>
-          <figcaption>Panel B, training: the stored PhysX trajectory is mixed with noise and the network predicts
-            the direction back to it
-            (<a href="./static/images/world_model/world_model_b_training.svg">SVG</a>).</figcaption>
+          <div class="wm-svg-scroll">
+            <img class="wm-web-figure" src="./static/images/world_model/web_training.svg" width="900" height="470"
+                 alt="The stored PhysX trajectory tensor and a noise tensor are mixed, the transformer predicts the direction back to the truth, and the squared error is the loss.">
+          </div>
+          <figcaption>Training: the stored PhysX trajectory (the red ball's 15 channels are shown) is mixed with noise;
+            the network predicts the direction back to the truth and is scored on the gap.</figcaption>
         </figure>
         <div class="wm-anim" id="anim-flow">
           <canvas width="900" height="400"
@@ -374,14 +375,12 @@
           </p>
         </div>
         <figure class="wm-figure">
-          <a href="./static/images/world_model/world_model_d_step_predictor.svg" title="Open the SVG version">
-            <img src="./static/images/world_model/world_model_d_step_predictor.png"
-                 alt="Panel D: the step predictor reads the state at frame t and outputs the change over one frame; the loop runs 60 times."
-                 loading="lazy">
-          </a>
-          <figcaption>Panel D, the step-by-step alternative: one network pass predicts the change over one frame and
-            the loop runs 60 times
-            (<a href="./static/images/world_model/world_model_d_step_predictor.svg">SVG</a>).</figcaption>
+          <div class="wm-svg-scroll">
+            <img class="wm-web-figure" src="./static/images/world_model/web_step.svg" width="900" height="300"
+                 alt="The step predictor reads the state at frame t, outputs the change over one frame, integrates it and feeds the new state back; the loop runs 60 times.">
+          </div>
+          <figcaption>The step-by-step alternative: one network pass predicts the change over one frame and the loop
+            runs 60 times; the numbers are the recorded change from frame 15 to 16.</figcaption>
         </figure>
         <div class="wm-anim" id="anim-step">
           <canvas width="900" height="440"
@@ -396,28 +395,6 @@
             pass of variant D has to predict.</p>
         </div>
       </div>
-
-      <div class="wm-section" id="world_model-physx">
-        <h3 class="title is-4">8. Where PhysX is used</h3>
-        <div class="content">
-          <p>PhysX makes the training trajectories (47 s per rollout today) and scores the benchmark; training steps
-            and predictions never call it.</p>
-        </div>
-        <figure class="wm-figure">
-          <a href="./static/images/world_model/world_model_c_simulator_use.svg" title="Open the SVG version">
-            <img src="./static/images/world_model/world_model_c_simulator_use.png"
-                 alt="Panel C: PhysX appears twice, generating training rollouts offline and scoring the benchmark; the training loop and prediction never call it."
-                 loading="lazy">
-          </a>
-          <figcaption>Panel C, where the simulator sits: offline data generation and the frozen evaluator
-            (<a href="./static/images/world_model/world_model_c_simulator_use.svg">SVG</a>).</figcaption>
-        </figure>
-      </div>
-
-      <p class="wm-closing">Full design: <code>docs/WORLD_MODEL_DESIGN.md</code> in the simagent repository.
-        All panels in one figure:
-        <a href="./static/images/world_model/world_model_overview.png">world_model_overview.png</a>
-        (<a href="./static/images/world_model/world_model_overview.svg">SVG</a>).</p>
 
       <!-- this block's data and scripts (deferred: they run after the page is parsed, in this order) -->
       <script defer src="./static/data/world_model.js"></script>
@@ -456,7 +433,7 @@
           degrees, each against a "nothing moves" baseline. This is a pipeline check, not a benchmark result.
         </p>
       </div>
-      <div class="wm-status" id="toy-status">Status: training job 194473 submitted on 2026-10-13; results pending.</div>
+      <div class="wm-status" id="toy-status">Status: training job 194507 submitted on 2026-10-13; results pending.</div>
       <div class="table-container">
         <table class="table is-striped is-fullwidth wm-table" id="toy-results-table">
           <thead>
@@ -480,9 +457,6 @@
         </table>
       </div>
       <div id="toy-results"></div>
-      <p class="wm-note">The benchmark results themselves (the language-model campaigns under protocols v2 and v3)
-        live on the internal experiment dashboard, reachable through the SSH tunnel to ccvl38:8097 linked at the
-        top of this page.</p>
     </div>
   </section>
   <!-- ---------- end result: toy_world_model ---------- -->

@@ -102,13 +102,16 @@ def main(argv=None):
         obj = objects[ball_id]
         if obj["primitive"]["kind"] != "sphere":
             raise SystemExit("%s is not a sphere" % ball_id)
-        positions, velocities = [], []
+        positions, velocities, quaternions, spins = [], [], [], []
         for state in states:
             match = [o for o in state["objects"] if o["id"] == ball_id]
             if len(match) != 1:
                 raise SystemExit("state at t=%s has %d entries for %s" % (state["time_s"], len(match), ball_id))
             positions.append(match[0]["position"])
             velocities.append(match[0]["linear_velocity"])
+            quaternions.append(match[0]["quaternion_wxyz"])
+            spins.append(match[0]["angular_velocity"])
+        inertia = obj.get("inertia_local_kg_m2")
         balls[ball_id] = {
             "label": obj["label"],
             "color": obj["color"],
@@ -116,9 +119,14 @@ def main(argv=None):
             "mass_kg": obj["mass_kg"],
             "friction": obj["friction"],
             "restitution": obj["restitution"],
+            "linear_damping": obj.get("linear_damping", 0.0),
+            "angular_damping": obj.get("angular_damping", 0.0),
+            "inertia_diag_kg_m2": [inertia[i][i] for i in range(3)] if inertia else None,
             "start_position": obj["position"],
             "position": positions,
             "linear_velocity": velocities,
+            "quaternion_wxyz": quaternions,
+            "angular_velocity": spins,
         }
 
     barrier = objects[BARRIER]

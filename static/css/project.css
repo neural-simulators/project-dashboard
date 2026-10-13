@@ -84,3 +84,7 @@ body { color: var(--wm-text); }
   .wm-subtitle { font-size: 1.1rem; }
   .wm-caption { flex-basis: 100%; }
 }
+
+/* web figures (SVG, 900 px wide) stay readable: scroll on narrow screens instead of shrinking */
+.wm-web-figure { display: block; width: 900px; max-width: none; height: auto; margin: 0 auto; }
+.wm-count td:last-child { white-space: nowrap; font-variant-numeric: tabular-nums; }
