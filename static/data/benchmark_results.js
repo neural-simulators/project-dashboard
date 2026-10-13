@@ -28,8 +28,8 @@ window.BM_RESULTS = {
      160
     ],
     [
-     470,
-     586
+     471,
+     587
     ]
    ],
    "gpt54": [
@@ -78,7 +78,7 @@ window.BM_RESULTS = {
    ]
   }
  },
- "generated_at": "2026-10-13 10:41",
+ "generated_at": "2026-10-13 10:42",
  "providers": {
   "gpt54": "GPT-5.4",
   "qwen30t": "Qwen3-VL-30B Thinking"
@@ -404,8 +404,8 @@ window.BM_RESULTS = {
        "passed": 0
       }
      },
-     "reviews": 35,
-     "review_agreement": 35
+     "reviews": 36,
+     "review_agreement": 36
     }
    }
   }
