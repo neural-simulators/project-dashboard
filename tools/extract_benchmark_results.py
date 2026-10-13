@@ -55,7 +55,8 @@ EXAMPLES = {
                'b2_room_14_lob_over_barrier_into_box'],
     # one task where GPT-5.4 meets the goal (three objects) and one where it fails (the chair does not tip); a Qwen success is
     # appended automatically when one exists (pick_contrasts covers the case where none of these is evaluated yet)
-    'composite': ['b2_room_03_topple_chair_shove_table_and_wall_rebound', 'b2_room_01_shove_table_and_topple_chair'],
+    'composite': ['b2_room_03_topple_chair_shove_table_and_wall_rebound', 'b2_room_01_shove_table_and_topple_chair',
+                  'b2_room_04_shove_table_and_toss_into_box'],
 }
 FAMILY_LABELS = {
     'chair_approach': 'Bring a chair closer to the table', 'chairs_gather_and_face': 'Gather two chairs and face the table',
@@ -129,6 +130,46 @@ def pick_contrasts(rows):
         if task_id and task_id not in picks:
             picks.append(task_id)
     return picks
+
+
+def chair_patterns(runs, chance_dir):
+    """How often a chair topples at each horizontal push speed: random launches (the simulator's own answer) against the
+    chair launches the two models chose, over every composite task with a chair to knock over."""
+    run = runs / 'composite_v1'
+    if not (run / 'selection.json').is_file():
+        return None
+    bins = [(0., .3), (.3, .6), (.6, 1.), (1., 1.5), (1.5, 9.)]
+    table = {name: [[0, 0] for _ in bins] for name in ('random', 'gpt54', 'qwen30t')}
+    spin = {'gpt54': [], 'qwen30t': [], 'reference': []}
+    def add(name, action, tipped):
+        v = action['linear_velocity']; push = (v[0] ** 2 + v[1] ** 2) ** .5
+        for k, (lo, hi) in enumerate(bins):
+            if lo <= push < hi:
+                table[name][k][0] += int(bool(tipped)); table[name][k][1] += 1
+    for job in load(run / 'selection.json')['jobs']:
+        task_id = job['task_id']
+        spec = load(run / 'private_inputs' / (task_id + '.json'))
+        chairs = [q['object_id'] for q in spec['goal_requirements'] if q['kind'] == 'tilt']
+        if not chairs:
+            continue
+        for provider in ('gpt54', 'qwen30t'):
+            result = run / 'cases' / task_id / (provider + '__launch') / 'evaluation' / 'dyncode_result.json'
+            if not result.is_file():
+                continue
+            r = load(result); acts = {a['id']: a for a in r['launch']}
+            for row in r['action_goal_checks']['rows']:
+                if row['requirement']['kind'] == 'tilt':
+                    add(provider, acts[row['requirement']['object_id']], row['passed'])
+        search = chance_dir / task_id / 'search.json'
+        if search.is_file():
+            for rec in load(search)['records']:
+                if not rec['name'].startswith('random'):
+                    continue
+                acts = {a['id']: a for a in rec['launch']}
+                for q, (kind, status) in zip(spec['goal_requirements'], rec['rows']):
+                    if q['kind'] == 'tilt':
+                        add('random', acts[q['object_id']], status == 'pass')
+    return {'bins': ['%.1f to %.1f m/s' % b if b[1] < 9 else 'over %.1f m/s' % b[0] for b in bins], 'rows': table}
 
 
 # ---------- plain-language wording ----------
@@ -400,6 +441,9 @@ def main():
                 save_jpeg(witness / 'frames' / 'frame_000.png', out_images / 'truth_poster.jpg')
                 copy_clip(witness / 'rollout.mp4', out_media / 'truth.mp4', ffmpeg)
                 example['truth'].update(poster=rel(out_images / 'truth_poster.jpg'), video=rel(out_media / 'truth.mp4'))
+                if (out_media / 'closeup_truth.mp4').is_file():   # close-up replay of the same recorded motion
+                    example['closeup'] = True
+                    example['truth'].update(poster=rel(out_images / 'closeup_truth_poster.jpg'), video=rel(out_media / 'closeup_truth.mp4'))
             else:
                 example['truth']['requirements'] = [predicate_text(p, labels) for p in spec.get('predicates', [])]
                 closeup = images_dir / task_id / 'closeup.json'
@@ -441,6 +485,8 @@ def main():
                         save_jpeg(frames / 'frames' / 'frame_000.png', out_images / (provider + '_poster.jpg'))
                         copy_clip(frames / 'rollout.mp4', out_media / (provider + '.mp4'), ffmpeg)
                         entry.update(poster=rel(out_images / (provider + '_poster.jpg')), video=rel(out_media / (provider + '.mp4')))
+                        if (out_media / ('closeup_%s.mp4' % provider)).is_file():
+                            entry.update(poster=rel(out_images / ('closeup_%s_poster.jpg' % provider)), video=rel(out_media / ('closeup_%s.mp4' % provider)))
                 elif not dynamic and status in ('pass', 'fail'):
                     entry['lines'] = plain_static_lines((reviewed or {}).get('measurement_lines') or [])
                     patch = folder / 'prediction' / 'patch_v2.json'
@@ -494,7 +540,8 @@ def main():
             sample['view_images'].append(rel(target_path))
         pipeline[name] = sample
 
-    data = {'generated_at': datetime.datetime.now().strftime('%Y-%m-%d %H:%M'), 'providers': PROVIDERS,
+    patterns = chair_patterns(runs, chance_dir)
+    data = {'chair_patterns': patterns, 'generated_at': datetime.datetime.now().strftime('%Y-%m-%d %H:%M'), 'providers': PROVIDERS,
             'types': types, 'examples': examples, 'featured': featured, 'pipeline': pipeline,
             'difficulty': {'hard': 'random answers pass under 15 percent of the time', 'medium': '15 to 50 percent', 'easy': '50 percent or more'}}
     header = ('// Generated by tools/extract_benchmark_results.py from the simagent repository; do not edit by hand.\n'

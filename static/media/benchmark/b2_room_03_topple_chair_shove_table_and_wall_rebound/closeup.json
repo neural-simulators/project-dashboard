@@ -1,0 +1,28 @@
+{
+ "task_id": "b2_room_03_topple_chair_shove_table_and_wall_rebound",
+ "objects": [
+  "o006",
+  "o007"
+ ],
+ "camera": {
+  "eye": [
+   -2.179476128270095,
+   -1.1765025206353115,
+   4.003429402848037
+  ],
+  "target": [
+   -1.3995987160859231,
+   1.2237133518587537,
+   0.39916040797647323
+  ],
+  "up": [
+   0,
+   0,
+   1
+  ],
+  "width": 640,
+  "height": 480,
+  "hfov": 55.0
+ },
+ "scope": "Replay of the recorded PhysX rollouts (no new physics) from a camera fitted to the listed objects."
+}

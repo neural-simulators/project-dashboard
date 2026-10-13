@@ -1,0 +1,28 @@
+{
+ "task_id": "b2_room_04_shove_table_and_toss_into_box",
+ "objects": [
+  "o006",
+  "o024"
+ ],
+ "camera": {
+  "eye": [
+   -1.1190781154859695,
+   -4.088158122869061,
+   6.476494126962515
+  ],
+  "target": [
+   0.20139613923495797,
+   -0.024156247850700696,
+   0.3738113970095256
+  ],
+  "up": [
+   0,
+   0,
+   1
+  ],
+  "width": 640,
+  "height": 480,
+  "hfov": 55.0
+ },
+ "scope": "Replay of the recorded PhysX rollouts (no new physics) from a camera fitted to the listed objects."
+}

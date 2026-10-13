@@ -1,0 +1,28 @@
+{
+ "task_id": "b2_room_01_shove_table_and_topple_chair",
+ "objects": [
+  "o006",
+  "o007"
+ ],
+ "camera": {
+  "eye": [
+   -1.6530187906564036,
+   -1.6392314082824317,
+   4.365073086170086
+  ],
+  "target": [
+   -0.7933811885897596,
+   1.00646108753489,
+   0.39218567136847565
+  ],
+  "up": [
+   0,
+   0,
+   1
+  ],
+  "width": 640,
+  "height": 480,
+  "hfov": 55.0
+ },
+ "scope": "Replay of the recorded PhysX rollouts (no new physics) from a camera fitted to the listed objects."
+}

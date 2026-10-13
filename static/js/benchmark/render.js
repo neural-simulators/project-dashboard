@@ -110,7 +110,8 @@
         '<p class="bm-what">Measured</p>' + (m.lines.length ? checkList(m.lines) : '<p class="bm-meta">nothing to simulate</p>') +
         (m.forecast_error_m != null ? '<p class="bm-meta">Its own forecast of where the launched object ends: off by ' + m.forecast_error_m + ' m.</p>' : '') + reviewer(m.reviewer) + '</div>');
     });
-    return '<div class="bm-card bm-dynamic">' + header(ex, headline) +
+    var note = ex.closeup ? '<p class="bm-meta">Close-up replay of the recorded simulations, framed on the objects that matter here.</p>' : '';
+    return '<div class="bm-card bm-dynamic">' + header(ex, headline) + note +
       '<div class="bm-playrow"><button class="button is-small is-light" type="button">Play all three together</button><span class="bm-meta">or hover over the clips</span></div>' +
       '<div class="bm-cols bm-cols-3">' + cols.join('') + '</div></div>';
   }
@@ -171,6 +172,23 @@
     el.innerHTML = h;
   }
 
+  /* ---------- what topples a chair (composite tasks) ---------- */
+  function renderChairs(el) {
+    var C = D.chair_patterns;
+    if (!C) { el.innerHTML = ''; return; }
+    function cell(x, strong) {
+      if (!x[1]) return '<td class="num muted">none</td>';
+      var r = x[0] / x[1], cls = 'num' + (strong ? (r >= 0.7 ? ' best' : (r < 0.3 ? ' weak' : '')) : '');
+      return '<td class="' + cls + '"><b>' + Math.round(100 * r) + '%</b> <span class="pc">' + x[0] + ' of ' + x[1] + '</span></td>';
+    }
+    var h = '<table class="table is-fullwidth bm-table"><thead><tr><th>Horizontal push given to the chair</th><th class="num">Random launches<span class="sub">share that toppled the chair</span></th>' +
+      '<th class="num">' + esc(P.gpt54) + '<span class="sub">its chair launches that toppled</span></th><th class="num">' + esc(P.qwen30t) + '<span class="sub">its chair launches that toppled</span></th></tr></thead><tbody>';
+    C.bins.forEach(function (b, k) {
+      h += '<tr' + (k < 2 ? ' class="highlight"' : '') + '><td>' + esc(b) + '</td>' + cell(C.rows.random[k], true) + cell(C.rows.gpt54[k]) + cell(C.rows.qwen30t[k]) + '</tr>';
+    });
+    el.innerHTML = h + '</tbody></table>';
+  }
+
   /* ---------- status ---------- */
   function renderStatus(el) {
     var items = D.types.map(function (t) {
@@ -190,6 +208,7 @@
       else if (kind === 'examples') renderExamples(el);
       else if (kind === 'io') renderIO(el);
       else if (kind === 'status') renderStatus(el);
+      else if (kind === 'chairs') renderChairs(el);
     });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run); else run();

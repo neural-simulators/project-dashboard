@@ -105,7 +105,31 @@
     <h2 class="title is-4">Composite tasks: several objects at once</h2>
     <p class="bm-lead">The newest and hardest set: knock a chair over, shove the dining table half a metre with the cups still on it,
       and throw the ball over the barrier, all in one answer with one velocity per object. Every requirement must hold at once, and the
-      launched objects can disturb each other. Six task families in fourteen rooms; results are being computed.</p>
+      launched objects can disturb each other. Six task families in fourteen rooms.</p>
+    <h3 class="title is-5">What goes wrong</h3>
+    <div class="content">
+      <ul>
+        <li><strong>GPT-5.4 spins chairs instead of pushing them.</strong> 43 of its 49 failures have one cause: a chair that does not
+          tip over. Its own stated reasoning treats the chair as a free body: it computes the tipping angle and gives the chair a
+          strong spin (about 7 rad/s) with a deliberately gentle push (about 0.35 m/s), so that the chair stays near its spot and away
+          from the table. In the simulator a chair standing on its legs does not spin freely: the floor stops its feet, and most of the
+          spin is lost the moment it is launched. What tips a chair over is a push, which the friction at its feet turns into a fall.
+          No random launch with a push under 0.6 m/s toppled a chair, whatever the spin. The same habit made it fail the single-object
+          "topple the stool" tasks.</li>
+        <li><strong>Everything else GPT-5.4 gets right.</strong> Table shoves, tosses into the box, throws over the barrier and wall
+          bounces almost always succeed (it meets 13 of 14 "shove the table and toss the ball into the box" tasks, against 11 percent
+          for random answers). The rare other misses are near-misses: a table that slides 0.245 m where 0.25 m is required, a ball
+          launched so gently that it ends up resting against the wall instead of rolling back.</li>
+        <li><strong>Qwen3-VL-30B Thinking fails before the physics starts.</strong> 48 of its 84 answers are rejected, 47 of them because
+          they give the ball or the box a spin although the prompt allows them none. Where the table must slide "about half a metre", it gives it a
+          speed of 0.5 m/s in 26 of 42 answers, as if speed were distance; the table then slides about 4 cm. Some answers leave the chair
+          without any motion, others throw it far out of its area.</li>
+      </ul>
+    </div>
+    <div class="table-container" data-bm="chairs"></div>
+    <p class="bm-meta">Rows shaded amber: pushes too weak to topple a chair in any random launch. Every chair launch of the six composite
+      families is counted; a chair counts as toppled when it ends at least 50 degrees from upright.</p>
+    <h3 class="title is-5">Three examples</h3>
     <div data-bm="examples" data-type="composite"></div>
   </div>
 
