@@ -29,12 +29,18 @@
     else fn();
   }
 
-  /* ---------- tabs: #design (default) and #results ---------- */
-  var TAB_NAMES = ['design', 'results'];
+  /* ---------- tabs: #design (default, the world model), #post-training and #results ---------- */
+  var TAB_NAMES = ['design', 'post-training', 'results'];   /* fallback; the panels on the page decide */
+
+  function tabNames() {
+    var panels = document.querySelectorAll('[data-tab-panel]'), names = [];
+    for (var i = 0; i < panels.length; i++) names.push(panels[i].getAttribute('data-tab-panel'));
+    return names.length ? names : TAB_NAMES;
+  }
 
   function tabFromHash() {
     var h = (window.location.hash || '').replace(/^#/, '');
-    return TAB_NAMES.indexOf(h) >= 0 ? h : 'design';
+    return tabNames().indexOf(h) >= 0 ? h : 'design';
   }
 
   function showTab(name) {

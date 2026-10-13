@@ -11,14 +11,14 @@
   <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
         rel="stylesheet">
 
-  <link rel="stylesheet" href="./static/css/bulma.min.css">
-  <link rel="stylesheet" href="./static/css/index.css">
-  <link rel="stylesheet" href="./static/css/project.css">
+  <link rel="stylesheet" href="./static/css/bulma.min.css?v=58b2865922">
+  <link rel="stylesheet" href="./static/css/index.css?v=747bae5899">
+  <link rel="stylesheet" href="./static/css/project.css?v=bb5cffe6b9">
   <link rel="icon" href="./static/images/favicon.svg">
 
   <!-- shared infrastructure only; each proposal or result block loads its own data and scripts inside its section -->
-  <script defer src="./static/js/fontawesome.all.min.js"></script>
-  <script defer src="./static/js/project.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js?v=20a3ef6979"></script>
+  <script defer src="./static/js/project.js?v=e201439f2a"></script>
 </head>
 <body>
 
@@ -28,12 +28,18 @@
       <div class="columns is-centered">
         <div class="column has-text-centered">
           <h1 class="title is-1 publication-title">Neural Simulators</h1>
-          <p class="subtitle is-4 wm-subtitle">Can a model stand in for a rigid-body physics engine? Benchmark, design proposals and results.</p>
+          <p class="subtitle is-4 wm-subtitle">Can a model stand in for a rigid-body physics engine? Benchmark, world model, post-training and results.</p>
           <div class="publication-links">
             <span class="link-block">
               <a href="#design" class="button is-normal is-rounded is-dark">
                 <span class="icon"><i class="fas fa-drafting-compass"></i></span>
-                <span>Design proposals</span>
+                <span>World model</span>
+              </a>
+            </span>
+            <span class="link-block">
+              <a href="#post-training" class="button is-normal is-rounded is-dark">
+                <span class="icon"><i class="fas fa-graduation-cap"></i></span>
+                <span>Post-training</span>
               </a>
             </span>
             <span class="link-block">
@@ -46,6 +52,11 @@
               <a href="./end-to-end.html" class="button is-normal is-rounded is-dark">
                 <span class="icon"><i class="fas fa-route"></i></span>
                 <span>End-to-end study</span>
+              </a>
+            </span>
+            <span class="link-block">
+              <a href="./digital-twins.html" class="button is-normal is-rounded is-dark">
+                <span>Digital twins</span>
               </a>
             </span>
           </div>
@@ -61,7 +72,13 @@
       <li class="is-active" data-tab="design" role="presentation">
         <a href="#design" role="tab" aria-controls="design" aria-selected="true">
           <span class="icon is-small"><i class="fas fa-drafting-compass" aria-hidden="true"></i></span>
-          <span>Design proposals</span>
+          <span>World model</span>
+        </a>
+      </li>
+      <li data-tab="post-training" role="presentation">
+        <a href="#post-training" role="tab" aria-controls="post-training" aria-selected="false">
+          <span class="icon is-small"><i class="fas fa-graduation-cap" aria-hidden="true"></i></span>
+          <span>Post-training</span>
         </a>
       </li>
       <li role="presentation">
@@ -80,6 +97,12 @@
         <a href="./end-to-end.html">
           <span class="icon is-small"><i class="fas fa-route" aria-hidden="true"></i></span>
           <span>End-to-end study</span>
+        </a>
+      </li>
+      <li role="presentation">
+        <a href="./digital-twins.html">
+          <span class="icon is-small"><i class="fas fa-cube" aria-hidden="true"></i></span>
+          <span>Digital twins</span>
         </a>
       </li>
     </ul>
@@ -403,16 +426,182 @@
       </div>
 
       <!-- this block's data and scripts (deferred: they run after the page is parsed, in this order) -->
-      <script defer src="./static/data/world_model.js"></script>
-      <script defer src="./static/js/world_model/anim_pipeline.js"></script>
-      <script defer src="./static/js/world_model/anim_flow.js"></script>
-      <script defer src="./static/js/world_model/anim_step.js"></script>
-      <script defer src="./static/js/world_model/anim_forcing.js"></script>
+      <script defer src="./static/data/world_model.js?v=dcbe32604e"></script>
+      <script defer src="./static/js/world_model/anim_pipeline.js?v=e82422477f"></script>
+      <script defer src="./static/js/world_model/anim_flow.js?v=ba6a6cdec9"></script>
+      <script defer src="./static/js/world_model/anim_step.js?v=7c5300efac"></script>
+      <script defer src="./static/js/world_model/anim_forcing.js?v=4905ac5991"></script>
     </div>
   </section>
   <!-- ---------- end proposal: world_model ---------- -->
 
   <!-- append the next proposal block here -->
+</div>
+
+<!-- =====================================================================
+     Post-training tab: the post-training proposal, one block installed from
+     post_training.html by tools/install_post_training_block.py.
+     ===================================================================== -->
+<div class="wm-panel" id="post-training" data-tab-panel="post-training" role="tabpanel" hidden>
+
+  <!-- ---------- proposal: post_training ---------- -->
+  <section class="section proposal" id="proposal-post_training">
+    <div class="container is-max-desktop">
+      <h2 class="title is-3">Post-training an open model with the simulator as its teacher</h2>
+      <p class="wm-lead">
+        Can a small open model learn 3D scene editing and launch planning from the simulator's verdicts instead of from human labels?
+        The model's weights stay frozen; small adapters are trained with reinforcement learning, and the benchmark's own checks provide
+        the reward. Every scene, answer and score below is a real record from the benchmark.
+      </p>
+
+      <div class="wm-section" id="post_training-abstract">
+        <h3 class="title is-4">1. Abstract</h3>
+        <div class="content">
+          <p>The benchmark has two kinds of task. A <em>static edit</em> asks the model to move or turn named objects so that an
+            instruction holds ("bring the red chair closer to the brown table"). A <em>launch task</em> asks for one initial velocity
+            of one object so that something happens in the simulation ("toss the red ball over the barrier into the box"). Both are
+            judged by deterministic checks and the PhysX simulator. GPT-5.4 passes most of them, the 30B open model about half, and the
+            7B open models almost none.</p>
+          <p>Post-training turns those checks into a teacher. The model writes several answers to the same prompt, each answer is
+            scored (cheap geometry checks for static edits, a full simulation for every launch), and the model is pushed toward the
+            answers that scored better than their siblings (GRPO), or toward the better answer of a pair (DPO, the cheaper baseline).
+            The simulator is the final judge, on held-out tasks the model never trained on.</p>
+        </div>
+      </div>
+
+      <div class="wm-section" id="post_training-examples">
+        <h3 class="title is-4">2. Training examples from the benchmark</h3>
+        <div class="content">
+          <p>Five real tasks, two static edits and three launches from easy to hard. Each one shows the task, then how the reference
+            answer and the answers of three models fare in the simulator, then the reward each answer would receive in training.
+            Pick an example or a step; the animation also plays through all of them.</p>
+        </div>
+        <div class="wm-anim pt-widget" id="pt-examples">
+          <div class="pt-picker" role="group" aria-label="Choose an example"></div>
+          <div class="pt-stage">
+            <div class="pt-canvas"><canvas width="560" height="460" aria-label="The scene of the chosen task, the answers, and how the simulator judges them"></canvas></div>
+            <div class="pt-side" aria-live="polite"></div>
+          </div>
+          <div class="wm-controls">
+            <button class="button is-small" data-action="toggle" aria-pressed="true">Pause</button>
+            <button class="button is-small" data-action="next">Next step</button>
+            <div class="pt-steps"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wm-section" id="post_training-grpo">
+        <h3 class="title is-4">3. GRPO: learning from a group of its own answers</h3>
+        <div class="content">
+          <p>For each prompt the model writes a group of answers; each is scored, and the update favours the answers that beat their
+            group's average. Below, a real group of sixteen answers from the untrained 7B model on a static edit, and thirteen launches
+            the simulator has judged for one launch task.</p>
+        </div>
+        <div class="wm-anim pt-widget" id="pt-grpo">
+          <div class="pt-picker" role="group" aria-label="Choose a task kind"></div>
+          <div class="pt-stage">
+            <div class="pt-canvas"><canvas width="560" height="460" aria-label="A group of answers, their rewards, their advantages and the direction of the update"></canvas></div>
+            <div class="pt-side" aria-live="polite"></div>
+          </div>
+          <div class="wm-controls">
+            <button class="button is-small" data-action="toggle" aria-pressed="true">Pause</button>
+            <button class="button is-small" data-action="next">Next step</button>
+            <div class="pt-steps"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wm-section" id="post_training-dpo">
+        <h3 class="title is-4">4. DPO: learning from a better and a worse answer</h3>
+        <div class="content">
+          <p>The offline baseline: answers are sampled and scored once, then the model is trained to prefer the better answer of each
+            pair. No simulator runs during training.</p>
+        </div>
+        <div class="wm-anim pt-widget" id="pt-dpo">
+          <div class="pt-picker" role="group" aria-label="Choose a pair"></div>
+          <div class="pt-stage">
+            <div class="pt-canvas"><canvas width="560" height="460" aria-label="A better and a worse answer, their rewards and the DPO update"></canvas></div>
+            <div class="pt-side" aria-live="polite"></div>
+          </div>
+          <div class="wm-controls">
+            <button class="button is-small" data-action="toggle" aria-pressed="true">Pause</button>
+            <button class="button is-small" data-action="next">Next step</button>
+            <div class="pt-steps"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wm-section" id="post_training-lora">
+        <h3 class="title is-4">5. What is trained, and where the simulator sits</h3>
+        <div class="content">
+          <p>The 7.6 billion weights of the language model stay frozen. LoRA adds two small matrices beside every linear layer and
+            trains only those, about one percent of the model, which is what lets a ten-thousand-token example fit one graphics card.</p>
+        </div>
+        <figure class="wm-figure">
+          <div class="wm-svg-scroll">
+            <svg class="pt-diagram" viewBox="0 0 900 360" role="img" aria-label="Frozen model with small trained adapters, the reward, the simulator, and the update loop">
+              <defs><marker id="pt-arrowhead" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#55606e"></path></marker></defs>
+              <rect class="box frozen" x="16" y="20" width="270" height="250" rx="10"></rect>
+              <text class="head" x="151" y="50" text-anchor="middle">Language model (7B)</text>
+              <rect class="box frozen" x="36" y="72" width="120" height="96" rx="6"></rect>
+              <text class="body" x="96" y="114" text-anchor="middle">W, frozen</text>
+              <text class="fine" x="96" y="138" text-anchor="middle">every layer</text>
+              <text class="head" x="172" y="126">+</text>
+              <rect class="box model" x="192" y="72" width="38" height="96" rx="6"></rect>
+              <text class="body lora" x="211" y="126" text-anchor="middle">B</text>
+              <rect class="box model" x="236" y="72" width="36" height="38" rx="6"></rect>
+              <text class="body lora" x="254" y="97" text-anchor="middle">A</text>
+              <text class="body" x="151" y="204" text-anchor="middle">only B and A are trained:</text>
+              <text class="body" x="151" y="228" text-anchor="middle">about 1% of the weights</text>
+              <path class="arrow" d="M286,110 L346,110"></path>
+              <text class="fine" x="316" y="98" text-anchor="middle">answers</text>
+              <rect class="box data" x="346" y="20" width="250" height="170" rx="10"></rect>
+              <text class="head" x="471" y="50" text-anchor="middle">Reward</text>
+              <text class="body" x="471" y="82" text-anchor="middle">static edits: the benchmark's</text>
+              <text class="body" x="471" y="104" text-anchor="middle">checks, about a millisecond</text>
+              <text class="body" x="471" y="138" text-anchor="middle">launches: a full simulation</text>
+              <text class="body" x="471" y="160" text-anchor="middle">of each launch, about 50 s</text>
+              <path class="arrow loop" d="M346,160 L286,160"></path>
+              <text class="fine" x="316" y="182" text-anchor="middle">update</text>
+              <rect class="box frozen" x="626" y="20" width="258" height="170" rx="10"></rect>
+              <text class="head" x="755" y="50" text-anchor="middle">Two ways to learn</text>
+              <text class="body" x="755" y="84" text-anchor="middle">GRPO: fresh answers each</text>
+              <text class="body" x="755" y="106" text-anchor="middle">step, judged against siblings</text>
+              <text class="body" x="755" y="142" text-anchor="middle">DPO: fixed pairs of a better</text>
+              <text class="body" x="755" y="164" text-anchor="middle">and a worse answer</text>
+              <path class="arrow" d="M471,190 L471,226"></path>
+              <rect class="box physx" x="346" y="226" width="538" height="118" rx="10"></rect>
+              <text class="head" x="615" y="258" text-anchor="middle">PhysX simulator</text>
+              <text class="body" x="615" y="290" text-anchor="middle">scores every sampled launch during training</text>
+              <text class="body" x="615" y="318" text-anchor="middle">judges every trained model on held-out tasks at the end</text>
+            </svg>
+          </div>
+          <figcaption>Blue: the trained adapters. Grey: frozen weights and the training methods. Green: the reward. Red: the simulator.</figcaption>
+        </figure>
+      </div>
+
+      <div class="wm-section" id="post_training-experiment">
+        <h3 class="title is-4">6. The first experiment</h3>
+        <div class="content">
+          <p>Static edits and launches of every difficulty from the benchmark, split into training tasks and held-out test tasks.
+            Difficulty is measured by guessing: a task is easy when at least half of random answers pass, hard when fewer than
+            15 percent do. The untrained 7B model, GRPO and DPO are each judged by the simulator on the test tasks, next to the larger
+            models below.</p>
+        </div>
+        <div class="table-container">
+          <table class="table is-fullwidth is-narrow wm-table pt-experiment" id="pt-experiment-table"></table>
+        </div>
+        <p class="wm-note">Numbers for the trained models appear in the Results tab when the run finishes.</p>
+      </div>
+
+      <!-- this block's data and script (deferred: they run after the page is parsed, in this order, after project.js) -->
+      <script defer src="./static/data/post_training.js?v=cbf8b14fdb"></script>
+      <script defer src="./static/js/post_training/main.js?v=b000f86309"></script>
+    </div>
+  </section>
+  <!-- ---------- end proposal: post_training ---------- -->
+
+  <!-- install the post-training block here -->
 </div>
 
 <!-- =====================================================================
@@ -424,7 +613,7 @@
   <!-- ---------- result: benchmark_v31 ---------- -->
   <section class="section result" id="result-benchmark_v31">
     <div class="container is-max-desktop">
-      <link rel="stylesheet" href="./static/css/benchmark.css">
+      <link rel="stylesheet" href="./static/css/benchmark.css?v=aab7d0a1d6">
       <h2 class="title is-3">Can a language model edit a physical scene?</h2>
       <p class="wm-lead">GPT-5.4 and Qwen3-VL-30B Thinking each get a simulated room (two renders and the list of objects with their
         sizes, masses and friction) and an instruction, and answer once: new poses for a static edit, or a launch velocity for a dynamic
@@ -450,8 +639,8 @@
       </div>
 
       <!-- this block's data and scripts (deferred) -->
-      <script defer src="./static/data/benchmark_results.js"></script>
-      <script defer src="./static/js/benchmark/render.js"></script>
+      <script defer src="./static/data/benchmark_results.js?v=72eb64595c"></script>
+      <script defer src="./static/js/benchmark/render.js?v=0f6c1a71ec"></script>
     </div>
   </section>
   <!-- ---------- end result: benchmark_v31 ---------- -->
@@ -459,21 +648,39 @@
   <!-- ---------- result: toy_world_model ---------- -->
   <section class="section result" id="result-toy_world_model">
     <div class="container is-max-desktop">
-      <h2 class="title is-3">Toy world-model experiment (first training run)</h2>
+      <h2 class="title is-3">Toy world-model experiment: first training runs</h2>
       <div class="content">
         <p>
-          Two variants are trained, A (a deterministic regressor) and B (flow matching), each in two sizes: a tiny
-          transformer of 4 layers and width 128 (1.26 M weights, over-parameterised on purpose) and a smaller one of
-          2 layers and width 64 (0.22 M weights), for 2,000 steps on 96 samples: 64 launches and drops drawn evenly
-          over the benchmark's difficulty tiers (random answers pass under 15 percent, between, or 50 percent and
-          more of the time) plus 32 static-edit settling pairs, all from stored PhysX evidence in rooms 1 to 10. Two
-          test sets of 48 samples are held out: tasks in the same rooms that were not trained on, and all of rooms 11
-          to 14. The metrics are the end-point error of the launched object in metres, the position RMSE over objects
-          that moved, the ghost-motion rate (still objects predicted to move more than 1 cm) and the rotation error in
-          degrees, each against a "nothing moves" baseline. This is a pipeline check, not a benchmark result.
+          Four variants of the world model were trained from scratch for 2,000 steps on 96 stored PhysX samples from
+          rooms 1 to 10 (64 launches and drops spread evenly over the benchmark's difficulty tiers, 32 static-edit
+          settling pairs) and scored on two held-out sets of 48: tasks never trained on in the same rooms, and all
+          of rooms 11 to 14. The variants are A, a deterministic regressor; B, rectified flow matching; Diffusion
+          Forcing; and C, the JEPA latent predictor, each with 1.26 M weights (C 1.66 M with its target encoder),
+          plus a 0.22 M version of A and B and two loss ablations. Metrics: position RMSE over the objects that
+          moved, the end-point error of the launched object, rotation error, and ghost motion (still objects
+          predicted to move more than 1 cm), each against a baseline that predicts no motion. This is a pipeline
+          check on a tiny dataset, not a benchmark result.
         </p>
+        <ul>
+          <li><strong>The models learn, and transfer weakly.</strong> On the training samples the regressor's
+            position error falls to 0.17 m against 0.91 m for "nothing moves"; on unseen tasks and unseen rooms it is
+            roughly halved (0.46 to 0.59 m against 0.93 to 1.14 m).</li>
+          <li><strong>Order of the variants:</strong> regressor and flow matching tie on the test sets, Diffusion
+            Forcing is a little behind, JEPA barely beats the baseline. That last result was expected: predicting an
+            embedding and decoding it with a linear probe helps when the target is high-dimensional and noisy, not
+            when it is an exact 15-number state.</li>
+          <li><strong>Two failures the numbers expose.</strong> Every object that stays still is predicted to move
+            more than 1 cm, and raising the weight of still objects in the loss from 0.1 to 1.0, or adding the
+            position-velocity consistency and box-overlap penalty terms, changes this little (0.84 to 0.94 for the
+            regressor, 1.0 for the flow model). Rotation is not learned at all. Both point to the data (96 samples)
+            rather than the objective; the simulator-backed data generator is the next step.</li>
+          <li><strong>Counterfactuals already work in the right direction.</strong> On 35 PhysX-graded twin launches
+            (same scene, same object, different speed) the regressor shifts its predicted end point the way PhysX did
+            on 34, including 11 of the 12 tasks it never saw; the speed sweep below follows the trend but misses the
+            saturation after the collision. A single sample of the flow model is noisier (26 of 35); its fair test, the average of several samples, is still being computed.</li>
+        </ul>
       </div>
-      <div class="wm-status" id="toy-status">Status: the first training run is in progress; its numbers will appear here.</div>
+      <div class="wm-status" id="toy-status">Status: first runs complete. Next: the data generator, and scoring the predicted trajectories with the benchmark's own evaluator (goal satisfaction, contacts, penetration).</div>
       <div class="table-container">
         <table class="table is-striped is-fullwidth wm-table" id="toy-results-table">
           <thead>
@@ -497,9 +704,51 @@
         </table>
       </div>
       <div id="toy-results"></div>
+
+      <!-- this block's data and renderer (deferred) -->
+      <script defer src="./static/data/toy_world_model.js?v=d5fd0f0c03"></script>
+      <script defer src="./static/js/toy_world_model/results.js?v=68980bab35"></script>
     </div>
   </section>
   <!-- ---------- end result: toy_world_model ---------- -->
+
+  <!-- ---------- result: post_training_poc ---------- -->
+  <section class="section result" id="result-post_training_poc">
+    <div class="container is-max-desktop">
+      <h2 class="title is-3">Post-training: first run and the run in progress</h2>
+      <div class="content">
+        <p>The first run trained the 7B model on ten static edits, one per task family, and judged every arm on those same ten tasks: an
+          overfitting check of the machinery, not a benchmark result. It completed the untrained model's evaluation and the sampling that
+          feeds the offline baselines before it was stopped to free GPUs. The run in progress is the real first experiment: a mix of static
+          edits and launch tasks of every difficulty tier, split into training and held-out test tasks, with the simulator's verdicts
+          for the untrained model, GRPO and DPO reported next to the campaign models on the same tasks.</p>
+      </div>
+      <div class="wm-status" id="pt-status">Status: loading the records of the first run.</div>
+      <div class="table-container">
+        <table class="table is-striped is-fullwidth wm-table" id="pt-results-table">
+          <thead><tr><th>Arm</th><th>Simulator passes on the 10 training tasks</th><th>Valid answers</th><th>Reward-program passes</th>
+            <th>Reward-program pass rate on 50 unseen procedural prompts</th><th>Training</th></tr></thead>
+          <tbody><tr><td>untrained model</td><td class="pending">pending</td><td class="pending">pending</td><td class="pending">pending</td><td class="pending">pending</td><td class="pending">pending</td></tr></tbody>
+        </table>
+      </div>
+      <h3 class="title is-6">Why the untrained model fails (checks failed per case, 10 cases)</h3>
+      <div id="pt-failed-checks" class="pt-mono">pending</div>
+      <h3 class="title is-6">Reward of 16 sampled answers per prompt, one row per training task</h3>
+      <div class="wm-anim pt-anim pt-strip">
+        <canvas id="pt-strip" width="900" height="300" aria-label="Reward of each of 16 samples for each of the ten prompts"></canvas>
+      </div>
+      <p class="wm-note">Every row is one prompt; every dot one sampled answer; the amber tick is the group mean. Rows whose dots spread carry a
+        learning signal (10 of 10 did). The single dot at 1.0 in room 8 is the one answer of 160 that passed every check; 9 answers in other
+        rooms were not valid edits and scored 0.05.</p>
+      <h3 class="title is-6">Run in progress: mixed static edits and launch tasks with a held-out test set</h3>
+      <div class="wm-status" id="pt-mixed-status">Status: in progress. 74 training tasks (25 static edits, 49 launch tasks: 7 easy, 10 medium, 32 hard) and 48 held-out
+        test tasks (17 static edits, 31 launch tasks: 4 easy, 6 medium, 21 hard). On the test tasks the 30B thinking model passes 6 of 17 static edits and
+        16 of 31 launches; GPT-5.4 passes 15 and 29.</div>
+      <div id="pt-mixed-results"></div>
+    </div>
+  </section>
+  <!-- ---------- end result: post_training_poc ---------- -->
+
 
   <!-- append the next result block here -->
 </div>

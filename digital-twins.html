@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Turning photographs of a real kitchen counter into objects that a physics simulator can move: masks, complete 3D shapes, collision bodies and PhysX motion.">
+  <title>Digital twins · Neural Simulators</title>
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
+  <link rel="stylesheet" href="./static/css/bulma.min.css?v=58b2865922">
+  <link rel="stylesheet" href="./static/css/index.css?v=747bae5899">
+  <link rel="stylesheet" href="./static/css/project.css?v=bb5cffe6b9">
+  <link rel="stylesheet" href="./static/css/digital_twin.css?v=696467804c">
+  <link rel="icon" href="./static/images/favicon.svg">
+  <script defer src="./static/js/fontawesome.all.min.js?v=20a3ef6979"></script>
+  <script defer src="./static/js/site_nav.js?v=3df7dc9ccc"></script>
+  <script defer src="./static/js/project.js?v=e201439f2a"></script>
+  <script defer src="./static/data/digital_twin.js?v=de67070a92"></script>
+  <script defer src="./static/js/digital_twin/main.js?v=873e5dfa53"></script>
+</head>
+<body>
+
+<section class="hero wm-hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-2 publication-title">Digital twins from photographs</h1>
+          <p class="subtitle is-4 wm-subtitle">A real kitchen counter, photographed, turned into objects that the physics simulator can move</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="container is-max-desktop">
+  <nav class="tabs is-centered is-boxed wm-tabs" data-site-nav="digital-twins" aria-label="Project pages"></nav>
+</div>
+
+<main id="digital-twin" class="container is-max-desktop">
+
+  <section class="dt-section">
+    <h2 class="title is-4">1. Abstract</h2>
+    <p>The benchmark's rooms are built by hand. A digital twin starts instead from photographs of a real scene and turns
+      the objects in them into rigid bodies the simulator can push, drop and throw. The example is the
+      <a href="https://jonbarron.info/mipnerf360/">Mip-NeRF 360 counter</a>, with three movable objects: a black tin,
+      a red tin and a coconut-oil jar. Everything else on the counter stays fixed.</p>
+    <ul class="dt-status">
+      <li><span class="dt-badge done">Shown here</span> object masks, complete 3D shapes, placement in the scene, and motion in PhysX.</li>
+      <li><span class="dt-badge planned">Proposed</span> finding objects automatically, predicting their motion with the world model,
+        and showing that motion in the original photographs.</li>
+    </ul>
+  </section>
+
+  <section class="dt-section" id="dt-simulations">
+    <h2 class="title is-4">2. The counter in the simulator</h2>
+    <p>Three actions we chose, run on the reconstructed counter. PhysX computes every frame. Mass and friction are guesses, so the
+      motion is plausible, not a recording of the real objects.</p>
+    <div id="dt-video-gallery" class="dt-video-gallery">
+      <div class="dt-video-toolbar"><button id="dt-video-toggle" class="button is-small is-dark" type="button" aria-pressed="false">Play all</button><button id="dt-video-speed" class="button is-small is-light" type="button">Slow motion: off</button><span id="dt-video-clock" class="dt-small" aria-live="off">Hover over a video, or click to keep playing.</span></div>
+      <div class="dt-video-grid" id="dt-video-grid"></div>
+      <p class="dt-small" id="dt-video-note"></p>
+      <p id="dt-video-status" class="dt-small" role="status"></p>
+    </div>
+  </section>
+
+  <section class="dt-section" id="dt-build">
+    <h2 class="title is-4">3. How the twin is built</h2>
+    <p>Five steps, from photographs to a scene the simulator can run.</p>
+    <div class="wm-anim dt-pipeline" id="dt-pipeline">
+      <div class="wm-svg-scroll"><svg viewBox="0 0 900 185" role="img" aria-label="Pipeline: photographs, masks, complete shapes, placement, simulation."></svg></div>
+      <div class="wm-controls"><button type="button" class="button is-small is-light">Pause</button><p class="wm-caption"></p></div>
+    </div>
+
+    <h3 class="title is-5">Photographs and cameras</h3>
+    <p>The capture has 240 photographs with known camera positions, and a dense 3D point cloud of the counter built from them.
+      Seven of the photographs are used to outline the objects. Click one to see where its camera stood.</p>
+    <div class="dt-view-strip" id="dt-view-strip" aria-label="Seven source photographs"></div>
+    <div class="wm-anim" id="dt-geometry">
+      <canvas width="900" height="330" role="img" aria-label="The counter's 3D points and the seven calibrated camera positions, rotating."></canvas>
+      <div class="wm-controls"><button type="button" class="button is-small is-light">Pause</button><p class="wm-caption">The reconstructed counter (objects removed) and the real camera positions.</p></div>
+    </div>
+
+    <h3 class="title is-5">From an outline to a complete object</h3>
+    <p>SAM2 outlines each object from a few clicks placed by hand. SAM 3D Objects turns one photograph and its outline into a
+      complete 3D shape, including the sides no camera saw, which are a guess. Each shape is then scaled and placed to match the
+      3D points the cameras saw, to about 1.6 mm; the two tins are also matched to their outlines in other photographs.</p>
+    <div class="dt-mask-grid" id="dt-mask-grid"></div>
+    <div class="wm-anim" id="dt-meshes">
+      <div class="dt-mesh-grid" id="dt-mesh-grid"></div>
+      <div class="wm-controls"><button type="button" class="button is-small is-light">Pause</button><label class="dt-check"><input type="checkbox" id="dt-show-colliders"> Show the collision shape</label><p class="wm-caption">The reconstructed shapes, simplified for the browser.</p></div>
+    </div>
+  </section>
+
+  <section class="dt-section" id="dt-physics">
+    <h2 class="title is-4">4. What the simulator gets for each object</h2>
+    <div class="table-container"><table class="table is-fullwidth wm-table dt-property-table"><thead><tr><th>Property</th><th>Value</th><th>Where it comes from</th></tr></thead><tbody>
+      <tr><td>Shape and colour</td><td>reconstructed mesh</td><td>one photograph per object; hidden sides and much of the colour are generated</td></tr>
+      <tr><td>Size</td><td>metric scale</td><td>assumed: the jar is 9 cm across</td></tr>
+      <tr><td>Collision shape</td><td>convex hull with a flat base</td><td>derived from the mesh</td></tr>
+      <tr><td>Mass</td><td>0.45 kg per tin, 0.55 kg for the jar</td><td>assumed</td></tr>
+      <tr><td>Friction and bounce</td><td>friction 0.6 / 0.5, bounce 0.05</td><td>assumed</td></tr>
+    </tbody></table></div>
+    <p class="dt-small">The photographs fix shape and position. Mass, friction and bounce cannot be seen and are reasonable guesses.
+      Known limits: the generated colours are less faithful than the photographs (label text is not readable), and the
+      reconstructed surroundings have holes.</p>
+  </section>
+
+  <section class="dt-section" id="dt-next">
+    <h2 class="title is-4">5. What comes next</h2>
+    <div class="dt-next-grid">
+      <div><h3 class="title is-6">Find the objects automatically</h3><p>Today the three objects were picked by hand. A detector such as
+        <a href="https://github.com/LEDGER-3D/LEDGER">LEDGER</a> could propose objects and keep their identities across photographs.</p></div>
+      <div><h3 class="title is-6">Predict before simulating</h3><p>The twin is stored in the same scene format as the benchmark rooms, so
+        the <a href="./index.html#design">world model</a> could predict the outcome of an action, with PhysX checking the chosen one.</p></div>
+      <div><h3 class="title is-6">Show the motion in the photographs</h3><p>Moving the captured appearance with the simulated poses
+        (as in <a href="https://arxiv.org/abs/2311.12198">PhysGaussian</a>) would render the result in the real scene. Not built yet.</p></div>
+    </div>
+    <p class="dt-small">Built with <a href="https://colmap.github.io/">COLMAP</a>, <a href="https://www.open3d.org/">Open3D</a>, <a href="https://github.com/facebookresearch/sam2">SAM2</a>,
+      <a href="https://github.com/facebookresearch/sam-3d-objects">SAM 3D Objects</a>, <a href="https://openusd.org/">OpenUSD</a> and
+      <a href="https://developer.nvidia.com/isaac/sim">Isaac Sim</a> with PhysX.</p>
+  </section>
+
+</main>
+
+<footer class="footer"><div class="container is-max-desktop"><p>Neural Simulators · Page layout adapted from the <a href="https://nerfies.github.io">Nerfies</a> template, licensed under <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>.</p></div></footer>
+</body>
+</html>

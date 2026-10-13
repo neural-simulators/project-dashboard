@@ -218,3 +218,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Rebuilt digital-twin display assets and local browser checks.
+static/images/digital_twin/
+static/media/digital_twin/
+static/data/digital_twin.js
+static/data/digital_twin_provenance.json

@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+        content="Neural Simulators: can a model stand in for a rigid-body physics engine? Benchmark, design proposals and results of the simagent project.">
+  <meta name="keywords" content="neural simulator, world model, scene graph, flow matching, rigid-body physics, PhysX, benchmark">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Neural Simulators</title>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="stylesheet" href="./static/css/project.css">
+  <link rel="icon" href="./static/images/favicon.svg">
+
+  <!-- shared infrastructure only; each proposal or result block loads its own data and scripts inside its section -->
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script defer src="./static/js/project.js"></script>
+</head>
+<body>
+
+<section class="hero wm-hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-1 publication-title">Neural Simulators</h1>
+          <p class="subtitle is-4 wm-subtitle">Can a model stand in for a rigid-body physics engine? Benchmark, design proposals and results.</p>
+          <div class="publication-links">
+            <span class="link-block">
+              <a href="#design" class="button is-normal is-rounded is-dark">
+                <span class="icon"><i class="fas fa-drafting-compass"></i></span>
+                <span>Design proposals</span>
+              </a>
+            </span>
+            <span class="link-block">
+              <a href="#results" class="button is-normal is-rounded is-dark">
+                <span class="icon"><i class="fas fa-chart-bar"></i></span>
+                <span>Results</span>
+              </a>
+            </span>
+            <span class="link-block">
+              <a href="./end-to-end.html" class="button is-normal is-rounded is-dark">
+                <span class="icon"><i class="fas fa-route"></i></span>
+                <span>End-to-end study</span>
+              </a>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="container is-max-desktop">
+  <div class="tabs is-centered is-boxed wm-tabs" id="wm-tabs">
+    <ul role="tablist">
+      <li class="is-active" data-tab="design" role="presentation">
+        <a href="#design" role="tab" aria-controls="design" aria-selected="true">
+          <span class="icon is-small"><i class="fas fa-drafting-compass" aria-hidden="true"></i></span>
+          <span>Design proposals</span>
+        </a>
+      </li>
+      <li data-tab="results" role="presentation">
+        <a href="#results" role="tab" aria-controls="results" aria-selected="false">
+          <span class="icon is-small"><i class="fas fa-chart-bar" aria-hidden="true"></i></span>
+          <span>Results</span>
+        </a>
+      </li>
+      <li role="presentation">
+        <a href="./end-to-end.html">
+          <span class="icon is-small"><i class="fas fa-route" aria-hidden="true"></i></span>
+          <span>End-to-end study</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<!-- =====================================================================
+     Design proposals tab. Each proposal is ONE self-contained block:
+       <section class="section proposal" id="proposal-<slug>"> ... </section>
+     appended inside this wrapper, with images under static/images/<slug>/,
+     data under static/data/<slug>.js and scripts under static/js/<slug>/.
+     Add new blocks after the last one; do not edit another block.
+     See README.md, "How to add a proposal or a result".
+     ===================================================================== -->
+<div class="wm-panel" id="design" data-tab-panel="design" role="tabpanel">
+
+  <!-- ---------- proposal: world_model ---------- -->
+  <section class="section proposal" id="proposal-world_model">
+    <div class="container is-max-desktop">
+      <h2 class="title is-3">World model: scene-graph flow matching</h2>
+      <p class="wm-lead">
+        One proposal in seven short sections. The numbers are measured on the benchmark's 462 qualified tasks and
+        on one sample task from room 1, "Send the red ball over the gray barrier so that it comes down and hits the
+        blue ball within one and a half seconds, without touching the barrier", whose real PhysX rollout also drives
+        the animations below.
+      </p>
+
+      <div class="wm-section" id="world_model-overview">
+        <h3 class="title is-4">1. Abstract</h3>
+        <div class="content">
+          <p>
+            A network that reads the initial scene graph, one token per object, together with the action, and
+            predicts the state of every movable object at each of the 60 future frames (2 s at 30 Hz). It is
+            trained on PhysX rollouts of the benchmark's 462 tasks (24 to 34 objects per scene, 15 to 19 of them
+            movable). A token here is one vector of numbers per object, not a word piece.
+          </p>
+          <p>Why feed the scene graph rather than text or video? Count what the same room costs as input:</p>
+        </div>
+        <div class="table-container">
+          <table class="table is-narrow is-fullwidth wm-table wm-count">
+            <thead><tr><th>Representation of the sample room</th><th>How it adds up</th><th>Tokens</th></tr></thead>
+            <tbody>
+              <tr><td>Scene graph, one token per object</td><td>27 objects &times; 1 token each (76 numbers + 3 ids per token)</td><td>27</td></tr>
+              <tr><td></td><td>+ 1 action token + 1 global token</td><td><strong>29</strong></td></tr>
+              <tr><td>The same room as text, the prompt the language models read</td><td>about 475 word pieces per object</td><td>12,844</td></tr>
+              <tr><td>The same two seconds as video, one 640 &times; 480 camera, 61 frames</td><td>depending on the video tokenizer</td><td>10,800 to 37,200</td></tr>
+              <tr><td>Precision available in that video</td><td colspan="2">the evaluator's 15 mm tolerance is 1.5 pixels, or 0.19 pixels after 8&times; latent compression</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="wm-section" id="world_model-io">
+        <h3 class="title is-4">2. Input and output</h3>
+        <div class="content">
+          <ul>
+            <li><strong>Input:</strong> 27 object rows. The <span class="wm-accent-red">red ball</span>'s row holds
+              position (-0.80, -2.20, 0.10) m, mass 0.2 kg, friction 0.9, restitution 0, radius 0.10 m and, after
+              the launch, velocity (2.0, 0, 3.4) m/s. One action token, "set the red ball's velocity to
+              (2.0, 0, 3.4) m/s at t = 0", and one global token (gravity, timestep).</li>
+            <li><strong>Output:</strong> 18 movable objects x 60 frames = 1,080 slots of 15 numbers each
+              (displacement 3, orientation 6, velocity 3, spin 3), written as the evaluator's <code>frames[]</code>
+              JSON. 16 of the 18 rows stay zero because nothing moved those objects.</li>
+            <li><strong>No cap on the number of objects:</strong> slots are created per movable object, so a room
+              with more movable objects simply gets more slots.</li>
+          </ul>
+        </div>
+        <figure class="wm-figure">
+          <div class="wm-svg-scroll">
+            <img class="wm-web-figure" src="./static/images/world_model/web_io.svg" width="900" height="470"
+                 alt="The sample task's object rows on the left, the 29 tokens and the transformer in the middle, and the 18 by 60 output grid on the right with the red and blue ball rows filled in.">
+          </div>
+          <figcaption>Input and output on the sample task: object rows in, one slot per movable object and frame out.
+            Every number comes from the real manifest and PhysX rollout.</figcaption>
+        </figure>
+        <div class="wm-anim" id="anim-pipeline">
+          <div class="wm-svg-scroll">
+            <svg class="wm-diagram" viewBox="0 0 900 212" role="img"
+                 aria-label="Pipeline: scene graph rows become tokens, pass through the transformer, produce the output tensor and are scored against PhysX."></svg>
+          </div>
+          <div class="wm-controls">
+            <button class="button is-small is-light" type="button" aria-pressed="true">Pause</button>
+            <p class="wm-caption"></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="wm-section" id="world_model-training">
+        <h3 class="title is-4">3. Training objective</h3>
+        <div class="content">
+          <p>Variant B, the primary model, is rectified flow matching over the whole 60-frame tensor.</p>
+          <ul>
+            <li><strong>Mix:</strong> x1 is the stored PhysX trajectory tensor, normalised; x0 is Gaussian noise of
+              the same shape; tau is drawn from a logit-normal distribution and x_tau = (1 - tau) x0 + tau x1.</li>
+            <li><strong>Loss:</strong> the network outputs u_hat, its guess of the direction from the noise sample
+              to the truth; the loss is the mean of w (u_hat - (x1 - x0))^2, with w = 1 for objects that move in
+              the truth and 0.1 for the ones that stay still (92 percent of them). Two small extra terms keep
+              positions consistent with velocities and predict each object's first contact.</li>
+            <li><strong>Prediction, and the control:</strong> start from noise and take 32 Euler steps along u_hat.
+              Variant A, the deterministic control, is the same network with no noise, one pass and a squared error
+              on the trajectory.</li>
+          </ul>
+        </div>
+        <figure class="wm-figure">
+          <div class="wm-svg-scroll">
+            <img class="wm-web-figure" src="./static/images/world_model/web_training.svg" width="900" height="470"
+                 alt="The stored PhysX trajectory tensor and a noise tensor are mixed, the transformer predicts the direction back to the truth, and the squared error is the loss.">
+          </div>
+          <figcaption>Training: the stored PhysX trajectory (the red ball's 15 channels are shown) is mixed with noise;
+            the network predicts the direction back to the truth and is scored on the gap.</figcaption>
+        </figure>
+        <div class="wm-anim" id="anim-flow">
+          <canvas width="900" height="400"
+                  aria-label="Flow-matching animation on the red ball's recorded path: draw tau, mix noise and truth, predict the direction, score the loss."></canvas>
+          <div class="wm-controls">
+            <button class="button is-small is-light" type="button" aria-pressed="true">Pause</button>
+            <p class="wm-caption"></p>
+          </div>
+          <p class="wm-note">The real tensor has 15 channels per object per frame; this animation shows two of them,
+            the red ball's x and z, over the 61 recorded frames. The blue arrows come from a fixed perturbation of
+            the true direction, standing in for an untrained network; nothing here is a trained model's output.</p>
+        </div>
+      </div>
+
+      <div class="wm-section" id="world_model-forcing">
+        <h3 class="title is-4">4. Diffusion Forcing variant</h3>
+        <div class="content">
+          <p>
+            Same data, same network, one change in training: each frame gets its own noise level instead of one
+            level for the whole tensor. At sampling time the frames are denoised in order, early frames ahead of late
+            ones, so a frame is predicted while the frames before it are already clean; a known prefix is simply
+            frames at noise level zero. Rollouts can extend past 60 frames by sliding the window.
+          </p>
+        </div>
+        <div class="wm-anim" id="anim-forcing">
+          <svg class="wm-diagram" viewBox="0 0 910 86" role="img"
+               aria-label="A strip of 60 squares, one per frame; opacity shows how clean each frame is."></svg>
+          <div class="wm-controls">
+            <button class="button is-small is-light" type="button" aria-pressed="true">Pause</button>
+            <p class="wm-caption"></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="wm-section" id="world_model-counterfactuals">
+        <h3 class="title is-4">5. Counterfactuals built in</h3>
+        <div class="content">
+          <p>
+            The inputs are the explicit scene graph and the explicit action, so a counterfactual is an edited input
+            (change the friction in the table's row, move the cup, change the launch vector, remove an object)
+            followed by a second sampling run; mid-trajectory questions clamp the known frames and continue from an
+            edited state. The training generator must randomise friction, restitution, mass, placements and
+            actions, otherwise the model ignores those inputs. Accuracy is checked against PhysX on paired rollouts,
+            such as the benchmark's yes/no twin pairs (GPT-5.4 got 6 of 7 pairs, Qwen3-VL-30B-Thinking 3 of 7).
+          </p>
+        </div>
+        <figure class="wm-figure">
+          <div class="wm-svg-scroll">
+            <svg class="wm-diagram" viewBox="0 0 900 262" role="img" aria-labelledby="cf-title">
+              <title id="cf-title">Two runs of the model: the original input, and the same input with one field edited</title>
+              <defs>
+                <marker id="cf-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+                  <path d="M0,0 L10,5 L0,10 z" fill="#767676"/>
+                </marker>
+              </defs>
+              <g font-size="12" fill="#333">
+                <!-- run 1 -->
+                <rect x="10" y="18" width="262" height="100" rx="8" fill="#fff" stroke="#d9dee5" stroke-width="1.5"/>
+                <text x="24" y="40" font-weight="bold">scene graph + action</text>
+                <text x="24" y="62">red ball row: friction 0.9, mass 0.2 kg</text>
+                <text x="24" y="82">launch: v = (2.0, 0, 3.4) m/s</text>
+                <text x="24" y="102">blue ball at x = 1.0 m, gray barrier at x = 0.1 m</text>
+                <line x1="274" y1="68" x2="318" y2="68" stroke="#767676" stroke-width="1.5" marker-end="url(#cf-arrow)"/>
+                <rect x="320" y="18" width="130" height="100" rx="8" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.5"/>
+                <text x="385" y="62" text-anchor="middle" font-weight="bold" fill="#1f6feb">model</text>
+                <text x="385" y="82" text-anchor="middle" fill="#55606e">sampling run 1</text>
+                <line x1="452" y1="68" x2="496" y2="68" stroke="#767676" stroke-width="1.5" marker-end="url(#cf-arrow)"/>
+                <rect x="498" y="18" width="392" height="100" rx="8" fill="#fff" stroke="#d9dee5" stroke-width="1.5"/>
+                <text x="512" y="40" font-weight="bold">outcome</text>
+                <line x1="512" y1="104" x2="876" y2="104" stroke="#767676" stroke-width="1.5"/>
+                <rect x="645" y="80" width="8" height="24" fill="#9aa3ad"/>
+                <circle cx="770" cy="97" r="7" fill="#4a6fa5"/>
+                <path d="M548,97 Q650,20 756,97" fill="none" stroke="#d7263d" stroke-width="2"/>
+                <circle cx="548" cy="97" r="7" fill="#d7263d"/>
+                <text x="876" y="60" text-anchor="end" fill="#55606e">hits the blue ball at 0.87 s (PhysX)</text>
+                <!-- run 2 -->
+                <rect x="10" y="150" width="262" height="100" rx="8" fill="#fff" stroke="#d9dee5" stroke-width="1.5"/>
+                <text x="24" y="172" font-weight="bold">scene graph + action, one field edited</text>
+                <text x="24" y="194">red ball row: friction 0.9, mass 0.2 kg</text>
+                <rect x="18" y="200" width="200" height="20" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.5"/>
+                <text x="24" y="214" font-weight="bold">launch: v = (edited)</text>
+                <text x="24" y="234">blue ball at x = 1.0 m, gray barrier at x = 0.1 m</text>
+                <line x1="274" y1="200" x2="318" y2="200" stroke="#767676" stroke-width="1.5" marker-end="url(#cf-arrow)"/>
+                <rect x="320" y="150" width="130" height="100" rx="8" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.5"/>
+                <text x="385" y="194" text-anchor="middle" font-weight="bold" fill="#1f6feb">model</text>
+                <text x="385" y="214" text-anchor="middle" fill="#55606e">sampling run 2</text>
+                <line x1="452" y1="200" x2="496" y2="200" stroke="#767676" stroke-width="1.5" marker-end="url(#cf-arrow)"/>
+                <rect x="498" y="150" width="392" height="100" rx="8" fill="#fff" stroke="#f5a623" stroke-width="1.5"/>
+                <text x="512" y="172" font-weight="bold">outcome, different</text>
+                <line x1="512" y1="236" x2="876" y2="236" stroke="#767676" stroke-width="1.5"/>
+                <rect x="645" y="212" width="8" height="24" fill="#9aa3ad"/>
+                <circle cx="770" cy="229" r="7" fill="#4a6fa5"/>
+                <path d="M548,229 Q596,168 644,214" fill="none" stroke="#d7263d" stroke-width="2"/>
+                <circle cx="548" cy="229" r="7" fill="#d7263d"/>
+                <text x="876" y="192" text-anchor="end" fill="#55606e">illustrative, not a simulated result</text>
+              </g>
+            </svg>
+          </div>
+          <figcaption>Scene graph + action, model, outcome, drawn twice: the second run edits one field (amber) and
+            samples again; the difference between the two outputs is the counterfactual answer. The second outcome is
+            a sketch, not a simulation.</figcaption>
+        </figure>
+      </div>
+
+      <div class="wm-section" id="world_model-jepa">
+        <h3 class="title is-4">6. JEPA variant (C)</h3>
+        <div class="content">
+          <p>
+            An encoder maps a scene-graph state to one embedding per object; a slowly updated copy of the encoder
+            embeds the future states as targets; a predictor conditioned on the action and the frame offset predicts
+            the future embeddings for all offsets at once. The loss is taken in embedding space with variance and
+            covariance regularisers, and a probe decoder maps embeddings back to states for scoring. Its role is
+            latent planning and a bridge to visual inputs; it is not expected to beat direct state prediction on an
+            exact 15-number state.
+          </p>
+        </div>
+        <figure class="wm-figure">
+          <div class="wm-svg-scroll">
+            <svg class="wm-diagram" viewBox="0 0 900 252" role="img" aria-labelledby="jp-title">
+              <title id="jp-title">JEPA variant: encoder, predictor, slowly updated target encoder, loss in embedding space, probe decoder</title>
+              <defs>
+                <marker id="jp-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 z" fill="#767676"/>
+                </marker>
+              </defs>
+              <g font-size="12" fill="#333">
+                <!-- probe decoder -->
+                <rect x="690" y="12" width="200" height="44" rx="8" fill="#fff" stroke="#d9dee5" stroke-width="1.5"/>
+                <text x="790" y="30" text-anchor="middle" font-weight="bold">probe decoder</text>
+                <text x="790" y="47" text-anchor="middle" fill="#55606e">embedding to state (15 numbers)</text>
+                <line x1="790" y1="98" x2="790" y2="58" stroke="#767676" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#jp-arrow)"/>
+                <!-- row A: current state -->
+                <rect x="10" y="100" width="140" height="50" rx="8" fill="#fff" stroke="#d9dee5" stroke-width="1.5"/>
+                <text x="80" y="121" text-anchor="middle" font-weight="bold">state s_0</text>
+                <text x="80" y="139" text-anchor="middle" fill="#55606e">scene graph + action</text>
+                <line x1="152" y1="125" x2="198" y2="125" stroke="#767676" stroke-width="1.5" marker-end="url(#jp-arrow)"/>
+                <rect x="200" y="100" width="120" height="50" rx="8" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.5"/>
+                <text x="260" y="130" text-anchor="middle" font-weight="bold" fill="#1f6feb">encoder</text>
+                <line x1="322" y1="125" x2="368" y2="125" stroke="#767676" stroke-width="1.5" marker-end="url(#jp-arrow)"/>
+                <rect x="370" y="100" width="120" height="50" rx="8" fill="#fff" stroke="#d9dee5" stroke-width="1.5"/>
+                <text x="430" y="121" text-anchor="middle" font-weight="bold">z_0</text>
+                <text x="430" y="139" text-anchor="middle" fill="#55606e">one per object</text>
+                <line x1="492" y1="125" x2="538" y2="125" stroke="#767676" stroke-width="1.5" marker-end="url(#jp-arrow)"/>
+                <rect x="540" y="100" width="150" height="50" rx="8" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.5"/>
+                <text x="615" y="121" text-anchor="middle" font-weight="bold" fill="#1f6feb">predictor</text>
+                <text x="615" y="139" text-anchor="middle" fill="#55606e">action a, offset k</text>
+                <line x1="692" y1="125" x2="738" y2="125" stroke="#767676" stroke-width="1.5" marker-end="url(#jp-arrow)"/>
+                <rect x="740" y="100" width="100" height="50" rx="8" fill="#fff" stroke="#1f6feb" stroke-width="1.5"/>
+                <text x="790" y="121" text-anchor="middle" font-weight="bold" fill="#1f6feb">z_k predicted</text>
+                <text x="790" y="139" text-anchor="middle" fill="#55606e">all k at once</text>
+                <!-- slow copy -->
+                <line x1="260" y1="152" x2="260" y2="196" stroke="#767676" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#jp-arrow)"/>
+                <text x="270" y="178" fill="#55606e">slow copy of the encoder weights</text>
+                <!-- loss -->
+                <line x1="790" y1="154" x2="790" y2="194" stroke="#d7263d" stroke-width="2" marker-start="url(#jp-arrow)" marker-end="url(#jp-arrow)"/>
+                <text x="776" y="170" text-anchor="end" fill="#d7263d">loss in embedding space</text>
+                <text x="776" y="188" text-anchor="end" fill="#d7263d">+ variance and covariance regularisers</text>
+                <!-- row B: future state -->
+                <rect x="10" y="198" width="140" height="50" rx="8" fill="#fff" stroke="#d9dee5" stroke-width="1.5"/>
+                <text x="80" y="219" text-anchor="middle" font-weight="bold">state s_k</text>
+                <text x="80" y="237" text-anchor="middle" fill="#55606e">future, from PhysX</text>
+                <line x1="152" y1="223" x2="198" y2="223" stroke="#767676" stroke-width="1.5" marker-end="url(#jp-arrow)"/>
+                <rect x="200" y="198" width="150" height="50" rx="8" fill="#fff" stroke="#d9dee5" stroke-width="1.5"/>
+                <text x="275" y="219" text-anchor="middle" font-weight="bold">target encoder</text>
+                <text x="275" y="237" text-anchor="middle" fill="#55606e">slowly updated, no gradient</text>
+                <line x1="352" y1="223" x2="738" y2="223" stroke="#767676" stroke-width="1.5" marker-end="url(#jp-arrow)"/>
+                <rect x="740" y="198" width="100" height="50" rx="8" fill="#fff" stroke="#d9dee5" stroke-width="1.5"/>
+                <text x="790" y="219" text-anchor="middle" font-weight="bold">z_k target</text>
+                <text x="790" y="237" text-anchor="middle" fill="#55606e">one per object</text>
+              </g>
+            </svg>
+          </div>
+          <figcaption>Variant C: the predictor works in embedding space; the dashed arrow marks the slowly updated
+            target encoder; the probe decoder exists only so that the same state metrics can be applied.</figcaption>
+        </figure>
+      </div>
+
+      <div class="wm-section" id="world_model-step">
+        <h3 class="title is-4">7. Variant D: autoregressive next-state predictor</h3>
+        <div class="content">
+          <p>
+            Input: the state at frame t (plus the last 4 frames) and the pairwise geometry, recomputed every step.
+            Output: the change over one frame (position change, rotation change as an axis-angle vector, at most
+            1.9 rad per frame at the fastest measured spin, the new velocity and the new spin); integrate and
+            repeat 60 times. Training is teacher forcing, each stored PhysX transition being one example, with noise
+            added to the input state and an 8-step unrolled loss so that errors do not pile up. Against the joint
+            model: geometry is always current and any horizon is reachable, at the price of 60 sequential passes and
+            error accumulation.
+          </p>
+        </div>
+        <figure class="wm-figure">
+          <div class="wm-svg-scroll">
+            <img class="wm-web-figure" src="./static/images/world_model/web_step.svg" width="900" height="300"
+                 alt="The step predictor reads the state at frame t, outputs the change over one frame, integrates it and feeds the new state back; the loop runs 60 times.">
+          </div>
+          <figcaption>The step-by-step alternative: one network pass predicts the change over one frame and the loop
+            runs 60 times; the numbers are the recorded change from frame 15 to 16.</figcaption>
+        </figure>
+        <div class="wm-anim" id="anim-step">
+          <canvas width="900" height="440"
+                  aria-label="Step-loop animation: the red ball advances one recorded frame per tick; the loop diagram feeds state t+1 back as the next input."></canvas>
+          <p class="wm-live"></p>
+          <div class="wm-controls">
+            <button class="button is-small is-light" type="button" aria-pressed="true">Pause</button>
+            <p class="wm-caption"></p>
+          </div>
+          <p class="wm-note">Positions and velocities are the recorded PhysX states of the sample rollout
+            (x and z components; y is constant at -2.20 m); the change shown each tick is the quantity one network
+            pass of variant D has to predict.</p>
+        </div>
+      </div>
+
+      <!-- this block's data and scripts (deferred: they run after the page is parsed, in this order) -->
+      <script defer src="./static/data/world_model.js"></script>
+      <script defer src="./static/js/world_model/anim_pipeline.js"></script>
+      <script defer src="./static/js/world_model/anim_flow.js"></script>
+      <script defer src="./static/js/world_model/anim_step.js"></script>
+      <script defer src="./static/js/world_model/anim_forcing.js"></script>
+    </div>
+  </section>
+  <!-- ---------- end proposal: world_model ---------- -->
+
+  <!-- append the next proposal block here -->
+</div>
+
+<!-- =====================================================================
+     Results tab. Each result is ONE self-contained block:
+       <section class="section result" id="result-<slug>"> ... </section>
+     appended inside this wrapper, same file conventions as the proposals.
+     ===================================================================== -->
+<div class="wm-panel" id="results" data-tab-panel="results" role="tabpanel" hidden>
+
+  <!-- ---------- result: toy_world_model ---------- -->
+  <section class="section result" id="result-toy_world_model">
+    <div class="container is-max-desktop">
+      <h2 class="title is-3">Toy world-model experiment (first training run)</h2>
+      <div class="content">
+        <p>
+          Two variants are trained, A (a deterministic regressor) and B (flow matching), each in two sizes: a tiny
+          transformer of 4 layers and width 128 (1.26 M weights, over-parameterised on purpose) and a smaller one of
+          2 layers and width 64 (0.22 M weights), for 2,000 steps on 96 samples: 64 launches and drops drawn evenly
+          over the benchmark's difficulty tiers (random answers pass under 15 percent, between, or 50 percent and
+          more of the time) plus 32 static-edit settling pairs, all from stored PhysX evidence in rooms 1 to 10. Two
+          test sets of 48 samples are held out: tasks in the same rooms that were not trained on, and all of rooms 11
+          to 14. The metrics are the end-point error of the launched object in metres, the position RMSE over objects
+          that moved, the ghost-motion rate (still objects predicted to move more than 1 cm) and the rotation error in
+          degrees, each against a "nothing moves" baseline. This is a pipeline check, not a benchmark result.
+        </p>
+      </div>
+      <div class="wm-status" id="toy-status">Status: the first training run is in progress; its numbers will appear here.</div>
+      <div class="table-container">
+        <table class="table is-striped is-fullwidth wm-table" id="toy-results-table">
+          <thead>
+            <tr>
+              <th>Model</th>
+              <th>Split</th>
+              <th>End-point error (m)</th>
+              <th>Position RMSE, moving objects (m)</th>
+              <th>Ghost motion</th>
+              <th>Rotation error (deg)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Nothing moves (baseline)</td><td>Held-out tasks, rooms 1 to 10</td><td class="pending">pending</td><td class="pending">pending</td><td class="pending">pending</td><td class="pending">pending</td></tr>
+            <tr><td>A: regressor</td><td>Held-out tasks, rooms 1 to 10</td><td class="pending">pending</td><td class="pending">pending</td><td class="pending">pending</td><td class="pending">pending</td></tr>
+            <tr><td>B: flow matching</td><td>Held-out tasks, rooms 1 to 10</td><td class="pending">pending</td><td class="pending">pending</td><td class="pending">pending</td><td class="pending">pending</td></tr>
+            <tr><td>Nothing moves (baseline)</td><td>Rooms 11 to 14, all tasks</td><td class="pending">pending</td><td class="pending">pending</td><td class="pending">pending</td><td class="pending">pending</td></tr>
+            <tr><td>A: regressor</td><td>Rooms 11 to 14, all tasks</td><td class="pending">pending</td><td class="pending">pending</td><td class="pending">pending</td><td class="pending">pending</td></tr>
+            <tr><td>B: flow matching</td><td>Rooms 11 to 14, all tasks</td><td class="pending">pending</td><td class="pending">pending</td><td class="pending">pending</td><td class="pending">pending</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="toy-results"></div>
+    </div>
+  </section>
+  <!-- ---------- end result: toy_world_model ---------- -->
+
+  <!-- append the next result block here -->
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+          <p>
+            This website is licensed under a <a rel="license"
+                                                href="http://creativecommons.org/licenses/by-sa/4.0/">Creative
+            Commons Attribution-ShareAlike 4.0 International License</a>.
+          </p>
+          <p>
+            This means you are free to borrow the <a
+              href="https://github.com/nerfies/nerfies.github.io">source code</a> of this website,
+            we just ask that you link back to this page in the footer. The page layout is adapted from the
+            <a href="https://nerfies.github.io">Nerfies</a> project page template.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -2,14 +2,17 @@
 
 Static project page (GitHub Pages) for the simagent research project. The
 question on the page: can a model stand in for a rigid-body physics engine?
-The page has two tabs:
+The page has three tabs:
 
-- **Design proposals**: one block per proposal. The first block is the
+- **World model** (`#design`, the default): one block per proposal. The first block is the
   scene-graph world model (one token per object, flow matching over the
   60-frame trajectory tensor, trained on PhysX rollouts), its Diffusion
   Forcing, JEPA and autoregressive variants, how counterfactuals are asked, and
   where the simulator is used. Four small animations run on the real PhysX
   rollout of one benchmark task.
+- **Post-training** (`#post-training`): post-training an open 7B model with the
+  simulator's verdicts as its reward (GRPO and DPO on LoRA adapters), as one
+  block installed from `post_training.html` (see "Post-training blocks" below).
 - **Results**: one block per result. The first block is the toy world-model
   experiment (status line, empty results table, an injection point for later
   results). The benchmark results of the language-model campaigns stay on the
@@ -203,6 +206,50 @@ without re-encoding, writes first-frame posters, and outlines the close-up area
 on the overview render. Variants with reasoning switched off, feedback rounds
 and the yes/no questions are deliberately not shown.
 
+## Digital twins page
+
+`digital-twins.html` is linked from the landing page's **Digital twins** button.
+It explains the actual counter reconstruction with source views, SAM2 input
+masks, rotating SAM3D meshes, collision hulls, physical assumptions and three
+saved PhysX videos. Automatic scene discovery, world-model transfer to captured
+graphs and Gaussian motion rendering are labeled as proposed. The page contains
+method details and no campaign, scheduler or debugging records.
+
+The page uses `static/css/digital_twin.css` and
+`static/js/digital_twin/main.js`, together with the shared `WM.runner`.
+Videos show their first frames as posters. Hover starts the synchronized group;
+click pins playback, and the toolbar pauses the group or selects quarter speed.
+The animations honor reduced motion and the existing `?t=<seconds>` preview
+parameter. Wide diagrams scroll inside their panels on phones.
+
+Rebuild the assets from the parent simagent checkout into a fresh staging root:
+
+```bash
+../.envs/reconstruction/bin/python tools/extract_digital_twin.py \
+  --output ../reports/digital_twin_site_assets_NEW \
+  --jar-run ../runs/counter_gator_v1/supported/jar_drop_dashboard_v1 --install
+python3 tools/check_page.py --page digital-twins.html
+python3 tools/check_page.py
+```
+
+The extractor saves actual input crops, reduced display meshes, calibrated
+camera/context geometry and H.264 clips, with source hashes in the staging
+directory. The generated images, video and `static/data/digital_twin.js` are
+ignored; include those installed assets when packaging the static site. Audit
+receipts with local source paths stay outside the served page.
+
+For browser checks, use an environment containing Python Playwright and its
+Chromium browser:
+
+```bash
+PLAYWRIGHT_BROWSERS_PATH=../.cache/dashboard_browser \
+  ../.envs/dashboard_browser/bin/python tools/check_digital_twin.py \
+  --output ../reports/digital_twin_browser_NEW
+```
+
+This checks desktop and mobile rendering, source images, reduced motion,
+hover/touch playback, click-to-pin/pause, slow motion and synchronized loops.
+
 ## How models are prompted (page)
 
 `how-it-works.html`, linked as a tab from the landing page, shows on real
@@ -218,6 +265,22 @@ recorded side-view path) and the measured checks decide (`answer.js`). Data:
 with the simagent Isaac interpreter; the program excerpts are the line ranges
 in `CODE_EXCERPTS`).
 
+## Navigation shared by all pages
+
+The project's tabs are listed once, in `static/js/site_nav.js`: World model,
+Post-training, How models are prompted, Results, End-to-end study, Digital
+twins. Every standalone page (`end-to-end.html`, `how-it-works.html`,
+`digital-twins.html`, `benchmark.html`) carries an empty
+`<nav class="tabs is-centered is-boxed wm-tabs" data-site-nav="KEY">` under its
+hero and loads the script, which fills in the tabs and marks KEY as the current
+page. `index.html` keeps a static tab bar (its in-page tabs need `data-tab`
+attributes) with the same entries in the same order.
+
+To add a tab or page: add one line to the list in `site_nav.js`, mirror it in
+`index.html`'s tab bar, give a new page the `<nav data-site-nav>` element and the
+script, and run `python3 tools/check_nav.py`, which fails when any page shows a
+different set of tabs.
+
 ## Template and license
 
 The page layout is adapted from the [Nerfies](https://nerfies.github.io)
@@ -230,3 +293,56 @@ kept in the footer. The template's CSS and JS files are copied unchanged into
 the template's `index.js` (it needs jQuery, which is not shipped) are kept
 for completeness but not loaded. The template's Google Analytics snippet was
 removed. The repository's own code is under the MIT license in `LICENSE`.
+
+## Post-training blocks (`proposal-post_training`, `result-post_training_poc`)
+
+The proposal block fills the Post-training tab (`<div id="post-training">`,
+anchor comment "install the post-training block here"); the result block sits
+in the Results tab. Three step-by-step animations run on real benchmark
+records, each a canvas beside an HTML side panel that carries the explanation
+at page font size:
+
+- **Training examples**: two static edits (room 1 chair approach, room 8 book
+  between the cups) and three launches (room 6 floor-then-wall rebound, easy;
+  room 2 ball hits ball before a deadline, medium; room 2 lob into the box,
+  hard). For each: the task, then the reference answer and three models'
+  answers judged one by one (plan and front views for static edits with heights
+  to scale; side view of the real PhysX rollouts for launches, plus a
+  position-over-time chart for balls that roll), then the training reward of
+  every answer.
+- **GRPO**: the untrained 7B model's 16 real answers for room 1 (scores,
+  advantages, the update, and what one group cannot teach) and thirteen
+  launches PhysX judged for the room 2 lob (reference, three models, nine
+  random launches) in launch-velocity space.
+- **DPO**: the 7B model's own better and worse answer for room 8, and a launch
+  pair for the room 2 lob, with the DPO loss.
+
+Canvases are drawn in CSS pixels (text 13 to 19 px) and every view is zoomed to
+the objects that matter; below 480 px of canvas width the labels switch to
+short forms. The page shows no job ids, machines or paths; the data file keeps
+them for provenance only.
+
+```
+post_training.html                          standalone preview; the source of the two blocks (marker comments)
+static/js/post_training/main.js             the three widgets (WM.runner), the experiment table and the result block
+static/css/post_training.css                block styles, injected by main.js (index.html's head stays untouched)
+static/data/post_training.js                window.POST_TRAINING_DATA, generated by tools/extract_post_training_sample.py
+tools/extract_post_training_sample.py       reads manifests, private specs, qualification, campaign and job records from the simagent checkout
+tools/install_post_training_block.py        copies the two blocks from post_training.html into index.html (idempotent), then runs check_page.py
+tools/check_post_training.py                checks the standalone page, its data file and the script's bracket balance
+```
+
+Browsers cache scripts: Python's `http.server` sends no cache headers, and a
+normal reload does not re-check scripts the browser considers fresh, so an
+edited shared script can keep running in its old form (on 2026-10-13 an old
+`project.js` sent the new Post-training tab back to World model). Every local
+stylesheet and script link on every page therefore carries `?v=<content hash>`:
+run `python3 tools/stamp_assets.py` after editing anything under `static/`
+(`--check` lists stale links; the post-training installer runs it too). `project.js` also reads the tab names from the
+`data-tab-panel` panels on the page, so a new tab needs no edit there.
+
+To refresh: `python3 tools/extract_post_training_sample.py` (it imports the
+simagent reward to score the static answers; edit `JOB`, `POC` and the example
+lists at the top when the inputs change), then
+`python3 tools/install_post_training_block.py`. Design text:
+`docs/RL_POST_TRAINING.md` in the simagent repository.
