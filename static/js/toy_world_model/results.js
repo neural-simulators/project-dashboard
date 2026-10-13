@@ -189,10 +189,44 @@
       svg, 'Task ' + pick.sample.task_id.replace(/^b2_/, '').replace(/_/g, ' ') + ' (' + pick.name + '). A room the model never saw: the shape of the motion is roughly right, the distances are not.'));
   }
 
+  /* ---------- evaluator table: the benchmark's own checks on the predicted trajectories ---------- */
+  function renderEvaluator() {
+    var E = R.evaluator;
+    if (!E || !E.length) return;
+    var cols = [['pass', 'Passes all checks', function (r) { return r.pass + (r.review ? ' (+' + r.review + ' review)' : ''); }],
+                ['goal_shown', 'Goal shown (of 37 reached)', function (r) { return r.goal_shown; }],
+                ['penetration_ok', 'Overlap under 5 mm', function (r) { return r.penetration_ok + (r.median_penetration_mm ? ' (median ' + (r.median_penetration_mm / 10).toFixed(0) + ' cm)' : ''); }],
+                ['preserved', 'Untouched objects still', function (r) { return r.preserved; }],
+                ['position_velocity_ok', 'Positions match velocities', function (r) { return r.position_velocity_ok; }]];
+    var wrap = h('div', 'table-container');
+    var t = h('table', 'table is-fullwidth wm-table');
+    t.style.textAlign = 'left';
+    var thead = h('thead'), tr = h('tr');
+    tr.appendChild(h('th', null, 'Trajectory scored'));
+    cols.forEach(function (c) { var th = h('th', null, c[1]); th.style.whiteSpace = 'normal'; tr.appendChild(th); });
+    thead.appendChild(tr); t.appendChild(thead);
+    var tbody = h('tbody');
+    E.forEach(function (r) {
+      var row = h('tr', r.label === 'truth' || r.label === 'still' ? 'wm-baseline' : null);
+      var name = h('td', null, r.name); name.style.minWidth = '12rem'; row.appendChild(name);
+      cols.forEach(function (c) { row.appendChild(h('td', null, c[2](r))); });
+      tbody.appendChild(row);
+    });
+    t.appendChild(tbody); wrap.appendChild(t);
+    var fig = h('div', 'wm-evaluator');
+    fig.style.margin = '1.5rem 0';
+    fig.appendChild(h('p', 'wm-chart-title', 'Scored by the benchmark\'s own evaluator: counts out of 58 held-out launches and drops'));
+    fig.appendChild(wrap);
+    fig.appendChild(h('p', 'wm-note', 'Each predicted 2-second trajectory is submitted as if it were a model\'s answer. The PhysX trajectory itself is the ceiling: '
+      + 'contact goals whose timing falls between the 30 frames per second cannot be confirmed from samples, so those cases are marked for review rather than passed. '
+      + '"Nothing moves" is the floor: physically harmless, but it never reaches a goal.'));
+    host.appendChild(fig);
+  }
+
   function render() {
     renderTable();
     host.innerHTML = '';
-    renderBars(); renderSweep(); renderTrajectory();
+    renderEvaluator(); renderBars(); renderSweep(); renderTrajectory();
     host.hidden = false;
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', render); else render();

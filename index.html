@@ -450,6 +450,12 @@
             position-velocity consistency and box-overlap penalty terms, changes this little (0.84 to 0.94 for the
             regressor, 1.0 for the flow model). Rotation is not learned at all. Both point to the data (96 samples)
             rather than the objective; the simulator-backed data generator is the next step.</li>
+          <li><strong>The benchmark's own evaluator rejects every predicted trajectory.</strong> Submitted as if they
+            were a model's answers, none of the 58 held-out predictions passes. Predicted objects overlap by a median
+            of 15 cm (regressor) to 34 cm (flow matching, one sample), positions do not follow the predicted
+            velocities, and the predictions show the goal reached in 3 (regressor) and 11 (flow matching) of the 37
+            launches where PhysX reached it. Lower position error than the baseline is not yet a physically
+            consistent trajectory; the consistency and overlap losses at scale, and far more data, come next.</li>
           <li><strong>Counterfactuals already work in the right direction.</strong> On 35 PhysX-graded twin launches
             (same scene, same object, different speed) the regressor shifts its predicted end point the way PhysX did
             on 34, including 11 of the 12 tasks it never saw; the speed sweep below follows the trend but misses the
@@ -457,7 +463,7 @@
             sample: 26), Diffusion Forcing 27, and the redesigned JEPA 33.</li>
         </ul>
       </div>
-      <div class="wm-status" id="toy-status">Status: first runs complete. Scoring the predicted trajectories with the benchmark's own evaluator (goal satisfaction, contacts, penetration) is in progress. Next: the data generator.</div>
+      <div class="wm-status" id="toy-status">Status: first runs and evaluator scoring complete. Next: the simulator-backed data generator.</div>
       <div class="table-container">
         <table class="table is-striped is-fullwidth wm-table" id="toy-results-table">
           <thead>
