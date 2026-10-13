@@ -124,7 +124,7 @@
     <div class="container is-max-desktop">
       <h2 class="title is-3">World model: scene-graph flow matching</h2>
       <p class="wm-lead">
-        One proposal in seven short sections. The numbers are measured on the benchmark's 462 qualified tasks and
+        One proposal in eight short sections. The numbers are measured on the benchmark's 462 qualified tasks and
         on one sample task from room 1, "Send the red ball over the gray barrier so that it comes down and hits the
         blue ball within one and a half seconds, without touching the barrier", whose real PhysX rollout also drives
         the animations below.
@@ -155,8 +155,42 @@
         </div>
       </div>
 
+      <div class="wm-section" id="world_model-why">
+        <h3 class="title is-4">2. Why learn the simulator</h3>
+        <div class="content">
+          <p>A trained model answers "what happens if" in milliseconds, for any edit of its input, without calling the
+            physics engine or a language model. Measured on benchmark rooms with 18 to 19 movable objects (PhysX on one
+            room, the world model on a held-out room), 2 seconds of motion each:</p>
+        </div>
+        <div class="table-container">
+          <table class="table is-narrow is-fullwidth wm-table wm-count">
+            <thead><tr><th>One 2-second rollout of every object</th><th>Time</th><th>Each, in a batch of 48</th></tr></thead>
+            <tbody>
+              <tr><td>PhysX, as the benchmark runs it (a contact read after each of 3,840 substeps)</td><td>49.7 s</td><td>no batching</td></tr>
+              <tr><td>PhysX, stepping only (same trajectory, to the millimetre)</td><td>6.2 s</td><td>no batching</td></tr>
+              <tr><td>World model, deterministic regressor (one pass, GPU)</td><td><strong>3.4 ms</strong></td><td>1.6 ms</td></tr>
+              <tr><td>World model, flow matching (32 steps, GPU)</td><td><strong>86 ms</strong></td><td>52 ms</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="content">
+          <ul>
+            <li><strong>Counterfactuals are input edits.</strong> Move, remove or add an object, change a mass or the
+              launch, and predict again: one pass, no simulator. The simulator's cost moves to training, where it
+              renders the same kinds of edits as ground truth once.</li>
+            <li><strong>Fewer tokens per query.</strong> A language model is still needed to turn an instruction into an
+              action, but naming the action costs GPT-5.4 about 4,000 output tokens against 9,000 for writing a
+              simulation program, and every edit after that needs no language model at all.</li>
+            <li><strong>What it does not buy yet.</strong> A model-written program can also be re-run on an edited scene,
+              but its physics is approximate (GPT-5.4's forecasts are off by 4 to 15 cm) and covers only what it chose
+              to model. The world model is only as good as the edits its training data covered, and today's toy models
+              still fail the benchmark's physical checks (Results tab): speed counts once accuracy holds.</li>
+          </ul>
+        </div>
+      </div>
+
       <div class="wm-section" id="world_model-io">
-        <h3 class="title is-4">2. Input and output</h3>
+        <h3 class="title is-4">3. Input and output</h3>
         <div class="content">
           <ul>
             <li><strong>Input:</strong> 27 object rows. The <span class="wm-accent-red">red ball</span>'s row holds
@@ -191,7 +225,7 @@
       </div>
 
       <div class="wm-section" id="world_model-training">
-        <h3 class="title is-4">3. Training objective</h3>
+        <h3 class="title is-4">4. Training objective</h3>
         <div class="content">
           <p>Variant B, the primary model, is rectified flow matching over the whole 60-frame tensor.</p>
           <ul>
@@ -228,7 +262,7 @@
       </div>
 
       <div class="wm-section" id="world_model-forcing">
-        <h3 class="title is-4">4. Diffusion Forcing variant</h3>
+        <h3 class="title is-4">5. Diffusion Forcing variant</h3>
         <div class="content">
           <p>
             Same data, same network, one change in training: each frame gets its own noise level instead of one
@@ -248,7 +282,7 @@
       </div>
 
       <div class="wm-section" id="world_model-counterfactuals">
-        <h3 class="title is-4">5. Counterfactuals built in</h3>
+        <h3 class="title is-4">6. Counterfactuals built in</h3>
         <div class="content">
           <p>
             The inputs are the explicit scene graph and the explicit action, so a counterfactual is an edited input
@@ -318,7 +352,7 @@
       </div>
 
       <div class="wm-section" id="world_model-jepa">
-        <h3 class="title is-4">6. JEPA variant (C)</h3>
+        <h3 class="title is-4">7. JEPA variant (C)</h3>
         <div class="content">
           <p>
             An encoder maps a scene-graph state to one embedding per object; a slowly updated copy of the encoder
@@ -391,7 +425,7 @@
       </div>
 
       <div class="wm-section" id="world_model-step">
-        <h3 class="title is-4">7. Variant D: autoregressive next-state predictor</h3>
+        <h3 class="title is-4">8. Variant D: autoregressive next-state predictor</h3>
         <div class="content">
           <p>
             Input: the state at frame t (plus the last 4 frames) and the pairwise geometry, recomputed every step.
