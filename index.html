@@ -415,6 +415,40 @@
      appended inside this wrapper, same file conventions as the proposals.
      ===================================================================== -->
 <div class="wm-panel" id="results" data-tab-panel="results" role="tabpanel" hidden>
+  <!-- ---------- result: benchmark_v31 ---------- -->
+  <section class="section result" id="result-benchmark_v31">
+    <div class="container is-max-desktop">
+      <link rel="stylesheet" href="./static/css/benchmark.css">
+      <h2 class="title is-3">Can a language model edit a physical scene?</h2>
+      <p class="wm-lead">GPT-5.4 and Qwen3-VL-30B Thinking each get a simulated room (two renders and the list of objects with their
+        sizes, masses and friction) and an instruction, and answer once: new poses for a static edit, or a launch velocity for a dynamic
+        one. The PhysX simulator applies the answer exactly as given and measures whether the instruction was met.
+        <a href="./benchmark.html">Full results page</a> with the animated pipeline and more examples.</p>
+
+      <div class="wm-section" id="benchmark_v31-table">
+        <h3 class="title is-4">1. Results</h3>
+        <div class="table-container" data-bm="table"></div>
+        <div class="content">
+          <p><strong>How hard is a task?</strong> We draw random answers from each task's allowed range, run them through the same
+            checks and count the passes: under 15 percent passing is hard, 50 percent or more is easy.</p>
+        </div>
+        <div class="bm-tiers" data-bm="tiers"></div>
+      </div>
+
+      <div class="wm-section" id="benchmark_v31-examples">
+        <h3 class="title is-4">2. Four examples, reference next to both models</h3>
+        <p class="bm-lead">Launch tasks play the two simulated seconds side by side (hover or press play). For the static edit, the
+          first picture shows the whole room and the close-ups show the outlined area; hover a close-up to see it before the edit.</p>
+        <div data-bm="featured"></div>
+        <p class="wm-note">More rooms, the direct-answer variant and the composite tasks: <a href="./benchmark.html">full results page</a>.</p>
+      </div>
+
+      <!-- this block's data and scripts (deferred) -->
+      <script defer src="./static/data/benchmark_results.js"></script>
+      <script defer src="./static/js/benchmark/render.js"></script>
+    </div>
+  </section>
+  <!-- ---------- end result: benchmark_v31 ---------- -->
 
   <!-- ---------- result: toy_world_model ---------- -->
   <section class="section result" id="result-toy_world_model">
@@ -460,41 +494,6 @@
     </div>
   </section>
   <!-- ---------- end result: toy_world_model ---------- -->
-
-  <!-- ---------- result: benchmark_v31 ---------- -->
-  <section class="section result" id="result-benchmark_v31">
-    <div class="container is-max-desktop">
-      <link rel="stylesheet" href="./static/css/benchmark.css">
-      <h2 class="title is-3">Benchmark: can a language model edit a physical scene?</h2>
-      <p class="wm-lead">GPT-5.4 and Qwen3-VL-30B Thinking receive a simulated room (two renders plus the scene as a list of objects) and an instruction,
-        and answer once: new poses for a static edit, or a launch velocity for a dynamic one. The PhysX simulator applies the answer exactly as sent and
-        measures whether the instruction was met; a reviewer AI comments but cannot overturn a measurement. Fourteen rooms.
-        <a href="./benchmark.html">Full results page with the animated pipeline and more examples.</a></p>
-
-      <div class="wm-section" id="benchmark_v31-table">
-        <h3 class="title is-4">1. Results at a glance</h3>
-        <div class="table-container" data-bm="table"></div>
-        <div class="content">
-          <p><strong>Difficulty by luck.</strong> For every task we draw random answers from its allowed range, run them through the same checks and count the
-            passes: under 15 percent passing is hard, 50 percent or more is easy. Every static edit and every throw is hard by this measure; the floor launches
-            spread across the tiers.</p>
-        </div>
-        <div class="bm-tiers" data-bm="tiers"></div>
-      </div>
-
-      <div class="wm-section" id="benchmark_v31-examples">
-        <h3 class="title is-4">2. One static edit and one launch, with the verdicts</h3>
-        <div data-bm="examples" data-type="static" data-limit="1"></div>
-        <div data-bm="examples" data-type="launch" data-limit="1"></div>
-        <p class="wm-note">More rooms, tasks and models, the throws, the direct-answer run and the composite tasks: <a href="./benchmark.html">benchmark.html</a>.</p>
-      </div>
-
-      <!-- this block's data and scripts (deferred) -->
-      <script defer src="./static/data/benchmark_results.js"></script>
-      <script defer src="./static/js/benchmark/render.js"></script>
-    </div>
-  </section>
-  <!-- ---------- end result: benchmark_v31 ---------- -->
 
   <!-- append the next result block here -->
 </div>

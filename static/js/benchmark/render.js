@@ -1,9 +1,12 @@
 /* Renders the benchmark results (window.BM_RESULTS) into containers marked with data-bm attributes:
-     data-bm="table"                    headline table, one row per task type
-     data-bm="tiers"                    the three difficulty tiers with pass counts per tier
-     data-bm="examples" data-type=...   example cards of one task type (data-limit caps the number)
-     data-bm="io" data-sample=...       what goes in and what comes out for one real attempt
-     data-bm="status"                   what is complete, running and planned
+     data-bm="table"                         headline table, one row per task type
+     data-bm="tiers"                         the three difficulty tiers with pass counts per tier
+     data-bm="featured"                      the four featured examples (one static edit, a hard and a medium launch, a throw)
+     data-bm="examples" data-type=...        example cards of one task type; data-skip-featured omits the featured ones
+     data-bm="io" data-sample=...            what goes in and what comes out for one real attempt
+     data-bm="status"                        what is complete and what is still running
+   Example cards are horizontal grids: reference | GPT-5.4 | Qwen (launches, as clips that play together), or
+   room overview | reference | GPT-5.4 | Qwen (static edits, close-ups; hover a close-up to see the room before the edit).
    Vanilla JS, no dependencies; works from file://. */
 (function () {
   'use strict';
@@ -13,48 +16,51 @@
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function pct(a, b) { return b ? Math.round(100 * a / b) + '%' : ''; }
-  function fmtVec(v) { return '[' + v.map(function (x) { return (Math.round(x * 100) / 100).toFixed(2); }).join(', ') + ']'; }
+  function fmtVec(v) { return '(' + v.map(function (x) { return (Math.round(x * 100) / 100).toFixed(2); }).join(', ') + ')'; }
   function badge(status) {
     var cls = status === 'pass' ? 'pass' : (status === 'fail' ? 'fail' : 'noanswer');
-    var text = status === 'pass' ? 'passed' : (status === 'fail' ? 'failed' : (status === 'no answer' ? 'no usable answer' : status));
+    var text = status === 'pass' ? 'goal met' : (status === 'fail' ? 'goal failed' : (status === 'no answer' ? 'no usable answer' : status));
     return '<span class="bm-badge ' + cls + '">' + esc(text) + '</span>';
   }
-  function reviewerBadge(rev) {
+  function checkList(lines) {
+    if (!lines || !lines.length) return '';
+    return '<ul class="bm-lines">' + lines.map(function (l) {
+      var ok = l.indexOf('PASS') === 0, fail = l.indexOf('FAIL') === 0;
+      return '<li class="' + (ok ? 'pass' : (fail ? 'fail' : 'req')) + '">' + esc(ok || fail ? l.slice(5) : l) + '</li>';
+    }).join('') + '</ul>';
+  }
+  function reviewer(rev) {
     if (!rev || !rev.overall) return '';
-    return '<span class="bm-badge reviewer">reviewer: ' + esc(rev.overall) + '</span>';
+    return '<p class="bm-reviewer"><b>Reviewer AI: ' + esc(rev.overall) + '.</b> ' + esc(rev.reason) + '</p>';
   }
 
   /* ---------- headline table ---------- */
   function renderTable(el) {
-    var h = '<table class="table is-fullwidth bm-table"><thead><tr><th>Task type</th><th>Tasks</th>';
-    KEYS.forEach(function (k) { h += '<th>' + esc(P[k]) + '<span class="sub">goal met</span></th>'; });
-    h += '<th>Random answers<span class="sub">average pass rate</span></th><th>Hard tasks<span class="sub">random under 15%</span></th></tr></thead><tbody>';
+    var h = '<table class="table is-fullwidth bm-table"><thead><tr><th>Task type</th><th class="num">Tasks</th>';
+    KEYS.forEach(function (k) { h += '<th class="num">' + esc(P[k]) + '<span class="sub">goal met</span></th>'; });
+    h += '<th class="num">Random answers<span class="sub">average pass rate</span></th></tr></thead><tbody>';
     D.types.forEach(function (t) {
       if (!t.available) {
-        h += '<tr><td>' + esc(t.label) + '<span class="sub">' + esc(t.blurb) + '</span></td><td class="muted" colspan="' + (KEYS.length + 3) + '">' + esc(t.note || 'pending') + '</td></tr>';
+        h += '<tr><td>' + esc(t.label) + '<span class="sub">' + esc(t.blurb) + '</span></td><td class="muted" colspan="' + (KEYS.length + 2) + '">' + esc(t.note || 'in progress') + '</td></tr>';
         return;
       }
       var rates = {}, best = null;
       KEYS.forEach(function (k) { var m = t.models[k]; rates[k] = m.evaluated ? m.passed / t.tasks : -1; if (best === null || rates[k] > rates[best]) best = k; });
-      var gap = KEYS.length > 1 && rates[KEYS[0]] >= 0 && rates[KEYS[1]] >= 0 && Math.abs(rates[KEYS[0]] - rates[KEYS[1]]) >= 0.3;
-      h += '<tr' + (gap ? ' class="highlight"' : '') + '><td>' + esc(t.label) + '<span class="sub">' + esc(t.blurb) + '</span></td>';
-      h += '<td class="num">' + t.tasks + '<span class="sub">' + t.rooms + ' rooms, ' + t.families + ' task families</span></td>';
+      var gap = rates[KEYS[0]] >= 0 && rates[KEYS[1]] >= 0 && Math.abs(rates[KEYS[0]] - rates[KEYS[1]]) >= 0.3;
+      h += '<tr' + (gap && t.complete ? ' class="highlight"' : '') + '><td>' + esc(t.label) + '<span class="sub">' + esc(t.blurb) + '</span></td>';
+      h += '<td class="num">' + t.tasks + '<span class="sub">' + t.rooms + ' rooms</span></td>';
       KEYS.forEach(function (k) {
         var m = t.models[k];
-        if (m.pending > 0 && m.evaluated === 0) { h += '<td class="num pending">running</td>'; return; }
-        var cls = 'num' + (k === best && t.complete ? ' best' : '') + (rates[k] >= 0 && rates[k] < 0.4 ? ' weak' : '');
-        var cell = m.passed + ' / ' + (m.pending > 0 ? m.evaluated : t.tasks) + ' (' + pct(m.passed, m.pending > 0 ? m.evaluated : t.tasks) + ')';
-        var sub = [];
-        if (m.no_answer) sub.push(m.no_answer + ' no usable answer');
-        if (m.pending) sub.push(m.pending + ' still running');
-        h += '<td class="' + cls + '">' + cell + (sub.length ? '<span class="sub">' + esc(sub.join(', ')) + '</span>' : '') + '</td>';
+        if (m.evaluated === 0) { h += '<td class="num pending">in progress</td>'; return; }
+        if (!t.complete) { h += '<td class="num pending">in progress<span class="sub">' + m.evaluated + ' of ' + t.tasks + ' done</span></td>'; return; }
+        var cls = 'num' + (k === best ? ' best' : '') + (rates[k] < 0.4 ? ' weak' : '');
+        h += '<td class="' + cls + '"><b>' + m.passed + '</b> of ' + t.tasks + ' <span class="pc">' + pct(m.passed, t.tasks) + '</span>' +
+          (m.no_answer ? '<span class="sub">' + m.no_answer + ' without a usable answer</span>' : '') + '</td>';
       });
-      h += '<td class="num">' + (t.chance_mean == null ? '<span class="muted">not graded</span>' : Math.round(100 * t.chance_mean) + '%') +
-        (t.graded < t.tasks ? '<span class="sub">' + t.graded + ' of ' + t.tasks + ' graded</span>' : '') + '</td>';
-      h += '<td class="num">' + (t.tiers ? t.tiers.hard + ' of ' + t.graded : '') + '</td></tr>';
+      h += '<td class="num">' + (t.chance_mean == null ? '<span class="muted">in progress</span>' : Math.round(100 * t.chance_mean) + '%') + '</td></tr>';
     });
     h += '</tbody></table>';
-    h += '<p class="bm-legend"><span style="--bm-swatch:#eaf6ec">best of the two on a finished set</span><span style="--bm-swatch:#fdecee">under 40% of the tasks</span><span style="--bm-swatch:#fff8e8">row where the two models differ by 30 points or more</span></p>';
+    h += '<p class="bm-legend"><span style="--bm-swatch:#eaf6ec">the better of the two</span><span style="--bm-swatch:#fdecee">under 40% of the tasks</span><span style="--bm-swatch:#fff8e8">the two models differ by 30 points or more</span></p>';
     el.innerHTML = h;
   }
 
@@ -63,84 +69,87 @@
     var tot = { easy: 0, medium: 0, hard: 0 }, passed = {};
     KEYS.forEach(function (k) { passed[k] = { easy: 0, medium: 0, hard: 0 }; });
     D.types.forEach(function (t) {
-      if (!t.available || t.key === 'direct') return;   /* the direct-answer set repeats the launch and throw tasks */
+      if (!t.available || !t.complete || t.key === 'direct') return;   /* the direct-answer set repeats the launch and throw tasks */
       ['easy', 'medium', 'hard'].forEach(function (n) {
         tot[n] += t.tiers[n];
         KEYS.forEach(function (k) { passed[k][n] += t.models[k].tiers[n].passed; });
       });
     });
-    var h = '';
-    [['hard', 'Hard'], ['medium', 'Medium'], ['easy', 'Easy']].forEach(function (pair) {
+    el.innerHTML = [['hard', 'Hard'], ['medium', 'Medium'], ['easy', 'Easy']].map(function (pair) {
       var n = pair[0];
-      h += '<div class="bm-tier ' + n + '"><b>' + pair[1] + ': ' + tot[n] + ' tasks</b><small>' + esc(D.difficulty[n]) + '</small><br>' +
-        KEYS.map(function (k) { return '<small>' + esc(P[k]) + ': ' + passed[k][n] + ' of ' + tot[n] + '</small>'; }).join('<br>') + '</div>';
-    });
-    el.innerHTML = h;
+      return '<div class="bm-tier ' + n + '"><b>' + pair[1] + ': ' + tot[n] + ' tasks</b><small>' + esc(D.difficulty[n]) + '</small>' +
+        KEYS.map(function (k) { return '<div class="bm-tierrow"><span>' + esc(P[k]) + '</span><span>' + passed[k][n] + ' of ' + tot[n] + '</span></div>'; }).join('') + '</div>';
+    }).join('');
   }
 
   /* ---------- example cards ---------- */
-  function staticCard(ex) {
-    var h = '<div class="bm-grid">';
-    h += '<figure><img src="./' + ex.media.before + '" alt="Room before the edit" loading="lazy"><figcaption>Before (what the model sees)</figcaption></figure>';
-    h += '<figure><img src="./' + ex.media.truth + '" alt="Reference answer" loading="lazy"><figcaption>Ground truth: one reference answer</figcaption></figure>';
+  function header(ex, headline) {
+    var meta = 'Room ' + ex.room + (ex.tier ? ' · ' + ex.tier + ': random answers pass ' + Math.round(100 * ex.chance) + '% of the time' : '');
+    return '<div class="bm-cardhead">' + (headline ? '<span class="bm-kicker">' + esc(headline) + '</span>' : '') +
+      '<h4>' + esc(ex.family_label) + '</h4><p class="bm-instruction">"' + esc(ex.instruction) + '"</p><p class="bm-meta">' + meta + '</p></div>';
+  }
+  function dynamicCard(ex, headline) {
+    var cols = [];
+    var tl = ex.truth.launch && ex.truth.launch.length ? ex.truth.launch.map(function (a) { return fmtVec(a.linear_velocity); }).join(' ') + ' m/s' : '';
+    cols.push('<div class="bm-col"><figure><video src="./' + ex.truth.video + '" poster="./' + ex.truth.poster + '" muted playsinline preload="metadata" aria-label="Reference launch in the simulator"></video>' +
+      '<figcaption><b>Reference</b> <span class="bm-badge truth">one launch that works</span>' + (tl ? '<span class="bm-launch">launch ' + esc(tl) + '</span>' : '') + '</figcaption></figure>' +
+      '<p class="bm-what">What is checked</p>' + checkList(ex.truth.requirements) + '</div>');
     KEYS.forEach(function (k) {
       var m = ex.models[k];
-      h += '<figure>' + (m.media.after ? '<img src="./' + m.media.after + '" alt="' + esc(P[k]) + ' result" loading="lazy">' : '<div class="bm-noimg"></div>') +
-        '<figcaption>' + esc(P[k]) + ' ' + badge(m.status) + ' ' + reviewerBadge(m.reviewer) + '</figcaption></figure>';
+      var launch = m.answer && m.answer.length ? m.answer.map(function (a) { return fmtVec(a.linear_velocity); }).join(' ') + ' m/s' : '';
+      var media = m.video ? '<video src="./' + m.video + '" poster="./' + m.poster + '" muted playsinline preload="metadata" aria-label="' + esc(P[k]) + ' launch in the simulator"></video>'
+        : '<div class="bm-noimg"><span>' + esc(m.error || 'no usable answer') + '</span></div>';
+      cols.push('<div class="bm-col"><figure>' + media + '<figcaption><b>' + esc(P[k]) + '</b> ' + badge(m.status) + (launch ? '<span class="bm-launch">launch ' + esc(launch) + '</span>' : '') + '</figcaption></figure>' +
+        '<p class="bm-what">Measured</p>' + (m.lines.length ? checkList(m.lines) : '<p class="bm-meta">nothing to simulate</p>') +
+        (m.forecast_error_m != null ? '<p class="bm-meta">Its own forecast of where the ball ends: off by ' + m.forecast_error_m + ' m.</p>' : '') + reviewer(m.reviewer) + '</div>');
     });
-    h += '</div>';
-    return h;
+    return '<div class="bm-card bm-dynamic">' + header(ex, headline) +
+      '<div class="bm-playrow"><button class="button is-small is-light" type="button">Play all three together</button><span class="bm-meta">or hover over the clips</span></div>' +
+      '<div class="bm-cols bm-cols-3">' + cols.join('') + '</div></div>';
   }
-  function launchFigure(src, video, caption) {
-    if (video) {
-      return '<figure><video src="./' + video + '" poster="./' + src + '" muted loop playsinline preload="none" controls aria-label="' + esc(caption) + '"></video><figcaption>' + caption + '</figcaption></figure>';
-    }
-    return '<figure><img src="./' + src + '" alt="' + esc(caption) + '" loading="lazy"><figcaption>' + caption + '</figcaption></figure>';
+  function swapImage(src, before, alt) {
+    if (!before) return '<img src="./' + src + '" alt="' + esc(alt) + '" loading="lazy">';
+    return '<div class="bm-swap"><img src="./' + src + '" alt="' + esc(alt) + '" loading="lazy"><img class="bm-before" src="./' + before + '" alt="the same view before the edit" loading="lazy"><span class="bm-hint">hover: before the edit</span></div>';
   }
-  function dynamicCard(ex) {
-    var h = '<div class="bm-strips">';
-    var truthCap = 'Ground truth: the simulator run of one reference launch' + (ex.truth_launch && ex.truth_launch[0] ? ' (' + fmtVec(ex.truth_launch[0].linear_velocity) + ' m/s)' : '');
-    h += launchFigure(ex.media.truth_strip, ex.media.truth_video, truthCap);
+  function staticCard(ex, headline) {
+    var before = ex.truth.closeup_before;
+    var cols = ['<div class="bm-col"><figure><img src="./' + ex.truth.overview + '" alt="The room before the edit" loading="lazy"><figcaption><b>The room</b> before the edit; the close-ups show the outlined area</figcaption></figure>' +
+      '<p class="bm-what">What is checked</p>' + checkList(ex.truth.requirements.concat(['nothing overlaps, everything stays put after one second of physics'])) + '</div>'];
+    cols.push('<div class="bm-col"><figure>' + swapImage(ex.truth.closeup_truth, before, 'Reference answer, close-up') + '<figcaption><b>Reference</b> <span class="bm-badge truth">one answer that works</span></figcaption></figure></div>');
     KEYS.forEach(function (k) {
       var m = ex.models[k];
-      var cap = esc(P[k]) + ' ' + badge(m.status) + ' ' + reviewerBadge(m.reviewer);
-      if (m.answer && m.answer.length) cap += ' <small>launch ' + m.answer.map(function (a) { return fmtVec(a.linear_velocity); }).join(' ') + ' m/s</small>';
-      if (m.media.strip) h += launchFigure(m.media.strip, m.media.video, cap);
-      else h += '<figure><div class="bm-lines"><li class="fail">' + esc(m.error || 'no usable answer') + '</li></div><figcaption>' + cap + '</figcaption></figure>';
+      var media = m.closeup ? swapImage(m.closeup, before, P[k] + ' answer, close-up') : '<div class="bm-noimg"><span>' + esc(m.error || 'no usable answer') + '</span></div>';
+      cols.push('<div class="bm-col"><figure>' + media + '<figcaption><b>' + esc(P[k]) + '</b> ' + badge(m.status) + '</figcaption></figure>' +
+        (m.lines.length ? '<p class="bm-what">Measured</p>' + checkList(m.lines) : '') + reviewer(m.reviewer) + '</div>');
     });
-    h += '</div>';
-    return h;
+    return '<div class="bm-card bm-static">' + header(ex, headline) + '<div class="bm-cols bm-cols-4">' + cols.join('') + '</div></div>';
   }
-  function detailBlock(ex) {
-    var h = '<div class="bm-io">';
-    KEYS.forEach(function (k) {
-      var m = ex.models[k];
-      h += '<div class="bm-box"><h5>' + esc(P[k]) + ' ' + badge(m.status) + '</h5>';
-      if (m.lines && m.lines.length) h += '<ul class="bm-lines">' + m.lines.map(function (l) { return '<li class="' + (l.indexOf('PASS') === 0 ? 'pass' : 'fail') + '">' + esc(l.slice(5)) + '</li>'; }).join('') + '</ul>';
-      else if (m.error) h += '<ul class="bm-lines"><li class="fail">' + esc(m.error) + '</li></ul>';
-      if (m.forecast_error_m != null) h += '<p class="bm-meta">Its own forecast of the end point was off by ' + m.forecast_error_m + ' m.</p>';
-      if (m.reviewer && m.reviewer.reason) h += '<p class="bm-reviewer">Reviewer (' + esc(m.reviewer.overall) + '): ' + esc(m.reviewer.reason) + '</p>';
-      if (m.answer) h += '<details class="bm-more"><summary>the answer as sent</summary><pre>' + esc(JSON.stringify(m.answer, null, 1)) + '</pre></details>';
-      h += '</div>';
+  function card(ex, headline) { return ex.type === 'static' ? staticCard(ex, headline) : dynamicCard(ex, headline); }
+
+  function bindVideos(root) {
+    Array.prototype.forEach.call(root.querySelectorAll('.bm-dynamic'), function (c) {
+      var vids = c.querySelectorAll('video');
+      function playAll() { Array.prototype.forEach.call(vids, function (v) { v.currentTime = 0; var p = v.play(); if (p && p.catch) p.catch(function () {}); }); }
+      function stopAll() { Array.prototype.forEach.call(vids, function (v) { v.pause(); }); }
+      var grid = c.querySelector('.bm-cols');
+      grid.addEventListener('mouseenter', playAll);
+      grid.addEventListener('mouseleave', stopAll);
+      var btn = c.querySelector('.bm-playrow button');
+      if (btn) btn.addEventListener('click', playAll);
+      Array.prototype.forEach.call(vids, function (v) { v.addEventListener('click', playAll); });
     });
-    return h + '</div>';
+  }
+  function renderFeatured(el) {
+    el.innerHTML = (D.featured || []).map(function (ex) { return card(ex, ex.headline); }).join('');
+    bindVideos(el);
   }
   function renderExamples(el) {
     var type = el.getAttribute('data-type'), limit = parseInt(el.getAttribute('data-limit') || '99', 10);
-    var list = (D.examples[type] || []).slice(0, limit);
-    if (!list.length) { el.innerHTML = '<p class="bm-meta">No evaluated examples of this type yet.</p>'; return; }
-    el.innerHTML = list.map(function (ex) {
-      var meta = 'Room ' + ex.room + ' · ' + esc(ex.family_label) + (ex.tier ? ' · ' + ex.tier + ' (random answers pass ' + Math.round(100 * ex.chance) + '% of the time)' : '');
-      return '<div class="bm-card"><h4>' + esc(ex.family_label) + '</h4><p class="bm-instruction">"' + esc(ex.instruction) + '"</p><p class="bm-meta">' + meta + '</p>' +
-        (ex.type === 'static' ? staticCard(ex) : dynamicCard(ex)) + detailBlock(ex) + '</div>';
-    }).join('');
-    /* hover plays every video of a card together */
-    Array.prototype.forEach.call(el.querySelectorAll('.bm-card'), function (card) {
-      var vids = card.querySelectorAll('video');
-      if (!vids.length) return;
-      card.addEventListener('mouseenter', function () { Array.prototype.forEach.call(vids, function (v) { var p = v.play(); if (p && p.catch) p.catch(function () {}); }); });
-      card.addEventListener('mouseleave', function () { Array.prototype.forEach.call(vids, function (v) { v.pause(); }); });
-    });
+    var skip = el.hasAttribute('data-skip-featured') ? (D.featured || []).map(function (f) { return f.task_id; }) : [];
+    var list = (D.examples[type] || []).filter(function (ex) { return skip.indexOf(ex.task_id) < 0; }).slice(0, limit);
+    if (!list.length) { el.innerHTML = '<p class="bm-meta">Examples will appear here when the simulations are finished.</p>'; return; }
+    el.innerHTML = list.map(function (ex) { return card(ex); }).join('');
+    bindVideos(el);
   }
 
   /* ---------- what goes in, what comes out ---------- */
@@ -149,23 +158,20 @@
     if (!s) return;
     var h = '<div class="bm-box"><h5>In: the instruction</h5><p>"' + esc(s.instruction) + '"</p></div>';
     h += '<div class="bm-box"><h5>In: two rendered views</h5><div class="bm-inputs">' + s.view_images.map(function (src, i) { return '<img src="./' + src + '" alt="input view ' + (i + 1) + '" loading="lazy">'; }).join('') + '</div></div>';
-    h += '<div class="bm-box"><h5>In: the scene as a list of objects (' + s.objects + ' rows, about ' + (s.prompt_tokens ? Math.round(s.prompt_tokens / 1000) + ',000' : '10,000') + ' tokens with the rules)</h5><pre>' + esc(JSON.stringify(s.object_row)) + '\n... one row per object: id, label, pose, size, mass, friction</pre></div>';
-    h += '<div class="bm-box"><h5>Out: ' + (s.program_lines ? 'a small program (' + s.program_lines + ' lines) whose result is the launch' : 'the new poses as JSON') + '</h5><pre>' + esc(JSON.stringify(s.answer, null, 1)) + '</pre>' +
-      (s.reasoning_tokens ? '<p class="bm-meta">' + esc(s.provider) + ' used ' + s.reasoning_tokens.toLocaleString() + ' hidden reasoning tokens for ' + s.answer_tokens + ' answer tokens.</p>' : '') + '</div>';
-    h += '<div class="bm-box"><h5>Then: the simulator measures</h5><ul class="bm-lines">' + s.checks.map(function (l) { return '<li class="' + (l.indexOf('PASS') === 0 ? 'pass' : 'fail') + '">' + esc(l.slice(5)) + '</li>'; }).join('') + '</ul>' +
-      '<p class="bm-meta">Verdict: ' + badge(s.status) + (s.reviewer ? ' ' + reviewerBadge(s.reviewer) + '<br>' + esc(s.reviewer.reason) : '') + '</p></div>';
+    h += '<div class="bm-box"><h5>In: the scene as a list of ' + s.objects + ' objects</h5><pre>' + esc(JSON.stringify(s.object_row)) + '\n... one row per object: name, position, size, mass, friction</pre></div>';
+    h += '<div class="bm-box"><h5>Out: ' + (s.program_lines ? 'a short program whose result is the launch' : 'the new poses') + '</h5><pre>' + esc(JSON.stringify(s.answer, null, 1)) + '</pre></div>';
+    h += '<div class="bm-box"><h5>Then: the simulator measures</h5>' + checkList(s.checks) + '<p class="bm-meta">Verdict: ' + badge(s.status) + '</p>' + reviewer(s.reviewer) + '</div>';
     el.innerHTML = h;
   }
 
   /* ---------- status ---------- */
   function renderStatus(el) {
-    var items = [];
-    D.types.forEach(function (t) {
-      if (!t.available) { items.push(esc(t.label) + ': ' + esc(t.note || 'planned')); return; }
+    var items = D.types.map(function (t) {
+      if (!t.available) return esc(t.label) + ': in progress';
       var pending = KEYS.map(function (k) { return t.models[k].pending; }).reduce(function (a, b) { return a + b; }, 0);
-      items.push(esc(t.label) + ': ' + (pending ? pending + ' of ' + (t.tasks * KEYS.length) + ' attempts still being simulated' : 'complete'));
+      return esc(t.label) + ': ' + (pending ? 'in progress (' + (t.tasks * KEYS.length - pending) + ' of ' + (t.tasks * KEYS.length) + ' attempts scored)' : 'complete');
     });
-    el.innerHTML = '<ul class="bm-status-list">' + items.map(function (i) { return '<li>' + i + '</li>'; }).join('') + '</ul><p class="bm-meta">Data generated ' + esc(D.generated_at) + '.</p>';
+    el.innerHTML = '<ul class="bm-status-list">' + items.map(function (i) { return '<li>' + i + '</li>'; }).join('') + '</ul><p class="bm-meta">Updated ' + esc(D.generated_at) + '.</p>';
   }
 
   function run() {
@@ -173,6 +179,7 @@
       var kind = el.getAttribute('data-bm');
       if (kind === 'table') renderTable(el);
       else if (kind === 'tiers') renderTiers(el);
+      else if (kind === 'featured') renderFeatured(el);
       else if (kind === 'examples') renderExamples(el);
       else if (kind === 'io') renderIO(el);
       else if (kind === 'status') renderStatus(el);

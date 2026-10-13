@@ -1,0 +1,37 @@
+{
+ "task_id": "b2_room_01_book_between_cups_and_face",
+ "relevant_ids": [
+  "o006",
+  "o007",
+  "o009",
+  "o010",
+  "o011"
+ ],
+ "camera": {
+  "eye": [
+   -1.3438779961133016,
+   -0.6900504011500448,
+   3.4625905677936557
+  ],
+  "target": [
+   -0.6880719904129751,
+   1.32831294617451,
+   0.43172800392438565
+  ],
+  "up": [
+   0,
+   0,
+   1
+  ],
+  "width": 960,
+  "height": 720,
+  "hfov": 50.0
+ },
+ "states": {
+  "before": true,
+  "truth": true,
+  "gpt54": true,
+  "qwen30t": true
+ },
+ "scope": "Close-up of the objects the instruction involves; poses exactly as submitted, no settling."
+}

@@ -1,0 +1,34 @@
+{
+ "task_id": "b2_room_04_sofa_wall_and_chair",
+ "relevant_ids": [
+  "o005",
+  "o007"
+ ],
+ "camera": {
+  "eye": [
+   -2.1065814681037773,
+   -2.098047345835745,
+   7.392836932531704
+  ],
+  "target": [
+   -0.6000001036570819,
+   2.538733316936881,
+   0.4300445560752741
+  ],
+  "up": [
+   0,
+   0,
+   1
+  ],
+  "width": 960,
+  "height": 720,
+  "hfov": 50.0
+ },
+ "states": {
+  "before": true,
+  "truth": true,
+  "gpt54": true,
+  "qwen30t": true
+ },
+ "scope": "Close-up of the objects the instruction involves; poses exactly as submitted, no settling."
+}

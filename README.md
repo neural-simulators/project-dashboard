@@ -169,29 +169,39 @@ that many seconds and starts paused, so screenshots are reproducible.
 
 ## Benchmark results block and page
 
-`#result-benchmark_v31` in `index.html` and the full page `benchmark.html`
-show the protocol v3.1 campaigns of the language models (GPT-5.4 and
-Qwen3-VL-30B Thinking): the headline table, the difficulty tiers, real
-examples with the renders, frame strips, short videos, measured checks,
-verdicts and reviewer comments, and an animated pipeline. Everything is
-rendered by `static/js/benchmark/render.js` and
+`#result-benchmark_v31` opens the Results tab of `index.html`; the full page is
+`benchmark.html`. Both show GPT-5.4 and Qwen3-VL-30B Thinking on the benchmark:
+the results table (best cell green, weak cells red, rows where the models differ
+by 30 points or more marked amber), the difficulty tiers, and examples as
+horizontal grids so the reference and both models can be compared side by side.
+Launch tasks show the three simulator clips (reference, GPT-5.4, Qwen) that
+play together on hover or with the play button; static edits show the room
+before the edit with the area of interest outlined, then close-ups of the
+reference and both answers (hover a close-up to see it before the edit). The
+four examples shown first (one static edit, a hard and a medium launch, a throw)
+are listed in `FEATURED` at the top of the extractor; the other examples in
+`EXAMPLES`.
+
+Rendering is done by `static/js/benchmark/render.js` and
 `static/js/benchmark/anim_pipeline.js` from `static/data/benchmark_results.js`
-(`window.BM_RESULTS`), which `tools/extract_benchmark_results.py` generates
-from the simagent repository together with the media under
-`static/images/benchmark/` (480 px JPEG renders, 4-frame strips) and
-`static/media/benchmark/` (480 px H.264 clips, two seconds each):
+(`window.BM_RESULTS`). To regenerate, from the simagent checkout:
 
 ```bash
-/path/to/simagent/.envs/isaac/bin/python tools/extract_benchmark_results.py   # needs Pillow and imageio-ffmpeg
-python3 tools/check_page.py && python3 tools/check_page.py --page benchmark.html
+# close-ups of the static examples (Isaac, one GPU, about a minute)
+sbatch --partition=main --gres=gpu:a5000:1 scripts/isaac_job.sbatch \
+    project-dashboard/tools/render_closeups.py --tasks TASK_ID [TASK_ID ...]
+# data and media (needs Pillow and imageio-ffmpeg: the simagent Isaac interpreter)
+.envs/isaac/bin/python project-dashboard/tools/extract_benchmark_results.py
+cd project-dashboard && python3 tools/check_page.py && python3 tools/check_page.py --page benchmark.html
 ```
 
-The example tasks are listed in `EXAMPLES` at the top of the extractor (a mix
-of rooms, task families and verdicts); composite examples are picked
-automatically, one per family. Campaigns that are still running show their
-evaluated attempts and a "still running" note; re-run the extractor to refresh.
-Models with reasoning switched off, feedback rounds and the yes/no questions are
-deliberately not shown.
+`render_closeups.py` fits a camera on the open front side of the room to every
+object the instruction involves (moved by the reference or either model, or named
+by a check), before and after, and renders the four states posed exactly as
+answered. The extractor copies the simulator clips at their native 640 x 480
+without re-encoding, writes first-frame posters, and outlines the close-up area
+on the overview render. Variants with reasoning switched off, feedback rounds
+and the yes/no questions are deliberately not shown.
 
 ## Template and license
 

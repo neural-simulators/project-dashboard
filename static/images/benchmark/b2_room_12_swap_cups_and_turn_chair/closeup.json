@@ -1,0 +1,36 @@
+{
+ "task_id": "b2_room_12_swap_cups_and_turn_chair",
+ "relevant_ids": [
+  "o005",
+  "o008",
+  "o009",
+  "o010"
+ ],
+ "camera": {
+  "eye": [
+   -0.20507389469921378,
+   -1.211208799051818,
+   5.918363181059715
+  ],
+  "target": [
+   0.9824667102175934,
+   2.443665370427781,
+   0.43004448432346987
+  ],
+  "up": [
+   0,
+   0,
+   1
+  ],
+  "width": 960,
+  "height": 720,
+  "hfov": 50.0
+ },
+ "states": {
+  "before": true,
+  "truth": true,
+  "gpt54": true,
+  "qwen30t": true
+ },
+ "scope": "Close-up of the objects the instruction involves; poses exactly as submitted, no settling."
+}

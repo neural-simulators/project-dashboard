@@ -38,8 +38,39 @@
 <section class="section">
 <div class="container is-max-desktop">
 
+  <div class="wm-section" id="bm-results">
+    <h2 class="title is-4">Results</h2>
+    <p class="bm-lead">Goal met means every check the simulator measured passed. An answer the model could not produce in the required form
+      counts as a failure. Random answers are drawn uniformly from each task's allowed range; their pass rate shows how much of a task is luck.</p>
+    <div class="table-container" data-bm="table"></div>
+    <div class="content">
+      <ul>
+        <li><strong>GPT-5.4 meets the goal in 87 to 95 percent of the tasks in every set</strong>, including the throws over a barrier or
+          box rim, where a random launch works about one time in ten.</li>
+        <li><strong>Qwen3-VL-30B Thinking meets the goal in 31 to 40 percent of the tasks.</strong> On launches, about one answer in five never
+          became a usable launch; the launches it did produce were mostly too weak or aimed too flat.</li>
+        <li><strong>Asking for the velocity as numbers instead of a program</strong> lifts Qwen from 26 to 38 of the same 80 launch tasks
+          and GPT-5.4 from 72 to 76, so programming explains part of Qwen's gap but not most of it.</li>
+        <li><strong>Each model also forecast where its own launch would end.</strong> GPT-5.4 is off by a median of 4 cm on the floor
+          launches and 15 cm on the throws; Qwen by 38 cm and 87 cm.</li>
+        <li>The reviewer AI, which looks at the renders, agreed with the simulator on 377 of 379 attempts it reviewed.</li>
+      </ul>
+      <p><strong>How hard is a task?</strong> We draw random answers from each task's allowed range, run them through the same checks and
+        count the passes. A task that random answers pass half the time is easy; one they almost never pass is hard. Every static edit and
+        every throw is hard by this measure; the floor launches spread across the three tiers.</p>
+    </div>
+    <div class="bm-tiers" data-bm="tiers"></div>
+  </div>
+
+  <div class="wm-section" id="bm-featured">
+    <h2 class="title is-4">Four examples, reference next to both models</h2>
+    <p class="bm-lead">Launch tasks play the two simulated seconds side by side: hover over the clips or press play. For static edits the
+      first picture shows the whole room and the close-ups show the outlined area; hover a close-up to see it before the edit.</p>
+    <div data-bm="featured"></div>
+  </div>
+
   <div class="wm-section" id="bm-plain">
-    <h2 class="title is-4">In plain words</h2>
+    <h2 class="title is-4">How the benchmark works</h2>
     <ol class="bm-points">
       <li><strong>The task.</strong> A simulated living room with 24 to 34 objects and an instruction in everyday language: "bring the red chair closer to the table",
         "roll the red ball so that it hits the blue ball within one and a half seconds", "toss the red ball over the rim of the blue open box".</li>
@@ -53,8 +84,9 @@
     </ol>
   </div>
 
+
   <div class="wm-section" id="bm-pipeline">
-    <h2 class="title is-4">The pipeline, animated</h2>
+    <h3 class="title is-5">The pipeline, animated</h3>
     <p class="bm-lead">Five stages, from the room to the verdict. The texts quote one real GPT-5.4 attempt; switch between a static edit and a launch task.</p>
     <div class="wm-anim" id="bm-anim-pipeline">
       <div class="bm-toggle">
@@ -76,64 +108,39 @@
     </details>
   </div>
 
-  <div class="wm-section" id="bm-results">
-    <h2 class="title is-4">Results at a glance</h2>
-    <p class="bm-lead">Goal met means every measured check passed in the simulator. An answer the model could not produce in the required form counts as a failure
-      and is listed separately. Random answers are launches drawn uniformly inside the allowed range, or for static edits a random placement of the object on its
-      surface; their pass rate tells how much of a task is luck.</p>
-    <div class="table-container" data-bm="table"></div>
-    <p class="content">
-      <strong>What stands out.</strong> GPT-5.4 meets the goal in most tasks of every finished set, including the throws over a barrier or box rim, where a random launch
-      almost never works. Qwen3-VL-30B Thinking solves fewer than half of the tasks in every set; on the launch tasks a sizeable share of its program answers never
-      produced a usable launch at all. Asked for the velocity directly as numbers instead of a program, the Qwen model does better (last complete row of the table once
-      the run finishes), so part of its gap was the programming, not the physics. The reviewer AI agreed with the simulator on 99 percent of the attempts it saw.
-    </p>
-    <h3 class="title is-5">How hard is a task?</h3>
-    <p class="content">We grade difficulty by luck: for every task we draw random answers from its own allowed range, run them through the same checks, and count the
-      passes. A task that random answers pass half the time is easy; one they almost never pass is hard. Every static edit and every throw is hard by this measure;
-      the floor launches spread across all three tiers. The counts below cover the static edits, launches and throws.</p>
-    <div class="bm-tiers" data-bm="tiers"></div>
-  </div>
-
   <div class="wm-section" id="bm-static">
-    <h2 class="title is-4">Static edits: examples</h2>
-    <p class="bm-lead">Six rooms, six kinds of edit. Left to right: the room the model saw, one reference answer, and the two models' results rendered exactly as
-      answered. Under each card: the measured checks, the verdict and the reviewer's comment.</p>
-    <div data-bm="examples" data-type="static"></div>
+    <h2 class="title is-4">More static edits</h2>
+    <div data-bm="examples" data-type="static" data-skip-featured></div>
   </div>
 
   <div class="wm-section" id="bm-launch">
-    <h2 class="title is-4">Launch tasks: examples</h2>
-    <p class="bm-lead">The strips show the simulation at 0, 0.67, 1.33 and 2 seconds; hover a card to play its videos together. The reference launch is one
-      way to meet the goal, not the only one.</p>
-    <div data-bm="examples" data-type="launch"></div>
+    <h2 class="title is-4">More launch tasks</h2>
+    <div data-bm="examples" data-type="launch" data-skip-featured></div>
   </div>
 
   <div class="wm-section" id="bm-throw">
-    <h2 class="title is-4">Throws over a barrier or box rim: examples</h2>
-    <p class="bm-lead">The ball must fly: a launch along the floor cannot solve these, and random launches succeed about one time in ten.</p>
-    <div data-bm="examples" data-type="throw"></div>
+    <h2 class="title is-4">More throws over a barrier or box rim</h2>
+    <div data-bm="examples" data-type="throw" data-skip-featured></div>
   </div>
 
   <div class="wm-section" id="bm-direct">
     <h2 class="title is-4">Velocity as numbers instead of a program</h2>
-    <p class="bm-lead">The same launch and throw tasks, answered with the velocity directly as JSON. This removes programming skill from the measurement and leaves
-      only the physical judgment.</p>
+    <p class="bm-lead">The same launch and throw tasks, answered with the velocity directly. This takes programming skill out of the
+      measurement and leaves only the physical judgment.</p>
     <div data-bm="examples" data-type="direct"></div>
   </div>
 
   <div class="wm-section" id="bm-composite">
     <h2 class="title is-4">Composite tasks: several objects at once</h2>
-    <p class="bm-lead">The newest and hardest set: knock a chair over, shove the dining table half a metre with the cups still on it, and throw the ball over the
-      barrier, all in one answer with one velocity per object. Every requirement must hold at once, and the launched objects can disturb each other.
-      Six task families in fourteen rooms.</p>
+    <p class="bm-lead">The newest and hardest set: knock a chair over, shove the dining table half a metre with the cups still on it,
+      and throw the ball over the barrier, all in one answer with one velocity per object. Every requirement must hold at once, and the
+      launched objects can disturb each other. Six task families in fourteen rooms; results are being computed.</p>
     <div data-bm="examples" data-type="composite"></div>
   </div>
 
   <div class="wm-section" id="bm-status">
     <h2 class="title is-4">Status</h2>
     <div data-bm="status"></div>
-    <p class="wm-note">Variants with reasoning switched off, feedback rounds and the yes/no forecasting questions are not shown here.</p>
   </div>
 
 </div>

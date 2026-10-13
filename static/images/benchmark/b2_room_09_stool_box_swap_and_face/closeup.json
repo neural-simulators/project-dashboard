@@ -1,0 +1,36 @@
+{
+ "task_id": "b2_room_09_stool_box_swap_and_face",
+ "relevant_ids": [
+  "o005",
+  "o007",
+  "o012",
+  "o013"
+ ],
+ "camera": {
+  "eye": [
+   -1.9758221282902104,
+   -4.2759568661479905,
+   9.563445371979514
+  ],
+  "target": [
+   0.00045813213104350936,
+   1.8064083561949247,
+   0.42990007815725517
+  ],
+  "up": [
+   0,
+   0,
+   1
+  ],
+  "width": 960,
+  "height": 720,
+  "hfov": 50.0
+ },
+ "states": {
+  "before": true,
+  "truth": true,
+  "gpt54": true,
+  "qwen30t": true
+ },
+ "scope": "Close-up of the objects the instruction involves; poses exactly as submitted, no settling."
+}

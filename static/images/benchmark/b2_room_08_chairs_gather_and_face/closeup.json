@@ -1,0 +1,35 @@
+{
+ "task_id": "b2_room_08_chairs_gather_and_face",
+ "relevant_ids": [
+  "o006",
+  "o007",
+  "o008"
+ ],
+ "camera": {
+  "eye": [
+   -1.1948163548414308,
+   -2.2753234597313856,
+   5.87045888021475
+  ],
+  "target": [
+   -0.025000236565172917,
+   1.3250003490097122,
+   0.4640553879074041
+  ],
+  "up": [
+   0,
+   0,
+   1
+  ],
+  "width": 960,
+  "height": 720,
+  "hfov": 50.0
+ },
+ "states": {
+  "before": true,
+  "truth": true,
+  "gpt54": true,
+  "qwen30t": true
+ },
+ "scope": "Close-up of the objects the instruction involves; poses exactly as submitted, no settling."
+}
