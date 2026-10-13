@@ -219,10 +219,8 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
-# Rebuilt digital-twin display assets and local browser checks.
-static/images/digital_twin/
-static/media/digital_twin/
-static/data/digital_twin.js
+# Digital-twin provenance record (local paths; the page does not load it). The page's own data, images and clips are
+# committed: without them the published digital-twins page renders empty.
 static/data/digital_twin_provenance.json
 
 # Merge-tool backups.
