@@ -6,11 +6,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>End-to-end study · Neural Simulators</title>
   <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
-  <link rel="stylesheet" href="./static/css/bulma.min.css">
-  <link rel="stylesheet" href="./static/css/index.css">
-  <link rel="stylesheet" href="./static/css/project.css">
+  <link rel="stylesheet" href="./static/css/bulma.min.css?v=58b2865922">
+  <link rel="stylesheet" href="./static/css/index.css?v=747bae5899">
+  <link rel="stylesheet" href="./static/css/project.css?v=4bddc081cc">
   <link rel="icon" href="./static/images/favicon.svg">
-  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js?v=20a3ef6979"></script>
+  <script defer src="./static/js/site_nav.js?v=8904233695"></script>
 <style>
 /* end-to-end study page: every rule is scoped to #e2e */
 #e2e td.n, #e2e th.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -73,20 +74,6 @@
         <div class="column has-text-centered">
           <h1 class="title is-1 publication-title">End-to-end study</h1>
           <p class="subtitle is-4 wm-subtitle">From LLM-written physics tasks to choosing actions with a learned simulator, with PhysX as the ground truth at every step.</p>
-          <div class="publication-links">
-            <span class="link-block">
-              <a href="./index.html#design" class="button is-normal is-rounded is-dark">
-                <span class="icon"><i class="fas fa-drafting-compass"></i></span>
-                <span>Design proposals</span>
-              </a>
-            </span>
-            <span class="link-block">
-              <a href="./index.html#results" class="button is-normal is-rounded is-dark">
-                <span class="icon"><i class="fas fa-chart-bar"></i></span>
-                <span>Results</span>
-              </a>
-            </span>
-          </div>
         </div>
       </div>
     </div>
@@ -94,27 +81,12 @@
 </section>
 
 <div class="container is-max-desktop">
-  <div class="tabs is-centered is-boxed wm-tabs">
-    <ul>
-      <li>
-        <a href="./index.html#design">
-          <span class="icon is-small"><i class="fas fa-drafting-compass" aria-hidden="true"></i></span>
-          <span>Design proposals</span>
-        </a>
-      </li>
-      <li>
-        <a href="./index.html#results">
-          <span class="icon is-small"><i class="fas fa-chart-bar" aria-hidden="true"></i></span>
-          <span>Results</span>
-        </a>
-      </li>
-      <li class="is-active">
-        <a href="./end-to-end.html" aria-current="page">
-          <span class="icon is-small"><i class="fas fa-route" aria-hidden="true"></i></span>
-          <span>End-to-end study</span>
-        </a>
-      </li>
-    </ul>
+  <nav class="tabs is-centered is-boxed wm-tabs" data-site-nav="end-to-end" aria-label="Project pages"></nav>
+</div>
+<div class="container is-max-desktop wm-intro-wrap">
+  <div class="wm-intro">
+    <h2 class="wm-intro-title">Why run the loop end to end?</h2>
+    <p>The project's goal is a planner that asks a fast learned simulator "what happens if I do this?" instead of running the physics engine. This study builds that whole loop at small scale and checks every link against PhysX: language models design scenes and write tasks, a language model judges outcomes from images, language models propose actions, and learned future-state models preview those actions before PhysX decides. It shows which links already hold and which break.</p>
   </div>
 </div>
 

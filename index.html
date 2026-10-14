@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="description"
-        content="Neural Simulators: can a model stand in for a rigid-body physics engine? Benchmark, design proposals and results of the simagent project.">
+        content="Neural Simulators: learned models that predict how a scene will move, a benchmark of language models on physical scene editing, post-training with simulator rewards, and real scenes.">
   <meta name="keywords" content="neural simulator, world model, scene graph, flow matching, rigid-body physics, PhysX, benchmark">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Neural Simulators</title>
@@ -13,12 +13,12 @@
 
   <link rel="stylesheet" href="./static/css/bulma.min.css?v=58b2865922">
   <link rel="stylesheet" href="./static/css/index.css?v=747bae5899">
-  <link rel="stylesheet" href="./static/css/project.css?v=bb5cffe6b9">
+  <link rel="stylesheet" href="./static/css/project.css?v=4bddc081cc">
   <link rel="icon" href="./static/images/favicon.svg">
 
   <!-- shared infrastructure only; each proposal or result block loads its own data and scripts inside its section -->
   <script defer src="./static/js/fontawesome.all.min.js?v=20a3ef6979"></script>
-  <script defer src="./static/js/project.js?v=e201439f2a"></script>
+  <script defer src="./static/js/project.js?v=ae13504ea8"></script>
 </head>
 <body>
 
@@ -28,44 +28,7 @@
       <div class="columns is-centered">
         <div class="column has-text-centered">
           <h1 class="title is-1 publication-title">Neural Simulators</h1>
-          <p class="subtitle is-4 wm-subtitle">Can a model stand in for a rigid-body physics engine? Benchmark, world model, post-training and results.</p>
-          <div class="publication-links">
-            <span class="link-block">
-              <a href="#design" class="button is-normal is-rounded is-dark">
-                <span class="icon"><i class="fas fa-drafting-compass"></i></span>
-                <span>World model</span>
-              </a>
-            </span>
-            <span class="link-block">
-              <a href="#post-training" class="button is-normal is-rounded is-dark">
-                <span class="icon"><i class="fas fa-graduation-cap"></i></span>
-                <span>Post-training</span>
-              </a>
-            </span>
-            <span class="link-block">
-              <a href="#results" class="button is-normal is-rounded is-dark">
-                <span class="icon"><i class="fas fa-chart-bar"></i></span>
-                <span>Results</span>
-              </a>
-            </span>
-            <span class="link-block">
-              <a href="./end-to-end.html" class="button is-normal is-rounded is-dark">
-                <span class="icon"><i class="fas fa-route"></i></span>
-                <span>End-to-end study</span>
-              </a>
-            </span>
-            <span class="link-block">
-              <a href="./scaled-results.html" class="button is-normal is-rounded is-dark">
-                <span class="icon"><i class="fas fa-project-diagram"></i></span>
-                <span>Scaled results</span>
-              </a>
-            </span>
-            <span class="link-block">
-              <a href="./digital-twins.html" class="button is-normal is-rounded is-dark">
-                <span>Digital twins</span>
-              </a>
-            </span>
-          </div>
+          <p class="subtitle is-4 wm-subtitle">Can a learned model stand in for the physics engine, fast enough to plan with and general enough for real scenes?</p>
         </div>
       </div>
     </div>
@@ -75,8 +38,14 @@
 <div class="container is-max-desktop">
   <div class="tabs is-centered is-boxed wm-tabs" id="wm-tabs">
     <ul role="tablist">
-      <li class="is-active" data-tab="design" role="presentation">
-        <a href="#design" role="tab" aria-controls="design" aria-selected="true">
+      <li class="is-active" data-tab="overview" role="presentation">
+        <a href="#overview" role="tab" aria-controls="overview" aria-selected="true">
+          <span class="icon is-small"><i class="fas fa-home" aria-hidden="true"></i></span>
+          <span>Overview</span>
+        </a>
+      </li>
+      <li data-tab="design" role="presentation">
+        <a href="#design" role="tab" aria-controls="design" aria-selected="false">
           <span class="icon is-small"><i class="fas fa-drafting-compass" aria-hidden="true"></i></span>
           <span>World model</span>
         </a>
@@ -122,6 +91,150 @@
 </div>
 
 <!-- =====================================================================
+     Overview tab (the landing tab): what the project is about, how its parts
+     connect, one card per part, and the visitor counter at the bottom.
+     ===================================================================== -->
+<div class="wm-panel" id="overview" data-tab-panel="overview" role="tabpanel">
+  <section class="section" id="overview-main">
+    <div class="container is-max-desktop">
+      <h2 class="title is-3 ov-title">Learned models that predict how a scene will move</h2>
+      <p class="ov-lead">A physics engine such as NVIDIA PhysX tells you exactly how objects will fall, slide, bounce and collide, but only
+        after someone has rebuilt the scene in 3D with every object's shape, mass and friction, and it computes the motion step by step:
+        two seconds of motion in a furnished room take it about six seconds. Language models read scenes and instructions fluently, yet
+        have no dependable sense of what will physically happen.</p>
+      <p class="ov-lead">This project builds models that predict motion directly from a description of the scene, in milliseconds and
+        with "what if" questions built in. Along the way it measures how well today's language models reason about physics, teaches open
+        language models with the simulator as their teacher, and works toward real scenes captured with a camera.</p>
+
+      <div class="wm-anim ov-map" id="ov-map">
+        <div class="wm-svg-scroll">
+          <svg class="wm-diagram" viewBox="0 0 920 360" role="img" aria-labelledby="ov-map-title">
+            <title id="ov-map-title">How the parts of the project connect: simulation dataset, world model, real scenes, benchmark, post-training and the planning loop</title>
+            <defs>
+              <marker id="ov-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+                <path d="M0,0 L10,5 L0,10 z" fill="#9aa3ad"/>
+              </marker>
+              <marker id="ov-arrow-on" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+                <path d="M0,0 L10,5 L0,10 z" fill="#333"/>
+              </marker>
+            </defs>
+            <!-- links: solid = working today, dashed (class next) = next -->
+            <g class="ov-edge" data-edge="r-d"><path d="M790,68 C790,14 130,14 130,68"/><text class="ov-elabel" x="460" y="54" text-anchor="middle">today: a real scene is rebuilt as a digital twin for PhysX</text></g>
+            <g class="ov-edge" data-edge="d-w"><path d="M247,118 L341,118"/><text class="ov-elabel" x="294" y="109" text-anchor="middle">trains</text></g>
+            <g class="ov-edge next" data-edge="r-w"><path d="M673,103 L579,103"/><text class="ov-elabel" x="626" y="94" text-anchor="middle">scene graph</text></g>
+            <g class="ov-edge next" data-edge="w-r"><path d="M577,133 L671,133"/><text class="ov-elabel" x="624" y="152" text-anchor="middle">motion</text></g>
+            <g class="ov-edge" data-edge="d-b"><path d="M130,168 L130,246"/><text class="ov-elabel" x="140" y="212">tasks</text></g>
+            <g class="ov-edge next" data-edge="w-p"><path d="M460,168 L460,246"/><text class="ov-elabel" x="470" y="212">fast judge</text></g>
+            <g class="ov-edge" data-edge="w-e"><path d="M540,168 L703,246"/><text class="ov-elabel" x="634" y="198">previews</text></g>
+            <g class="ov-edge" data-edge="b-p"><path d="M247,298 L341,298"/><text class="ov-elabel" x="294" y="289" text-anchor="middle">rewards</text></g>
+            <g class="ov-edge" data-edge="p-e"><path d="M577,298 L671,298"/><text class="ov-elabel" x="624" y="289" text-anchor="middle">actions</text></g>
+            <!-- parts: each box links to its tab or page -->
+            <a href="./scaled-results.html" class="ov-node-link"><rect class="ov-node" x="15" y="70" width="230" height="96" rx="10" style="stroke:#12b886"/>
+              <text x="130" y="100" text-anchor="middle" class="ov-ntitle" fill="#0b8a62">Simulation dataset</text>
+              <text x="130" y="124" text-anchor="middle" class="ov-nline">rooms, objects, actions and how</text>
+              <text x="130" y="143" text-anchor="middle" class="ov-nline">they move in PhysX; rigid first</text></a>
+            <a href="#design" class="ov-node-link"><rect class="ov-node" x="345" y="70" width="230" height="96" rx="10" style="stroke:#d7263d"/>
+              <text x="460" y="100" text-anchor="middle" class="ov-ntitle" fill="#d7263d">World model</text>
+              <text x="460" y="124" text-anchor="middle" class="ov-nline">a learned simulator: scene graph</text>
+              <text x="460" y="143" text-anchor="middle" class="ov-nline">in, motion out, in milliseconds</text></a>
+            <a href="./digital-twins.html" class="ov-node-link"><rect class="ov-node" x="675" y="70" width="230" height="96" rx="10" style="stroke:#7048e8"/>
+              <text x="790" y="100" text-anchor="middle" class="ov-ntitle" fill="#7048e8">Real scenes</text>
+              <text x="790" y="124" text-anchor="middle" class="ov-nline">photographs of a real place,</text>
+              <text x="790" y="143" text-anchor="middle" class="ov-nline">read as a scene graph</text></a>
+            <a href="#results" class="ov-node-link"><rect class="ov-node" x="15" y="250" width="230" height="96" rx="10" style="stroke:#1f6feb"/>
+              <text x="130" y="280" text-anchor="middle" class="ov-ntitle" fill="#1f6feb">Benchmark</text>
+              <text x="130" y="304" text-anchor="middle" class="ov-nline">can language models edit a</text>
+              <text x="130" y="323" text-anchor="middle" class="ov-nline">scene? PhysX judges each answer</text></a>
+            <a href="#post-training" class="ov-node-link"><rect class="ov-node" x="345" y="250" width="230" height="96" rx="10" style="stroke:#f59f00"/>
+              <text x="460" y="280" text-anchor="middle" class="ov-ntitle" fill="#b86e00">Post-training</text>
+              <text x="460" y="304" text-anchor="middle" class="ov-nline">open language models learn</text>
+              <text x="460" y="323" text-anchor="middle" class="ov-nline">from the simulator's verdicts</text></a>
+            <a href="./end-to-end.html" class="ov-node-link"><rect class="ov-node" x="675" y="250" width="230" height="96" rx="10" style="stroke:#1098ad"/>
+              <text x="790" y="280" text-anchor="middle" class="ov-ntitle" fill="#0c7a8c">Planning loop</text>
+              <text x="790" y="304" text-anchor="middle" class="ov-nline">propose an action, preview it,</text>
+              <text x="790" y="323" text-anchor="middle" class="ov-nline">then act (end-to-end studies)</text></a>
+          </svg>
+        </div>
+        <p class="ov-legend"><span>working today</span><span class="next">next</span><span class="ov-legend-plain">click a box to open its tab</span></p>
+        <div class="wm-controls">
+          <button class="button is-small is-light" type="button" aria-pressed="true">Pause</button>
+          <p class="wm-caption"></p>
+        </div>
+      </div>
+
+      <div class="ov-cards">
+        <article class="ov-card ov-c-data">
+          <h3><span class="icon"><i class="fas fa-cubes" aria-hidden="true"></i></span>Simulation dataset</h3>
+          <p>Furnished rooms simulated in NVIDIA Isaac Sim with PhysX: chairs, tables, cups, balls and boxes, each with a mass, a friction
+            and a bounciness. Every task pairs a room with an instruction and a reference action the simulator has verified, and random
+            actions measure how hard it is. Fourteen hand-built rooms with over 500 tasks, and close to a thousand generated scenes with
+            over 300,000 simulated rollouts.</p>
+          <div class="ov-chips"><span class="ov-chip now">rigid objects</span><span class="ov-chip next">next: cloth and soft bodies</span><span class="ov-chip next">next: springs and pendulums</span></div>
+          <div class="ov-links"><a href="#results">Results</a><a href="./scaled-results.html">Scaled results</a></div>
+        </article>
+        <article class="ov-card ov-c-bench">
+          <h3><span class="icon"><i class="fas fa-chart-bar" aria-hidden="true"></i></span>Benchmark for language models</h3>
+          <p>GPT-5.4 and the open Qwen3-VL-30B receive a room as data, two pictures and an instruction such as "toss the red ball over the
+            barrier into the box", and answer once with new poses or a launch velocity. PhysX executes the answer exactly as given.
+            GPT-5.4 meets the goal in about nine single-object tasks out of ten but in fewer than half of the tasks that move several
+            objects at once; the open model in about a third of the single-object tasks.</p>
+          <div class="ov-chips"><span class="ov-chip now">measured</span></div>
+          <div class="ov-links"><a href="#results">Results</a><a href="./how-it-works.html">How models are prompted</a></div>
+        </article>
+        <article class="ov-card ov-c-wm">
+          <h3><span class="icon"><i class="fas fa-drafting-compass" aria-hidden="true"></i></span>World model</h3>
+          <p>A network trained on the simulator's own rollouts. It reads the scene graph (one token per object: shape, pose, mass,
+            friction, velocity) and an action, and predicts every object's motion over the next two seconds, intermediate states included,
+            in milliseconds. "What if" questions become edits of the input: remove an object, add one between two others, set gravity to
+            the Moon's, lower a friction.</p>
+          <div class="ov-chips"><span class="ov-chip now">design and first small runs</span><span class="ov-chip next">next: training at scale</span></div>
+          <div class="ov-links"><a href="#design">World model</a><a href="#results">First runs</a></div>
+        </article>
+        <article class="ov-card ov-c-post">
+          <h3><span class="icon"><i class="fas fa-graduation-cap" aria-hidden="true"></i></span>Post-training</h3>
+          <p>Open language models that anyone can run lag far behind GPT-5.4. Instead of human labels, the simulator becomes the teacher:
+            the model proposes several answers, each is checked in simulation, and small adapters are trained toward the answers that
+            worked. In the first run, GRPO lifted the 7B model from 6 to 25 of 48 held-out tasks, level with the 30B model on the same
+            tasks; whether that carries over to new kinds of tasks is the next test.</p>
+          <div class="ov-chips"><span class="ov-chip now">first run done</span><span class="ov-chip next">next: new task types</span><span class="ov-chip next">next: world model as the judge</span></div>
+          <div class="ov-links"><a href="#post-training">Post-training</a><a href="#results">First results</a></div>
+        </article>
+        <article class="ov-card ov-c-real">
+          <h3><span class="icon"><i class="fas fa-cube" aria-hidden="true"></i></span>Real scenes</h3>
+          <p>Simulating a real scene today means rebuilding it as a digital twin: outline every object in photographs, complete its 3D
+            shape, give it a collision body, a mass and a friction, and load it into PhysX. We did this for a kitchen counter. The aim is
+            to skip the rebuild: read a scene graph from the photographs, let the world model predict the motion, and show it in the real
+            images.</p>
+          <div class="ov-chips"><span class="ov-chip now">one real scene in PhysX</span><span class="ov-chip next">next: world model on real scenes</span></div>
+          <div class="ov-links"><a href="./digital-twins.html">Digital twins</a></div>
+        </article>
+        <article class="ov-card ov-c-loop">
+          <h3><span class="icon"><i class="fas fa-route" aria-hidden="true"></i></span>Planning loop</h3>
+          <p>The whole loop, end to end: language models design scenes and write tasks, PhysX keeps the valid ones, language models judge
+            outcomes and propose actions, and learned simulators preview each action before PhysX decides. The scaled study repeats this
+            on close to a thousand scenes, including scenes converted from the Kubric MOVi and Physion datasets.</p>
+          <div class="ov-chips"><span class="ov-chip now">small scale done</span><span class="ov-chip now">scaled study running</span></div>
+          <div class="ov-links"><a href="./end-to-end.html">End-to-end study</a><a href="./scaled-results.html">Scaled results</a></div>
+        </article>
+      </div>
+
+      <p class="ov-start">New here? <a href="#results">Results</a> shows what language models can and cannot do with physics today;
+        <a href="#design">World model</a> shows where the project is going.</p>
+
+      <div class="ov-visitors" id="overview-visitors">
+        <h3 class="title is-5">Visitors</h3>
+        <img class="ov-counter" src="https://hits.sh/neural-simulators.github.io/project-dashboard.svg?view=today-total&amp;label=page%20views%20today%20%2F%20total&amp;color=1f6feb&amp;labelColor=55606e"
+             alt="Page views of this page, today and in total" height="20">
+        <p class="wm-note">Page views of this page, today and since the counter started on 14 October 2026, counted by hits.sh (one count
+          per page load, no cookies).</p>
+      </div>
+
+      <script defer src="./static/js/overview/map.js?v=4c83abcf26"></script>
+    </div>
+  </section>
+</div>
+
+<!-- =====================================================================
      Design proposals tab. Each proposal is ONE self-contained block:
        <section class="section proposal" id="proposal-<slug>"> ... </section>
      appended inside this wrapper, with images under static/images/<slug>/,
@@ -129,18 +242,32 @@
      Add new blocks after the last one; do not edit another block.
      See README.md, "How to add a proposal or a result".
      ===================================================================== -->
-<div class="wm-panel" id="design" data-tab-panel="design" role="tabpanel">
+<div class="wm-panel" id="design" data-tab-panel="design" role="tabpanel" hidden>
 
   <!-- ---------- proposal: world_model ---------- -->
   <section class="section proposal" id="proposal-world_model">
     <div class="container is-max-desktop">
       <h2 class="title is-3">World model: scene-graph flow matching</h2>
-      <p class="wm-lead">
-        One proposal in eight short sections. The numbers are measured on the benchmark's 462 qualified tasks and
-        on one sample task from room 1, "Send the red ball over the gray barrier so that it comes down and hits the
-        blue ball within one and a half seconds, without touching the barrier", whose real PhysX rollout also drives
-        the animations below.
-      </p>
+      <div class="wm-intro">
+        <h3 class="wm-intro-title">Why learn the simulator?</h3>
+        <p>A physics engine such as PhysX computes motion step by step from exact 3D geometry. It is accurate, but it needs a hand-built
+          3D scene, and two seconds of motion in a furnished room take it about six seconds. A world model is a neural network trained on
+          the engine's own rollouts that predicts the same motion in one pass: the position, orientation and velocity of every object at
+          every frame, intermediate states included, in milliseconds.</p>
+        <p>Because the scene and its physics are explicit inputs, a counterfactual question is an edited input and one more prediction.
+          What if this chair were removed? What if a box stood between the two balls, gravity were the Moon's, the floor were more
+          slippery, or the cushion were cloth instead of a rigid body? Planners, language models and robots need to ask such questions
+          many times, and quickly.</p>
+        <p>Rigid objects come first; other materials need training data that covers them. The design is illustrated on one real
+          benchmark task, sending a red ball over a gray barrier onto a blue ball, whose PhysX rollout drives the animations. The first
+          small training runs are in the Results tab.</p>
+        <ul class="wm-facts">
+          <li><b>6.2 s</b>PhysX, for 2 s of motion in one room</li>
+          <li><b>3.4 ms</b>world model, for the same 2 s</li>
+          <li><b>1 token</b>per object, plus one for the action</li>
+          <li><b>60 frames</b>of every object's state, predicted at once</li>
+        </ul>
+      </div>
 
       <div class="wm-section" id="world_model-overview">
         <h3 class="title is-4">1. Abstract</h3>
@@ -494,11 +621,24 @@
   <section class="section proposal" id="proposal-post_training">
     <div class="container is-max-desktop">
       <h2 class="title is-3">Post-training an open model with the simulator as its teacher</h2>
-      <p class="wm-lead">
-        Can a small open model learn 3D scene editing and launch planning from the simulator's verdicts instead of from human labels?
-        The model's weights stay frozen; small adapters are trained with reinforcement learning, and the benchmark's own checks provide
-        the reward. Every scene, answer and score below is a real record from the benchmark.
-      </p>
+      <div class="wm-intro">
+        <h3 class="wm-intro-title">Why post-train a language model?</h3>
+        <p>Language models are the natural interface for instructions like "knock the red chair over" or "toss the ball into the box",
+          and a model that also judges physics well could plan actions for a simulator or a robot. On the benchmark, GPT-5.4 meets the
+          goal in about nine tasks out of ten. Open models, the ones anyone can run, inspect and fine-tune, do much worse: the 30B model
+          passes a third to a half of the tasks and the 7B model almost none.</p>
+        <p>Post-training asks whether that gap can be closed with the simulator as the teacher instead of human labels. The model
+          proposes several answers to a task, each answer is checked (geometric checks for a static edit, a full PhysX simulation for a
+          launch), and small adapters are trained toward the answers that worked while the model's own weights stay frozen. The
+          feedback is exact and unlimited; its cost is time, about 50 seconds per simulated launch, which a fast world model could cut
+          to milliseconds. Every scene, answer and score below is a real record from the benchmark.</p>
+        <ul class="wm-facts">
+          <li><b>Reward</b>the simulator's verdict, no human labels</li>
+          <li><b>About 1%</b>of the weights trained (LoRA adapters)</li>
+          <li><b>Qwen2.5-7B</b>the open model being taught</li>
+          <li><b>Held-out tasks</b>judged by PhysX at the end</li>
+        </ul>
+      </div>
 
       <div class="wm-section" id="post_training-abstract">
         <h3 class="title is-4">1. Abstract</h3>
@@ -506,8 +646,8 @@
           <p>The benchmark has two kinds of task. A <em>static edit</em> asks the model to move or turn named objects so that an
             instruction holds ("bring the red chair closer to the brown table"). A <em>launch task</em> asks for one initial velocity
             of one object so that something happens in the simulation ("toss the red ball over the barrier into the box"). Both are
-            judged by deterministic checks and the PhysX simulator. GPT-5.4 passes most of them, the 30B open model about half, and the
-            7B open models almost none.</p>
+            judged by deterministic checks and the PhysX simulator. GPT-5.4 passes most of them, the 30B open model a third to a half, and
+            the 7B open models almost none.</p>
           <p>Post-training turns those checks into a teacher. The model writes several answers to the same prompt, each answer is
             scored (cheap geometry checks for static edits, a full simulation for every launch), and the model is pushed toward the
             answers that scored better than their siblings (GRPO), or toward the better answer of a pair (DPO, the cheaper baseline).
@@ -637,12 +777,12 @@
         <div class="table-container">
           <table class="table is-fullwidth is-narrow wm-table pt-experiment" id="pt-experiment-table"></table>
         </div>
-        <p class="wm-note">The trained models' numbers are in the Results tab: DPO has finished, GRPO is still training.</p>
+        <p class="wm-note">The trained models' numbers are in the Results tab.</p>
       </div>
 
       <!-- this block's data and script (deferred: they run after the page is parsed, in this order, after project.js) -->
-      <script defer src="./static/data/post_training.js?v=691bd4a2fc"></script>
-      <script defer src="./static/js/post_training/main.js?v=010a381790"></script>
+      <script defer src="./static/data/post_training.js?v=ab70106007"></script>
+      <script defer src="./static/js/post_training/main.js?v=65958dbaac"></script>
     </div>
   </section>
   <!-- ---------- end proposal: post_training ---------- -->
@@ -656,6 +796,14 @@
      appended inside this wrapper, same file conventions as the proposals.
      ===================================================================== -->
 <div class="wm-panel" id="results" data-tab-panel="results" role="tabpanel" hidden>
+  <div class="container is-max-desktop wm-intro-wrap">
+    <div class="wm-intro">
+      <h2 class="wm-intro-title">What has been measured so far</h2>
+      <p>Every number in this tab is decided by the simulator, not by a person or by a model acting as judge: how well GPT-5.4 and an
+        open model edit and launch objects in simulated rooms, how the first small world models compare with PhysX, and what a 7B open
+        model gains from post-training with simulator rewards. The end-to-end and scaled studies have their own tabs.</p>
+    </div>
+  </div>
   <!-- ---------- result: benchmark_v31 ---------- -->
   <section class="section result" id="result-benchmark_v31">
     <div class="container is-max-desktop">
@@ -685,8 +833,8 @@
       </div>
 
       <!-- this block's data and scripts (deferred) -->
-      <script defer src="./static/data/benchmark_results.js?v=72eb64595c"></script>
-      <script defer src="./static/js/benchmark/render.js?v=0f6c1a71ec"></script>
+      <script defer src="./static/data/benchmark_results.js?v=61e4b83701"></script>
+      <script defer src="./static/js/benchmark/render.js?v=6d4aa89dea"></script>
     </div>
   </section>
   <!-- ---------- end result: benchmark_v31 ---------- -->
@@ -776,7 +924,7 @@
       <h2 class="title is-3">Post-training the 7B model: first results</h2>
       <div class="content">
         <p>Qwen2.5-7B was trained on 74 benchmark tasks (25 static edits and 49 launches of every difficulty) and then judged by the
-          simulator on 48 held-out tasks it never trained on. DPO has finished; GRPO is still training.</p>
+          simulator on 48 held-out tasks it never trained on (different tasks of the same task types and rooms).</p>
       </div>
       <h3 class="title is-6">Held-out tasks passed in the simulator</h3>
       <div class="table-container"><table class="table is-fullwidth is-narrow wm-table pt-mixed-table" id="pt-mixed-table"></table></div>

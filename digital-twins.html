@@ -8,12 +8,12 @@
   <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
   <link rel="stylesheet" href="./static/css/bulma.min.css?v=58b2865922">
   <link rel="stylesheet" href="./static/css/index.css?v=747bae5899">
-  <link rel="stylesheet" href="./static/css/project.css?v=bb5cffe6b9">
+  <link rel="stylesheet" href="./static/css/project.css?v=4bddc081cc">
   <link rel="stylesheet" href="./static/css/digital_twin.css?v=696467804c">
   <link rel="icon" href="./static/images/favicon.svg">
   <script defer src="./static/js/fontawesome.all.min.js?v=20a3ef6979"></script>
-  <script defer src="./static/js/site_nav.js?v=3df7dc9ccc"></script>
-  <script defer src="./static/js/project.js?v=e201439f2a"></script>
+  <script defer src="./static/js/site_nav.js?v=8904233695"></script>
+  <script defer src="./static/js/project.js?v=ae13504ea8"></script>
   <script defer src="./static/data/digital_twin.js?v=de67070a92"></script>
   <script defer src="./static/js/digital_twin/main.js?v=873e5dfa53"></script>
 </head>
@@ -34,6 +34,14 @@
 
 <div class="container is-max-desktop">
   <nav class="tabs is-centered is-boxed wm-tabs" data-site-nav="digital-twins" aria-label="Project pages"></nav>
+</div>
+
+<div class="container is-max-desktop wm-intro-wrap">
+  <div class="wm-intro">
+    <h2 class="wm-intro-title">Why digital twins, and why go beyond them?</h2>
+    <p>Real-time physics on a real scene is hard today. A physics engine needs every object as a 3D shape with a collision body, a mass and a friction, so a real scene must first be rebuilt as a digital twin: objects outlined in photographs, completed into full 3D shapes, placed in the scene and given physical parameters, before PhysX can move anything. This page follows that route on a real kitchen counter.</p>
+    <p>The longer-term aim is to skip most of the rebuild: read a scene graph (objects, sizes, poses, materials) from the photographs, let the world model predict the motion directly, and show the result in the real images.</p>
+  </div>
 </div>
 
 <main id="digital-twin" class="container is-max-desktop">

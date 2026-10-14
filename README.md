@@ -1,22 +1,37 @@
 # Neural Simulators: project page
 
 Static project page (GitHub Pages) for the simagent research project. The
-question on the page: can a model stand in for a rigid-body physics engine?
-The page has three tabs:
+landing page is `index.html` with four in-page tabs; the other tabs are
+standalone pages that share the same navigation:
 
-- **World model** (`#design`, the default): one block per proposal. The first block is the
-  scene-graph world model (one token per object, flow matching over the
-  60-frame trajectory tensor, trained on PhysX rollouts), its Diffusion
-  Forcing, JEPA and autoregressive variants, how counterfactuals are asked, and
-  where the simulator is used. Four small animations run on the real PhysX
-  rollout of one benchmark task.
-- **Post-training** (`#post-training`): post-training an open 7B model with the
-  simulator's verdicts as its reward (GRPO and DPO on LoRA adapters), as one
-  block installed from `post_training.html` (see "Post-training blocks" below).
-- **Results**: one block per result. The first block is the toy world-model
-  experiment (status line, empty results table, an injection point for later
-  results). The benchmark results of the language-model campaigns stay on the
-  internal experiment dashboard (SSH tunnel to ccvl38:8097).
+- **Overview** (`#overview`, the default): what the project is about, an
+  animated map of how its parts connect (`static/js/overview/map.js`; each box
+  links to its tab), one card per part with its status, and the visitor
+  counter at the bottom.
+- **World model** (`#design`): one block per proposal, starting with the
+  scene-graph world model.
+- **Post-training** (`#post-training`): the post-training proposal, installed
+  from `post_training.html` (see "Post-training blocks" below).
+- **Results** (`#results`): one block per result (benchmark, toy world model,
+  post-training).
+- Standalone pages: `how-it-works.html`, `benchmark.html` (the full benchmark
+  results, under the Results tab), `end-to-end.html` and `scaled-results.html`
+  (co-author pages), `digital-twins.html`.
+
+Every tab and page opens with a short intro box (`<div class="wm-intro">`: a
+question as its title, the idea and why it matters in plain words, optionally a
+row of `wm-facts` numbers), then the details. Keep intros about the idea, not
+about the page's own layout (no "this page has N sections" lines).
+
+## Visitor counter
+
+The Overview tab ends with a page-view counter from [hits.sh](https://hits.sh)
+(an SVG image keyed by `neural-simulators.github.io/project-dashboard`, today
+and total, one count per load of `index.html`, no account, no cookies, no
+script). It counts page loads, not unique visitors. A world map of visitors
+needs a service with an account or a CAPTCHA (Flag Counter, ClustrMaps,
+MapMyVisitors) or one whose free widget loads a third-party ad tracker
+(whos.amung.us); add its snippet inside `#overview-visitors`.
 
 One HTML file, vanilla JavaScript, no build step and no CDN besides the Google
 Fonts stylesheet; the page works from `file://` and from GitHub Pages. Data
@@ -267,14 +282,21 @@ in `CODE_EXCERPTS`).
 
 ## Navigation shared by all pages
 
-The project's tabs are listed once, in `static/js/site_nav.js`: World model,
-Post-training, How models are prompted, Results, End-to-end study, Digital
-twins. Every standalone page (`end-to-end.html`, `how-it-works.html`,
-`digital-twins.html`, `benchmark.html`) carries an empty
+The project's tabs are listed once, in `static/js/site_nav.js`: Overview, World
+model, Post-training, How models are prompted, Results, End-to-end study,
+Scaled results, Digital twins. Every standalone page (`end-to-end.html`,
+`scaled-results.html`, `how-it-works.html`, `digital-twins.html`,
+`benchmark.html`) carries an empty
 `<nav class="tabs is-centered is-boxed wm-tabs" data-site-nav="KEY">` under its
 hero and loads the script, which fills in the tabs and marks KEY as the current
 page. `index.html` keeps a static tab bar (its in-page tabs need `data-tab`
 attributes) with the same entries in the same order.
+
+Pages generated elsewhere (the end-to-end and scaled-results pages) must emit
+that `<nav data-site-nav="end-to-end">` (or `"scaled-results"`) element, load
+`./static/js/site_nav.js`, and keep their intro box, instead of a hand-written
+tab bar; otherwise a rebuild brings back a stale tab list.
+`tools/check_nav.py` fails when they do not.
 
 To add a tab or page: add one line to the list in `site_nav.js`, mirror it in
 `index.html`'s tab bar, give a new page the `<nav data-site-nav>` element and the

@@ -8,11 +8,11 @@
   <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
   <link rel="stylesheet" href="./static/css/bulma.min.css?v=58b2865922">
   <link rel="stylesheet" href="./static/css/index.css?v=747bae5899">
-  <link rel="stylesheet" href="./static/css/project.css?v=bb5cffe6b9">
+  <link rel="stylesheet" href="./static/css/project.css?v=4bddc081cc">
   <link rel="stylesheet" href="./static/css/post_training.css?v=750ba8efc2">
   <link rel="icon" href="./static/images/favicon.svg">
   <!-- standalone preview of the two post-training blocks; tools/install_post_training_block.py copies them into index.html -->
-  <script defer src="./static/js/project.js?v=e201439f2a"></script>
+  <script defer src="./static/js/project.js?v=ae13504ea8"></script>
 </head>
 <body>
 
@@ -35,11 +35,24 @@
   <section class="section proposal" id="proposal-post_training">
     <div class="container is-max-desktop">
       <h2 class="title is-3">Post-training an open model with the simulator as its teacher</h2>
-      <p class="wm-lead">
-        Can a small open model learn 3D scene editing and launch planning from the simulator's verdicts instead of from human labels?
-        The model's weights stay frozen; small adapters are trained with reinforcement learning, and the benchmark's own checks provide
-        the reward. Every scene, answer and score below is a real record from the benchmark.
-      </p>
+      <div class="wm-intro">
+        <h3 class="wm-intro-title">Why post-train a language model?</h3>
+        <p>Language models are the natural interface for instructions like "knock the red chair over" or "toss the ball into the box",
+          and a model that also judges physics well could plan actions for a simulator or a robot. On the benchmark, GPT-5.4 meets the
+          goal in about nine tasks out of ten. Open models, the ones anyone can run, inspect and fine-tune, do much worse: the 30B model
+          passes a third to a half of the tasks and the 7B model almost none.</p>
+        <p>Post-training asks whether that gap can be closed with the simulator as the teacher instead of human labels. The model
+          proposes several answers to a task, each answer is checked (geometric checks for a static edit, a full PhysX simulation for a
+          launch), and small adapters are trained toward the answers that worked while the model's own weights stay frozen. The
+          feedback is exact and unlimited; its cost is time, about 50 seconds per simulated launch, which a fast world model could cut
+          to milliseconds. Every scene, answer and score below is a real record from the benchmark.</p>
+        <ul class="wm-facts">
+          <li><b>Reward</b>the simulator's verdict, no human labels</li>
+          <li><b>About 1%</b>of the weights trained (LoRA adapters)</li>
+          <li><b>Qwen2.5-7B</b>the open model being taught</li>
+          <li><b>Held-out tasks</b>judged by PhysX at the end</li>
+        </ul>
+      </div>
 
       <div class="wm-section" id="post_training-abstract">
         <h3 class="title is-4">1. Abstract</h3>
@@ -47,8 +60,8 @@
           <p>The benchmark has two kinds of task. A <em>static edit</em> asks the model to move or turn named objects so that an
             instruction holds ("bring the red chair closer to the brown table"). A <em>launch task</em> asks for one initial velocity
             of one object so that something happens in the simulation ("toss the red ball over the barrier into the box"). Both are
-            judged by deterministic checks and the PhysX simulator. GPT-5.4 passes most of them, the 30B open model about half, and the
-            7B open models almost none.</p>
+            judged by deterministic checks and the PhysX simulator. GPT-5.4 passes most of them, the 30B open model a third to a half, and
+            the 7B open models almost none.</p>
           <p>Post-training turns those checks into a teacher. The model writes several answers to the same prompt, each answer is
             scored (cheap geometry checks for static edits, a full simulation for every launch), and the model is pushed toward the
             answers that scored better than their siblings (GRPO), or toward the better answer of a pair (DPO, the cheaper baseline).
@@ -178,12 +191,12 @@
         <div class="table-container">
           <table class="table is-fullwidth is-narrow wm-table pt-experiment" id="pt-experiment-table"></table>
         </div>
-        <p class="wm-note">The trained models' numbers are in the Results tab: DPO has finished, GRPO is still training.</p>
+        <p class="wm-note">The trained models' numbers are in the Results tab.</p>
       </div>
 
       <!-- this block's data and script (deferred: they run after the page is parsed, in this order, after project.js) -->
-      <script defer src="./static/data/post_training.js?v=691bd4a2fc"></script>
-      <script defer src="./static/js/post_training/main.js?v=010a381790"></script>
+      <script defer src="./static/data/post_training.js?v=ab70106007"></script>
+      <script defer src="./static/js/post_training/main.js?v=65958dbaac"></script>
     </div>
   </section>
   <!-- ---------- end proposal: post_training ---------- -->
@@ -194,7 +207,7 @@
       <h2 class="title is-3">Post-training the 7B model: first results</h2>
       <div class="content">
         <p>Qwen2.5-7B was trained on 74 benchmark tasks (25 static edits and 49 launches of every difficulty) and then judged by the
-          simulator on 48 held-out tasks it never trained on. DPO has finished; GRPO is still training.</p>
+          simulator on 48 held-out tasks it never trained on (different tasks of the same task types and rooms).</p>
       </div>
       <h3 class="title is-6">Held-out tasks passed in the simulator</h3>
       <div class="table-container"><table class="table is-fullwidth is-narrow wm-table pt-mixed-table" id="pt-mixed-table"></table></div>

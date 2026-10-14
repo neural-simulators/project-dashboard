@@ -950,8 +950,10 @@
         '<td><span class="pt-bar" style="width:6rem"><span style="width:' + fmt(100 * total / nLaunch, 1) + '%;background:' + (r[0] === 'chance' ? '#adb5bd' : (r[0] === 'base' ? '#7fa6e0' : (r[0] === 'dpo' || r[0] === 'grpo' ? C.blue : '#55606e'))) + '"></span></span> <b>' + fmtv(total) + '</b></td></tr>';
     });
     table.innerHTML = html + '</tbody>';
-    if (status) { status.textContent = 'DPO: finished. GRPO: still training; its row fills in when it is evaluated.'; }
+    var grpoDone = M.arms.grpo === 'done';
+    if (status) { status.textContent = grpoDone ? 'DPO and GRPO: trained and judged by the simulator on the held-out tasks.' : 'DPO: finished. GRPO: still training; its row fills in when it is evaluated.'; }
     if (!list || M.arms.dpo !== 'done') { return; }
+    if (grpoDone) { list.innerHTML = grpoFindings(M, g, tiers, launchTotal, nLaunch, nStatic).map(function (it) { return '<li>' + it + '</li>'; }).join(''); return; }
     var test = M.changes['dpo|test'], train = M.changes['dpo|train'], base = launchTotal('base'), dpo = launchTotal('dpo'), chance = launchTotal('chance');
     var trainG = function (key) { return tiers.reduce(function (sum, t) { return sum + ((M.groups['train|launch|' + t] || {})[key] || 0); }, 0); };
     var names = function (items) { return items.map(function (x) { return familyName(x.family) + ', ' + x.tier; }).join('; '); };
@@ -965,6 +967,26 @@
       '<b>The gap remains large:</b> on the same ' + nLaunch + ' launches Qwen3-VL-30B thinking passes ' + launchTotal('qwen30t') + ' and GPT-5.4 ' + launchTotal('gpt54') + '.'
     ];
     list.innerHTML = items.map(function (it) { return '<li>' + it + '</li>'; }).join('');
+  }
+
+  function grpoFindings(M, g, tiers, launchTotal, nLaunch, nStatic) {
+    var gt = M.changes['grpo|test'], dt = M.changes['dpo|test'], p = function (x) { return x < 0.001 ? 'p < 0.001' : 'p = ' + fmt(x, 2); };
+    var trainG = function (key) { return tiers.reduce(function (sum, t) { return sum + ((M.groups['train|launch|' + t] || {})[key] || 0); }, 0); };
+    var hard = g('launch', 'hard'), st = g('static', 'all'), byFamily = {};
+    gt.gained.forEach(function (x) { byFamily[x.family] = (byFamily[x.family] || 0) + 1; });
+    var top = Object.keys(byFamily).sort(function (a, b) { return byFamily[b] - byFamily[a]; })[0];
+    return [
+      '<b>GRPO: held-out launches ' + launchTotal('base') + ' \u2192 ' + launchTotal('grpo') + ' of ' + nLaunch + ', static edits ' + (st.base || 0) + ' \u2192 ' + (st.grpo || 0) +
+        ' of ' + nStatic + '.</b> It gains ' + gt.gained.length + ' tasks and loses ' + gt.lost.length + ' (sign test ' + p(gt.sign_test_p) + '). On the hard launches, where random launches pass about ' +
+        fmt(hard.chance || 0, 0) + ' of ' + hard.tasks + ', it passes ' + (hard.grpo || 0) + '.',
+      '<b>Level with the 30B model on these tasks:</b> on the same held-out tasks Qwen3-VL-30B thinking passes ' + launchTotal('qwen30t') + ' launches and ' + (st.qwen30t || 0) +
+        ' static edits, GPT-5.4 ' + launchTotal('gpt54') + ' and ' + (st.gpt54 || 0) + '.',
+      '<b>Held out, but not new:</b> the test tasks are different tasks of the same task types, in the same fourteen rooms, as the training tasks. ' +
+        byFamily[top] + ' of the ' + gt.gained.length + ' gains are "' + esc(familyName(top)) + '" tasks, a type with ' + (((M.families || {})[top] || {}).train || 'several') +
+        ' training tasks. Whether the skill carries over to new task types and new rooms is the next test.',
+      '<b>DPO, the offline baseline, barely moves:</b> held-out launches ' + launchTotal('base') + ' \u2192 ' + launchTotal('dpo') + ' (' + dt.gained.length + ' gained, ' + dt.lost.length +
+        ' lost), static edits 0 \u2192 0; training launches ' + trainG('base') + ' \u2192 ' + trainG('dpo') + ' of ' + trainG('tasks') + ', against ' + trainG('grpo') + ' for GRPO.'
+    ];
   }
 
   function fillResults() {

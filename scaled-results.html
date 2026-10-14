@@ -6,11 +6,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Scaled results · Neural Simulators</title>
   <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
-  <link rel="stylesheet" href="./static/css/bulma.min.css">
-  <link rel="stylesheet" href="./static/css/index.css">
-  <link rel="stylesheet" href="./static/css/project.css">
+  <link rel="stylesheet" href="./static/css/bulma.min.css?v=58b2865922">
+  <link rel="stylesheet" href="./static/css/index.css?v=747bae5899">
+  <link rel="stylesheet" href="./static/css/project.css?v=4bddc081cc">
   <link rel="icon" href="./static/images/favicon.svg">
-  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js?v=20a3ef6979"></script>
+  <script defer src="./static/js/site_nav.js?v=8904233695"></script>
 <style>
 /* end-to-end study page: every rule is scoped to #mp */
 #mp td.n, #mp th.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -70,15 +71,17 @@
 <section class="hero wm-hero"><div class="hero-body"><div class="container is-max-desktop"><div class="columns is-centered"><div class="column has-text-centered">
 <h1 class="title is-1 publication-title">Scaled results</h1>
 <p class="subtitle is-4 wm-subtitle">One pipeline from both branches: diverse PhysX scenes and tasks, open reviewers and proposers measured against GPT-5.4 and PhysX, and state predictors judged in both spaces.</p>
-<div class="publication-links"><span class="link-block"><a href="./index.html#design" class="button is-normal is-rounded is-dark"><span class="icon"><i class="fas fa-drafting-compass"></i></span><span>Design proposals</span></a></span>
-<span class="link-block"><a href="./end-to-end.html" class="button is-normal is-rounded is-dark"><span class="icon"><i class="fas fa-route"></i></span><span>End-to-end study</span></a></span></div>
 </div></div></div></div></section>
-<div class="container is-max-desktop"><div class="tabs is-centered is-boxed wm-tabs"><ul>
-<li><a href="./index.html#design"><span class="icon is-small"><i class="fas fa-drafting-compass" aria-hidden="true"></i></span><span>Design proposals</span></a></li>
-<li><a href="./index.html#results"><span class="icon is-small"><i class="fas fa-chart-bar" aria-hidden="true"></i></span><span>Results</span></a></li>
-<li><a href="./end-to-end.html"><span class="icon is-small"><i class="fas fa-route" aria-hidden="true"></i></span><span>End-to-end study</span></a></li>
-<li class="is-active"><a href="./scaled-results.html" aria-current="page"><span class="icon is-small"><i class="fas fa-project-diagram" aria-hidden="true"></i></span><span>Scaled results</span></a></li>
-</ul></div></div>
+<div class="container is-max-desktop">
+  <nav class="tabs is-centered is-boxed wm-tabs" data-site-nav="scaled-results" aria-label="Project pages"></nav>
+</div>
+<div class="container is-max-desktop wm-intro-wrap">
+  <div class="wm-intro">
+    <h2 class="wm-intro-title">The same loop, at scale</h2>
+    <p>The end-to-end study ran at small scale. Here the pipelines of both lines of work are merged and run on close to a thousand simulated scenes from twelve families, including trials converted from the Kubric MOVi and Physion datasets, with over 300,000 PhysX rollouts. The questions: which open models can write tasks or review outcomes in place of GPT-5.4, and which state-predictor architecture, training objective and amount of data predicts motion best.</p>
+  </div>
+</div>
+
 <div class="wm-panel" id="mp"><section class="section"><div class="container is-max-desktop">
 <p class="wm-lead">PhysX (Isaac Sim 6.1, 1920 Hz, 3 s rollouts) is the ground truth throughout. Success is decided by deterministic checks on a trajectory; the same checks run on a predictor's trajectory, so every action has a verdict in both spaces.</p>
 <div class="wm-status">Status (14 Oct 2026, 12:08): test set frozen (418 tasks); predictor sweeps done on clean data; reviewer study, pretraining on MOVi / Physion and Stage 2 planning running. Sections fill in as runs finish.</div>

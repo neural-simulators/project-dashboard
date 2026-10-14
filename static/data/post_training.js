@@ -6269,7 +6269,7 @@ window.POST_TRAINING_DATA = {
   "arms": {
    "base": "done",
    "dpo": "done",
-   "grpo": "pending"
+   "grpo": "done"
   },
   "changes": {
    "dpo|test": {
@@ -6329,6 +6329,283 @@ window.POST_TRAINING_DATA = {
      }
     ],
     "sign_test_p": 0.125
+   },
+   "grpo|test": {
+    "gained": [
+     {
+      "family": "ball_stop_before_barrier",
+      "task_id": "b2_room_01_ball_stop_before_barrier",
+      "tier": "medium"
+     },
+     {
+      "family": "lob_over_barrier_into_box",
+      "task_id": "b2_room_01_lob_over_barrier_into_box",
+      "tier": "hard"
+     },
+     {
+      "family": "chairs_gather_and_face",
+      "task_id": "b2_room_02_chairs_gather_and_face",
+      "tier": "hard"
+     },
+     {
+      "family": "lob_over_barrier_into_box",
+      "task_id": "b2_room_03_lob_over_barrier_into_box",
+      "tier": "hard"
+     },
+     {
+      "family": "wall_rebound_return_zone",
+      "task_id": "b2_room_03_wall_rebound_return_zone",
+      "tier": "easy"
+     },
+     {
+      "family": "chair_approach",
+      "task_id": "b2_room_04_chair_approach",
+      "tier": "hard"
+     },
+     {
+      "family": "toss_over_rim_into_box",
+      "task_id": "b2_room_04_toss_over_rim_into_box",
+      "tier": "hard"
+     },
+     {
+      "family": "box_travel_distance_band",
+      "task_id": "b2_room_06_box_travel_distance_band",
+      "tier": "easy"
+     },
+     {
+      "family": "toss_over_rim_into_box",
+      "task_id": "b2_room_06_toss_over_rim_into_box",
+      "tier": "hard"
+     },
+     {
+      "family": "chair_approach",
+      "task_id": "b2_room_07_chair_approach",
+      "tier": "hard"
+     },
+     {
+      "family": "chairs_gather_and_face",
+      "task_id": "b2_room_08_chairs_gather_and_face",
+      "tier": "hard"
+     },
+     {
+      "family": "toss_over_rim_into_box",
+      "task_id": "b2_room_08_toss_over_rim_into_box",
+      "tier": "hard"
+     },
+     {
+      "family": "three_ball_contact_chain",
+      "task_id": "b2_room_09_three_ball_contact_chain",
+      "tier": "hard"
+     },
+     {
+      "family": "toss_over_rim_into_box",
+      "task_id": "b2_room_10_toss_over_rim_into_box",
+      "tier": "hard"
+     },
+     {
+      "family": "lob_over_barrier_into_box",
+      "task_id": "b2_room_11_lob_over_barrier_into_box",
+      "tier": "hard"
+     },
+     {
+      "family": "toss_over_rim_into_box",
+      "task_id": "b2_room_11_toss_over_rim_into_box",
+      "tier": "hard"
+     },
+     {
+      "family": "toss_over_rim_into_box",
+      "task_id": "b2_room_13_toss_over_rim_into_box",
+      "tier": "hard"
+     },
+     {
+      "family": "chair_approach",
+      "task_id": "b2_room_14_chair_approach",
+      "tier": "hard"
+     },
+     {
+      "family": "toss_over_rim_into_box",
+      "task_id": "b2_room_14_toss_over_rim_into_box",
+      "tier": "hard"
+     }
+    ],
+    "lost": [],
+    "sign_test_p": 0.0
+   },
+   "grpo|train": {
+    "gained": [
+     {
+      "family": "ball_over_barrier_hit_blue",
+      "task_id": "b2_room_01_ball_over_barrier_hit_blue",
+      "tier": "hard"
+     },
+     {
+      "family": "book_between_cups_and_face",
+      "task_id": "b2_room_01_book_between_cups_and_face",
+      "tier": "hard"
+     },
+     {
+      "family": "chair_approach",
+      "task_id": "b2_room_01_chair_approach",
+      "tier": "hard"
+     },
+     {
+      "family": "toss_over_rim_into_box",
+      "task_id": "b2_room_01_toss_over_rim_into_box",
+      "tier": "hard"
+     },
+     {
+      "family": "ball_over_barrier_hit_blue",
+      "task_id": "b2_room_02_ball_over_barrier_hit_blue",
+      "tier": "hard"
+     },
+     {
+      "family": "lob_over_barrier_into_box",
+      "task_id": "b2_room_02_lob_over_barrier_into_box",
+      "tier": "hard"
+     },
+     {
+      "family": "toss_over_rim_into_box",
+      "task_id": "b2_room_02_toss_over_rim_into_box",
+      "tier": "hard"
+     },
+     {
+      "family": "airborne_ball_into_open_box",
+      "task_id": "b2_room_03_airborne_ball_into_open_box",
+      "tier": "easy"
+     },
+     {
+      "family": "toss_over_rim_into_box",
+      "task_id": "b2_room_03_toss_over_rim_into_box",
+      "tier": "hard"
+     },
+     {
+      "family": "ball_over_barrier_hit_blue",
+      "task_id": "b2_room_04_ball_over_barrier_hit_blue",
+      "tier": "hard"
+     },
+     {
+      "family": "lob_over_barrier_into_box",
+      "task_id": "b2_room_04_lob_over_barrier_into_box",
+      "tier": "hard"
+     },
+     {
+      "family": "wall_rebound_return_zone",
+      "task_id": "b2_room_04_wall_rebound_return_zone",
+      "tier": "easy"
+     },
+     {
+      "family": "box_travel_distance_band",
+      "task_id": "b2_room_05_box_travel_distance_band",
+      "tier": "medium"
+     },
+     {
+      "family": "lob_over_barrier_into_box",
+      "task_id": "b2_room_05_lob_over_barrier_into_box",
+      "tier": "hard"
+     },
+     {
+      "family": "toss_over_rim_into_box",
+      "task_id": "b2_room_05_toss_over_rim_into_box",
+      "tier": "hard"
+     },
+     {
+      "family": "ball_over_barrier_hit_blue",
+      "task_id": "b2_room_06_ball_over_barrier_hit_blue",
+      "tier": "hard"
+     },
+     {
+      "family": "box_spin_in_zone",
+      "task_id": "b2_room_06_box_spin_in_zone",
+      "tier": "medium"
+     },
+     {
+      "family": "floor_then_wall_rebound",
+      "task_id": "b2_room_06_floor_then_wall_rebound",
+      "tier": "easy"
+     },
+     {
+      "family": "lob_over_barrier_into_box",
+      "task_id": "b2_room_06_lob_over_barrier_into_box",
+      "tier": "hard"
+     },
+     {
+      "family": "lob_over_barrier_into_box",
+      "task_id": "b2_room_07_lob_over_barrier_into_box",
+      "tier": "hard"
+     },
+     {
+      "family": "toss_over_rim_into_box",
+      "task_id": "b2_room_07_toss_over_rim_into_box",
+      "tier": "hard"
+     },
+     {
+      "family": "ball_over_barrier_hit_blue",
+      "task_id": "b2_room_08_ball_over_barrier_hit_blue",
+      "tier": "hard"
+     },
+     {
+      "family": "lob_over_barrier_into_box",
+      "task_id": "b2_room_08_lob_over_barrier_into_box",
+      "tier": "hard"
+     },
+     {
+      "family": "three_ball_contact_chain",
+      "task_id": "b2_room_08_three_ball_contact_chain",
+      "tier": "hard"
+     },
+     {
+      "family": "ball_over_barrier_hit_blue",
+      "task_id": "b2_room_09_ball_over_barrier_hit_blue",
+      "tier": "hard"
+     },
+     {
+      "family": "toss_over_rim_into_box",
+      "task_id": "b2_room_09_toss_over_rim_into_box",
+      "tier": "hard"
+     },
+     {
+      "family": "ball_over_barrier_hit_blue",
+      "task_id": "b2_room_10_ball_over_barrier_hit_blue",
+      "tier": "hard"
+     },
+     {
+      "family": "lob_over_barrier_into_box",
+      "task_id": "b2_room_10_lob_over_barrier_into_box",
+      "tier": "hard"
+     },
+     {
+      "family": "ball_hit_blue_deadline",
+      "task_id": "b2_room_11_ball_hit_blue_deadline",
+      "tier": "medium"
+     },
+     {
+      "family": "toss_over_rim_into_box",
+      "task_id": "b2_room_12_toss_over_rim_into_box",
+      "tier": "hard"
+     },
+     {
+      "family": "wall_rebound_return_zone",
+      "task_id": "b2_room_12_wall_rebound_return_zone",
+      "tier": "easy"
+     },
+     {
+      "family": "ball_over_barrier_hit_blue",
+      "task_id": "b2_room_13_ball_over_barrier_hit_blue",
+      "tier": "hard"
+     },
+     {
+      "family": "lob_over_barrier_into_box",
+      "task_id": "b2_room_14_lob_over_barrier_into_box",
+      "tier": "hard"
+     },
+     {
+      "family": "three_ball_contact_chain",
+      "task_id": "b2_room_14_three_ball_contact_chain",
+      "tier": "hard"
+     }
+    ],
+    "lost": [],
+    "sign_test_p": 0.0
    }
   },
   "dpo_sampling": {
@@ -6352,12 +6629,131 @@ window.POST_TRAINING_DATA = {
    "prompts": 21,
    "steps": 10
   },
+  "families": {
+   "airborne_ball_into_open_box": {
+    "test": 1,
+    "train": 3
+   },
+   "ball_hit_blue_avoid_green": {
+    "test": 0,
+    "train": 1
+   },
+   "ball_hit_blue_deadline": {
+    "test": 1,
+    "train": 2
+   },
+   "ball_hit_heavier_blue": {
+    "test": 0,
+    "train": 1
+   },
+   "ball_over_barrier_hit_blue": {
+    "test": 3,
+    "train": 11
+   },
+   "ball_pass_between_markers": {
+    "test": 3,
+    "train": 0
+   },
+   "ball_stop_before_barrier": {
+    "test": 3,
+    "train": 0
+   },
+   "book_between_cups_and_face": {
+    "test": 2,
+    "train": 2
+   },
+   "box_spin_in_zone": {
+    "test": 0,
+    "train": 1
+   },
+   "box_stop_before_barrier": {
+    "test": 1,
+    "train": 1
+   },
+   "box_strike_ball_into_zone": {
+    "test": 0,
+    "train": 1
+   },
+   "box_travel_distance_band": {
+    "test": 2,
+    "train": 1
+   },
+   "chair_approach": {
+    "test": 4,
+    "train": 1
+   },
+   "chairs_face_different_targets": {
+    "test": 0,
+    "train": 4
+   },
+   "chairs_gather_and_face": {
+    "test": 3,
+    "train": 2
+   },
+   "cups_group_and_turn_chair": {
+    "test": 0,
+    "train": 4
+   },
+   "floor_then_wall_rebound": {
+    "test": 0,
+    "train": 1
+   },
+   "glancing_ball_impact": {
+    "test": 0,
+    "train": 1
+   },
+   "lob_over_barrier_into_box": {
+    "test": 4,
+    "train": 10
+   },
+   "off_table_into_open_box": {
+    "test": 2,
+    "train": 2
+   },
+   "sofa_wall_and_chair": {
+    "test": 0,
+    "train": 4
+   },
+   "sofa_wall_and_cup_swap": {
+    "test": 2,
+    "train": 2
+   },
+   "stool_box_swap_and_face": {
+    "test": 4,
+    "train": 0
+   },
+   "stool_topple_in_zone": {
+    "test": 2,
+    "train": 1
+   },
+   "swap_and_face_chairs": {
+    "test": 2,
+    "train": 2
+   },
+   "swap_cups_and_turn_chair": {
+    "test": 0,
+    "train": 4
+   },
+   "three_ball_contact_chain": {
+    "test": 1,
+    "train": 3
+   },
+   "toss_over_rim_into_box": {
+    "test": 7,
+    "train": 7
+   },
+   "wall_rebound_return_zone": {
+    "test": 1,
+    "train": 2
+   }
+  },
   "groups": {
    "test|launch|easy": {
     "base": 1,
     "chance": 2.5,
     "dpo": 2,
     "gpt54": 4,
+    "grpo": 3,
     "qwen30t": 3,
     "tasks": 4
    },
@@ -6366,6 +6762,7 @@ window.POST_TRAINING_DATA = {
     "chance": 2.0,
     "dpo": 4,
     "gpt54": 19,
+    "grpo": 14,
     "qwen30t": 10,
     "tasks": 21
    },
@@ -6374,6 +6771,7 @@ window.POST_TRAINING_DATA = {
     "chance": 1.75,
     "dpo": 2,
     "gpt54": 6,
+    "grpo": 3,
     "qwen30t": 3,
     "tasks": 6
    },
@@ -6382,6 +6780,7 @@ window.POST_TRAINING_DATA = {
     "chance": 0.4133,
     "dpo": 0,
     "gpt54": 15,
+    "grpo": 5,
     "qwen30t": 6,
     "tasks": 17
    },
@@ -6390,6 +6789,7 @@ window.POST_TRAINING_DATA = {
     "chance": 4.688,
     "dpo": 5,
     "gpt54": 6,
+    "grpo": 7,
     "qwen30t": 3,
     "tasks": 7
    },
@@ -6398,6 +6798,7 @@ window.POST_TRAINING_DATA = {
     "chance": 3.312,
     "dpo": 4,
     "gpt54": 32,
+    "grpo": 27,
     "qwen30t": 14,
     "tasks": 32
    },
@@ -6406,6 +6807,7 @@ window.POST_TRAINING_DATA = {
     "chance": 3.251,
     "dpo": 4,
     "gpt54": 9,
+    "grpo": 6,
     "qwen30t": 5,
     "tasks": 10
    },
@@ -6414,6 +6816,7 @@ window.POST_TRAINING_DATA = {
     "chance": 0.1198,
     "dpo": 0,
     "gpt54": 22,
+    "grpo": 2,
     "qwen30t": 11,
     "tasks": 25
    }
@@ -9800,7 +10203,7 @@ window.POST_TRAINING_DATA = {
   }
  },
  "source": {
-  "generated_at": "2026-10-13T14:22:04+00:00",
+  "generated_at": "2026-10-14T18:13:40+00:00",
   "generator": "tools/extract_post_training_sample.py",
   "job_outputs": "runs/rl/poc_static10",
   "manifests": {

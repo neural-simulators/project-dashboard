@@ -8,12 +8,12 @@
   <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
   <link rel="stylesheet" href="./static/css/bulma.min.css?v=58b2865922">
   <link rel="stylesheet" href="./static/css/index.css?v=747bae5899">
-  <link rel="stylesheet" href="./static/css/project.css?v=bb5cffe6b9">
+  <link rel="stylesheet" href="./static/css/project.css?v=4bddc081cc">
   <link rel="stylesheet" href="./static/css/how_it_works.css?v=cc73c9b186">
   <link rel="icon" href="./static/images/favicon.svg">
   <script defer src="./static/js/fontawesome.all.min.js?v=20a3ef6979"></script>
-  <script defer src="./static/js/site_nav.js?v=3df7dc9ccc"></script>
-  <script defer src="./static/js/project.js?v=e201439f2a"></script>
+  <script defer src="./static/js/site_nav.js?v=8904233695"></script>
+  <script defer src="./static/js/project.js?v=ae13504ea8"></script>
   <script defer src="./static/data/how_it_works.js?v=54aae19b8c"></script>
   <script defer src="./static/js/how_it_works/overview.js?v=6d7db32505"></script>
   <script defer src="./static/js/how_it_works/prompt.js?v=2289864795"></script>
@@ -36,6 +36,19 @@
 
 <div class="container is-max-desktop">
   <nav class="tabs is-centered is-boxed wm-tabs" data-site-nav="how-it-works" aria-label="Project pages"></nav>
+</div>
+
+<div class="container is-max-desktop wm-intro-wrap">
+  <div class="wm-intro">
+    <h2 class="wm-intro-title">What one benchmark attempt looks like</h2>
+    <p>Each attempt is a single exchange. The model receives one prompt: the instruction, two pictures of the room, the rules the simulator will check, the required answer format, and the whole room as data, with every object's size, position, orientation, mass and friction. It answers once: new object poses for a static edit, or a launch velocity for a dynamic task, written either as a short Python program or as plain numbers.</p>
+    <p>The simulator then executes the answer exactly as given. Nothing is repaired, rounded or asked again, and deterministic checks decide whether the instruction holds. The animations replay real prompts and real answers of GPT-5.4 and Qwen3-VL-30B Thinking.</p>
+    <ul class="wm-facts">
+      <li><b>2 pictures</b>plus the room as data</li>
+      <li><b>1 answer</b>no retries, no repairs</li>
+      <li><b>PhysX</b>executes and measures it</li>
+    </ul>
+  </div>
 </div>
 
 <div class="wm-panel" id="hw">

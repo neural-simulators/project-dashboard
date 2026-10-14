@@ -6,11 +6,13 @@
 (function () {
   'use strict';
   var TABS = [
+    { key: 'overview', label: 'Overview', icon: 'fa-home', href: './index.html#overview' },
     { key: 'design', label: 'World model', icon: 'fa-drafting-compass', href: './index.html#design' },
     { key: 'post-training', label: 'Post-training', icon: 'fa-graduation-cap', href: './index.html#post-training' },
     { key: 'how-it-works', label: 'How models are prompted', icon: 'fa-comment-dots', href: './how-it-works.html' },
     { key: 'results', label: 'Results', icon: 'fa-chart-bar', href: './index.html#results' },
     { key: 'end-to-end', label: 'End-to-end study', icon: 'fa-route', href: './end-to-end.html' },
+    { key: 'scaled-results', label: 'Scaled results', icon: 'fa-project-diagram', href: './scaled-results.html' },
     { key: 'digital-twins', label: 'Digital twins', icon: 'fa-cube', href: './digital-twins.html' }
   ];
   window.SITE_TABS = TABS;

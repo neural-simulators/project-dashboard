@@ -29,8 +29,8 @@
     else fn();
   }
 
-  /* ---------- tabs: #design (default, the world model), #post-training and #results ---------- */
-  var TAB_NAMES = ['design', 'post-training', 'results'];   /* fallback; the panels on the page decide */
+  /* ---------- tabs: #overview (default, the first panel), #design (the world model), #post-training and #results ---------- */
+  var TAB_NAMES = ['overview', 'design', 'post-training', 'results'];   /* fallback; the panels on the page decide */
 
   function tabNames() {
     var panels = document.querySelectorAll('[data-tab-panel]'), names = [];
@@ -40,7 +40,8 @@
 
   function tabFromHash() {
     var h = (window.location.hash || '').replace(/^#/, '');
-    return tabNames().indexOf(h) >= 0 ? h : 'design';
+    var names = tabNames();
+    return names.indexOf(h) >= 0 ? h : names[0];
   }
 
   function showTab(name) {

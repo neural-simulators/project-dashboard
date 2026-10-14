@@ -479,6 +479,10 @@ def mixed_results(root):
             if parts:
                 g[arm] = g.get(arm, 0) + bool(parts[row["split"]][task_id]["pass"])
     out["groups"] = groups
+    out["families"] = {}   # tasks per task type and split: the test tasks are new tasks of types that also occur in training
+    for row in split.values():
+        counts = out["families"].setdefault(row["family"], {"train": 0, "test": 0})
+        counts[row["split"]] += 1
     for arm, parts in arms.items():
         out["arms"][arm] = "done" if parts else "pending"
         if not parts or arm == "base":
