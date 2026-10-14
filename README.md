@@ -7,7 +7,7 @@ standalone pages that share the same navigation:
 - **Overview** (`#overview`, the default): what the project is about, an
   animated map of how its parts connect (`static/js/overview/map.js`; each box
   links to its tab), one card per part with its status, and the visitor
-  counter at the bottom.
+  map at the bottom.
 - **World model** (`#design`): one block per proposal, starting with the
   scene-graph world model.
 - **Post-training** (`#post-training`): the post-training proposal, installed
@@ -23,19 +23,16 @@ question as its title, the idea and why it matters in plain words, optionally a
 row of `wm-facts` numbers), then the details. Keep intros about the idea, not
 about the page's own layout (no "this page has N sections" lines).
 
-## Visitor counter
+## Visitor map
 
-The Overview tab ends with a page-view counter from [hits.sh](https://hits.sh)
-(an SVG image keyed by `neural-simulators.github.io/project-dashboard`, today
-and total, one count per load of `index.html`, no account, no cookies, no
-script). It counts page loads, not unique visitors. A world map of visitors
-needs a service with an account or a CAPTCHA (Flag Counter, ClustrMaps,
-MapMyVisitors) or one whose free widget loads a third-party ad tracker
-(whos.amung.us); add its snippet inside `#overview-visitors`.
+The Overview tab ends with a MapMyVisitors world map (`#overview-visitors`), the owner's account, loaded with `async` (the
+script finds its own `<script id="mapmyvisitors">` tag and inserts the map after it). Its statistics page shows visits
+over chosen time ranges. The earlier hits.sh counter was removed because ad blockers block it.
 
-One HTML file, vanilla JavaScript, no build step and no CDN besides the Google
-Fonts stylesheet; the page works from `file://` and from GitHub Pages. Data
-is embedded as scripts, so nothing is fetched at run time.
+One HTML file per page, vanilla JavaScript, no build step and no CDN besides the
+Google Fonts stylesheet (KaTeX is vendored under `static/vendor/`); the only
+third-party script is the visitor map. Pages work from `file://` and from GitHub
+Pages. Data is embedded as scripts, so nothing is fetched at run time.
 
 ## View it locally
 

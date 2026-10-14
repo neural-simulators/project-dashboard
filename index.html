@@ -13,7 +13,7 @@
 
   <link rel="stylesheet" href="./static/css/bulma.min.css?v=58b2865922">
   <link rel="stylesheet" href="./static/css/index.css?v=747bae5899">
-  <link rel="stylesheet" href="./static/css/project.css?v=be34cf39e5">
+  <link rel="stylesheet" href="./static/css/project.css?v=eae1be030d">
   <link rel="stylesheet" href="./static/vendor/katex/katex.min.css">
   <link rel="icon" href="./static/images/favicon.svg">
 
@@ -227,10 +227,11 @@
 
       <div class="ov-visitors" id="overview-visitors">
         <h3 class="title is-5">Visitors</h3>
-        <img class="ov-counter" src="https://hits.sh/neural-simulators.github.io/project-dashboard.svg?view=today-total&amp;label=page%20views%20today%20%2F%20total&amp;color=1f6feb&amp;labelColor=55606e"
-             alt="Page views of this page, today and in total" height="20" onerror="this.closest('.ov-visitors').hidden = true">
-        <p class="wm-note">Page views of this page, today and since the counter started on 14 October 2026, counted by hits.sh (one count
-          per page load, no cookies).</p>
+        <div class="ov-mapwidget">
+          <script type="text/javascript" id="mapmyvisitors" async src="https://mapmyvisitors.com/map.js?d=OanlDuAcuOB1PEDsskz3Hcd0KjDIA8uHyTIv_CrVEZg&amp;cl=ffffff&amp;w=a"></script>
+        </div>
+        <p class="wm-note">Where this page's visitors come from, counted by MapMyVisitors since 14 October 2026. Click the map for visits
+          over time.</p>
       </div>
 
       <script defer src="./static/js/overview/map.js?v=4c83abcf26"></script>
@@ -257,7 +258,8 @@
         <p>A physics engine such as PhysX computes motion step by step from exact 3D geometry. It is accurate, but it needs a hand-built
           3D scene, and two seconds of motion in a furnished room take it about six seconds. A world model is a neural network trained on
           the engine's own rollouts that predicts the same motion in one pass: the position, orientation and velocity of every object at
-          every frame, intermediate states included, in milliseconds.</p>
+          every frame, intermediate states included, in milliseconds. A language model cannot do this by writing: two seconds of one
+          room's full state is about 88,000 tokens of JSON, far past any answer limit.</p>
         <p>Because the scene and its physics are explicit inputs, a counterfactual question is an edited input and one more prediction.
           What if this chair were removed? What if a box stood between the two balls, gravity were the Moon's, the floor were more
           slippery, or the cushion were cloth instead of a rigid body? Planners, language models and robots need to ask such questions
@@ -288,7 +290,7 @@
           <table class="table is-narrow is-fullwidth wm-table wm-count">
             <thead><tr><th>Representation of the sample room</th><th>How it adds up</th><th>Tokens</th></tr></thead>
             <tbody>
-              <tr><td>Scene graph, one token per object</td><td>27 objects &times; 1 token each (76 numbers + 3 ids per token)</td><td>27</td></tr>
+              <tr><td>Scene graph, one token per object</td><td>27 objects &times; 1 token each (76 numbers per token)</td><td>27</td></tr>
               <tr><td></td><td>+ 1 action token + 1 global token</td><td><strong>29</strong></td></tr>
               <tr><td>The same room as text, the prompt the language models read</td><td>about 475 word pieces per object</td><td>12,844</td></tr>
               <tr><td>The same two seconds as video, one 640 &times; 480 camera, 61 frames</td><td>depending on the video tokenizer</td><td>10,800 to 37,200</td></tr>
@@ -321,6 +323,13 @@
             <li><strong>Counterfactuals are input edits.</strong> Move, remove or add an object, change a mass or the
               launch, and predict again: one pass, no simulator. The simulator's cost moves to training, where it
               renders the same kinds of edits as ground truth once.</li>
+            <li><strong>Every intermediate state, not just the end.</strong> A language model can write the final poses of a static
+              edit, since a scene graph is a state, but not a trajectory. The full state of the sample room over two seconds, written in
+              the benchmark's answer format (60 frames &times; 18 movable objects &times; 13 numbers), is 88,467 tokens with Qwen's
+              tokenizer, and 10,536 tokens even for only the two objects that move, against answer limits of 1,024 to 6,144 tokens;
+              their final positions alone take 53. A language model can still obtain dense states by writing a program that simulates
+              them, but that program is exactly the simulator dependency to remove. The world model outputs the whole tensor in one
+              pass.</li>
             <li><strong>Fewer tokens per query.</strong> A language model is still needed to turn an instruction into an
               action, but naming the action costs GPT-5.4 about 4,000 output tokens against 9,000 for writing a
               simulation program, and every edit after that needs no language model at all.</li>
@@ -365,6 +374,21 @@
           <p>Every member shares one backbone: a transformer over one token per object (built from \(c_i\) and \(s^i_0\)), one per
             action, one global token (gravity, rates) and one output slot per movable object and chunk of frames. The number of
             objects is not fixed.</p>
+        </div>
+        <h4 class="title is-6 wm-subhead">Identity comes from the structure, not from learned ids</h4>
+        <div class="content">
+          <p>Each output slot is built from its own object's token and attention treats the tokens as a set, so reordering or
+            relabelling the objects only reorders the prediction. Objects are told apart by where they are, their shape and their
+            physical parameters; a semantic feature (an open-vocabulary embedding of the object's name, or pretrained point-cloud
+            features) is optional and dropped at random during training. Colour is not an input: it matters to the language model that
+            reads the instruction, not to the physics.</p>
+        </div>
+        \[ f_\theta(\Pi G,\ \Pi a) = \Pi\, f_\theta(G, a) \ \ \text{for every permutation } \Pi \text{ of the objects}, \qquad
+           c_i = \big(\text{shape}_i,\ \text{size}_i,\ m_i,\ I_i,\ \mu_i,\ e_i,\ \dots,\ [\text{semantic}_i]\big) \]
+        <div class="content">
+          <p class="wm-note">The toy runs still gave each token three learned ids (category, colour, asset). The scaled study's
+            predictor has none, and the design now follows it: an id table lets a model memorise individual assets and cannot describe
+            an object it has never seen, while geometry can (to-do WM-C4).</p>
         </div>
 
         <h4 class="title is-6 wm-subhead">Training objectives</h4>
@@ -780,8 +804,9 @@
             and inertia matter; every difference appears at contacts, through the shape of the contact surface (curved or flat), the
             support polygon, the height of the centre of mass above it and how the mass is spread. The token therefore needs metric
             geometry in the object's own frame, tied to the collision shape the simulator uses; category names and appearance only
-            correlate with it. Today's tokens carry bounding boxes, the inertia tensor and centre of mass, a primitive kind, learned
-            category, colour and asset embeddings, and in the scaled study a set of up to eight convex parts.</p>
+            correlate with it. Today's tokens carry bounding boxes, the inertia tensor and centre of mass, a primitive kind, and in the
+            scaled study a set of up to eight convex parts; the toy runs also had learned category, colour and asset ids, which the
+            design drops (C4).</p>
         </div>
         <ul class="wm-todo">
           <li data-todo="WM-C1"><span class="wm-todo-id">WM-C1</span><span class="wm-badge-todo">to do</span>
@@ -804,10 +829,12 @@
             to encode support polygons or inertia, so check first whether they keep absolute size and the direction of gravity in the
             object's frame.</li>
           <li data-todo="WM-C4"><span class="wm-todo-id">WM-C4</span><span class="wm-badge-todo">to do</span>
-            <strong>Identity without memorisation, and the tests.</strong> Drop the asset embedding at random during training (or remove
-            it), so that motion is predicted from geometry; evaluate on assets never seen in training; probe every descriptor for the
-            quantities of WM-C1; and add a counterfactual set with the same mass and the same launch on different shapes (ball, box,
-            cylinder, chair), judged against PhysX.</li>
+            <strong>No learned ids, and the tests.</strong> Remove the colour and asset embeddings from the toy model (the scaled study's
+            predictor already has none). If a semantic channel helps, use an open-vocabulary embedding of the object's name or pretrained
+            point-cloud features, dropped at random in training, never a table over the training vocabulary. Then test: assets never seen
+            in training; the same scene with objects reordered, renamed or recoloured (the prediction must not change beyond the
+            reordering); probes of every descriptor for the quantities of WM-C1; and a counterfactual set with the same mass and the
+            same launch on different shapes (ball, box, cylinder, chair), judged against PhysX.</li>
         </ul>
         <div class="content">
           <p><strong>How to add them.</strong> Penalties act on outputs converted back to metres and metres per second, with masses and

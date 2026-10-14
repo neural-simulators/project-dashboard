@@ -149,7 +149,7 @@ body { color: var(--wm-text); }
 .ov-start { margin-top: 1.25rem; color: var(--wm-text); }
 .ov-visitors { margin-top: 2rem; padding-top: 1.25rem; border-top: 1px solid var(--wm-border); }
 .ov-visitors .title { font-family: 'Google Sans', sans-serif; color: #222; margin-bottom: 0.6rem; }
-.ov-counter { display: block; height: 20px; width: auto; }
+.ov-mapwidget { max-width: 640px; min-height: 60px; overflow: hidden; }
 
 /* eight project tabs: one row on a wide screen, wrapped rows below that (never scrolled out of sight) */
 @media (max-width: 1215px) {
