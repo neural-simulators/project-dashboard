@@ -4,20 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>How models are prompted · Neural Simulators</title>
-  <meta name="description" content="How GPT-5.4 and Qwen3-VL-30B Thinking are prompted to edit a simulated room, what they send back, and how the physics simulator judges it, animated on real prompts and answers.">
+  <meta name="description" content="How GPT-5.4 and Qwen3-VL-30B Thinking are prompted to edit a simulated room, what they send back, and how the physics simulator turns the answer into a verdict, step by step on real records.">
   <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
   <link rel="stylesheet" href="./static/css/bulma.min.css?v=58b2865922">
   <link rel="stylesheet" href="./static/css/index.css?v=747bae5899">
-  <link rel="stylesheet" href="./static/css/project.css?v=4bddc081cc">
-  <link rel="stylesheet" href="./static/css/how_it_works.css?v=cc73c9b186">
+  <link rel="stylesheet" href="./static/css/project.css?v=be34cf39e5">
+  <link rel="stylesheet" href="./static/css/how_it_works.css?v=068198630e">
   <link rel="icon" href="./static/images/favicon.svg">
   <script defer src="./static/js/fontawesome.all.min.js?v=20a3ef6979"></script>
   <script defer src="./static/js/site_nav.js?v=8904233695"></script>
   <script defer src="./static/js/project.js?v=ae13504ea8"></script>
-  <script defer src="./static/data/how_it_works.js?v=54aae19b8c"></script>
-  <script defer src="./static/js/how_it_works/overview.js?v=6d7db32505"></script>
-  <script defer src="./static/js/how_it_works/prompt.js?v=2289864795"></script>
-  <script defer src="./static/js/how_it_works/answer.js?v=5b80a868b6"></script>
+  <script defer src="./static/data/how_it_works.js?v=09f3d4bd5f"></script>
+  <script defer src="./static/js/how_it_works/walkthrough.js?v=8204a83604"></script>
 </head>
 <body>
 
@@ -42,7 +40,7 @@
   <div class="wm-intro">
     <h2 class="wm-intro-title">What one benchmark attempt looks like</h2>
     <p>Each attempt is a single exchange. The model receives one prompt: the instruction, two pictures of the room, the rules the simulator will check, the required answer format, and the whole room as data, with every object's size, position, orientation, mass and friction. It answers once: new object poses for a static edit, or a launch velocity for a dynamic task, written either as a short Python program or as plain numbers.</p>
-    <p>The simulator then executes the answer exactly as given. Nothing is repaired, rounded or asked again, and deterministic checks decide whether the instruction holds. The animations replay real prompts and real answers of GPT-5.4 and Qwen3-VL-30B Thinking.</p>
+    <p>The simulator then executes the answer exactly as given. Nothing is repaired, rounded or asked again, and deterministic checks decide whether the instruction holds. The walkthrough below follows one real attempt step by step, at your own pace: the full prompt, the exact answer format, each model’s reply, what the harness does with it, and every check with its measured value and limit.</p>
     <ul class="wm-facts">
       <li><b>2 pictures</b>plus the room as data</li>
       <li><b>1 answer</b>no retries, no repairs</li>
@@ -55,58 +53,26 @@
 <section class="section">
 <div class="container is-max-desktop">
 
-  <div class="wm-section" id="hw-loop">
-    <h2 class="title is-4">1. One attempt, start to finish</h2>
-    <div class="wm-anim" id="hw-anim-overview">
-      <div class="wm-svg-scroll">
-        <svg class="wm-diagram" viewBox="0 0 940 230" role="img" aria-label="Room, prompt, model, answer, simulator, verdict, with a pulse moving along the arrows."></svg>
+  <div class="wm-section" id="hw-walkthrough">
+    <h2 class="title is-4">1. One attempt, step by step</h2>
+    <div class="hw-walk" id="hw-walk" tabindex="-1">
+      <div class="hw-pickers">
+        <div class="hw-pick"><span>Example</span><div class="hw-switch" role="group" aria-label="Example" data-pick="example"></div></div>
+        <div class="hw-pick"><span>Model</span><div class="hw-switch" role="group" aria-label="Model" data-pick="model"></div></div>
       </div>
-      <div class="wm-controls">
-        <button class="button is-small is-light" type="button" aria-pressed="true">Pause</button>
-        <p class="wm-caption"></p>
+      <ol class="hw-steps" role="tablist" aria-label="Steps of one attempt"></ol>
+      <div class="hw-panel" role="tabpanel" aria-live="polite"></div>
+      <div class="hw-nav">
+        <button type="button" class="button is-small" data-go="-1">&larr; Back</button>
+        <span class="hw-count"></span>
+        <button type="button" class="button is-small is-link" data-go="1">Next &rarr;</button>
       </div>
-    </div>
-  </div>
-
-  <div class="wm-section" id="hw-input">
-    <h2 class="title is-4">2. What the model receives</h2>
-    <p class="hw-lead">The real prompt, drawn to scale and filled in part by part.</p>
-    <div class="wm-anim" id="hw-anim-prompt">
-      <div class="hw-switch">
-        <button class="button is-small" type="button" data-example="static" aria-pressed="true">Static edit: book between the cups</button>
-        <button class="button is-small" type="button" data-example="code" aria-pressed="false">Throw, answered with a program</button>
-        <button class="button is-small" type="button" data-example="numbers" aria-pressed="false">Throw, answered with numbers</button>
-      </div>
-      <canvas width="900" height="470" aria-label="The prompt's parts appear one by one: instruction, two images, conventions, checks, answer format, the scene as data, task data."></canvas>
-      <div class="wm-controls">
-        <button class="button is-small is-light hw-play" type="button" aria-pressed="true">Pause</button>
-        <p class="wm-caption"></p>
-      </div>
-      <p class="hw-legend"><span style="--sw:#f59f00">instruction</span><span style="--sw:#12b886">images</span><span style="--sw:#7048e8">checks</span>
-        <span style="--sw:#1098ad">answer format</span><span style="--sw:#8da2c0">scene data</span><span style="--sw:#c3cad5">conventions</span></p>
-    </div>
-  </div>
-
-  <div class="wm-section" id="hw-output">
-    <h2 class="title is-4">3. What comes back, and what the simulator does with it</h2>
-    <p class="hw-lead">Real answers from both models next to the reference, then the simulation and the measured checks.</p>
-    <div class="wm-anim" id="hw-anim-answer">
-      <div class="hw-switch">
-        <button class="button is-small" type="button" data-example="static" aria-pressed="true">Static edit: new poses</button>
-        <button class="button is-small" type="button" data-example="code" aria-pressed="false">Throw: a program</button>
-        <button class="button is-small" type="button" data-example="numbers" aria-pressed="false">Throw: numbers</button>
-      </div>
-      <canvas width="900" height="560" aria-label="Three columns, reference, GPT-5.4 and Qwen: the answer types out, the simulator plays it, the checks light up."></canvas>
-      <div class="wm-controls">
-        <button class="button is-small is-light hw-play" type="button" aria-pressed="true">Pause</button>
-        <p class="wm-caption"></p>
-      </div>
-      <p class="hw-legend"><span style="--sw:#2b8a3e">reference</span><span style="--sw:#1f6feb">GPT-5.4</span><span style="--sw:#c2255c">Qwen3-VL-30B Thinking</span></p>
+      <noscript><p class="hw-note">The walkthrough needs JavaScript.</p></noscript>
     </div>
   </div>
 
   <div class="wm-section" id="hw-fair">
-    <h2 class="title is-4">4. The same conditions for both models</h2>
+    <h2 class="title is-4">2. The same conditions for both models</h2>
     <div class="hw-same" id="hw-same"></div>
   </div>
 

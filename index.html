@@ -13,12 +13,16 @@
 
   <link rel="stylesheet" href="./static/css/bulma.min.css?v=58b2865922">
   <link rel="stylesheet" href="./static/css/index.css?v=747bae5899">
-  <link rel="stylesheet" href="./static/css/project.css?v=4bddc081cc">
+  <link rel="stylesheet" href="./static/css/project.css?v=be34cf39e5">
+  <link rel="stylesheet" href="./static/vendor/katex/katex.min.css">
   <link rel="icon" href="./static/images/favicon.svg">
 
   <!-- shared infrastructure only; each proposal or result block loads its own data and scripts inside its section -->
   <script defer src="./static/js/fontawesome.all.min.js?v=20a3ef6979"></script>
   <script defer src="./static/js/project.js?v=ae13504ea8"></script>
+  <script defer src="./static/vendor/katex/katex.min.js"></script>
+  <script defer src="./static/vendor/katex/contrib/auto-render.min.js"></script>
+  <script defer src="./static/js/math.js?v=8d20f73fbf"></script>
 </head>
 <body>
 
@@ -328,8 +332,119 @@
         </div>
       </div>
 
+      <div class="wm-section wm-math" id="world_model-symbols">
+        <h3 class="title is-4">3. The world-model family in symbols</h3>
+        <div class="content">
+          <p>One notation covers every world model trained so far, in this proposal's toy runs and in the end-to-end and scaled
+            studies. It follows the usual world-model convention: a state, an action, a true transition given by the simulator,
+            and a learned model of that transition.</p>
+        </div>
+        <dl class="wm-defs">
+          <dt>\(i = 1,\dots,N\)</dt><dd>objects in the scene; the first \(M\) of them can move</dd>
+          <dt>\(c_i\)</dt><dd>fixed attributes of object \(i\): shape and parts, size, mass \(m_i\), friction \(\mu_i\), restitution \(e_i\), inertia</dd>
+          <dt>\(s^i_t = (p^i_t, R^i_t, v^i_t, \omega^i_t)\)</dt><dd>its state at frame \(t\): position, orientation (a rotation matrix), linear and angular velocity</dd>
+          <dt>\(G = \big(\{c_i, s^i_0\}_{i=1}^{N},\, E\big)\)</dt><dd>the scene graph at the start; the edges \(E\) are joints such as hinges and springs</dd>
+          <dt>\(a\)</dt><dd>the action: one or more interventions at \(t = 0\), such as a velocity change \((\Delta v, \Delta\omega)\) of an object, an impulse or a placement</dd>
+          <dt>\(t = 1,\dots,T\)</dt><dd>frames of \(\Delta t = 1/30\) s: \(T = 60\) (2 s, the benchmark) or \(T = 90\) (3 s, the scaled study)</dd>
+          <dt>\(\kappa^{ij}_t \in \{0,1\}\)</dt><dd>whether objects \(i\) and \(j\) touched during frame \(t\)</dd>
+          <dt>\(\Phi\)</dt><dd>the simulator, PhysX at 1,920 steps per second: \(\big(s_{1:T}, \kappa\big) = \Phi(G, a)\), deterministic</dd>
+        </dl>
+
+        <h4 class="title is-6 wm-subhead">What the model predicts</h4>
+        <div class="content">
+          <p>For every movable object and frame, fifteen numbers: displacement from the start, orientation, velocity and spin.
+            \(\mathrm{r6}\) keeps the first two columns of the rotation matrix, a rotation code without jumps.</p>
+        </div>
+        \[ y^i_t = \big(p^i_t - p^i_0,\ \mathrm{r6}(R^i_t),\ v^i_t,\ \omega^i_t\big) \in \mathbb{R}^{15}, \qquad Y = \big(y^i_t\big)_{t \le T,\ i \le M} \in \mathbb{R}^{T \times M \times 15} \]
+        <div class="content">
+          <p>A world model is a learned conditional model of that tensor, either one deterministic answer or a distribution to
+            sample from, with an optional head for contacts:</p>
+        </div>
+        \[ \hat Y = f_\theta(G, a) \quad \text{or} \quad Y \sim p_\theta(Y \mid G, a), \qquad \hat\kappa^{ij}_t = \sigma\big(\ell^{ij}_{t}\big) \]
+        <div class="content">
+          <p>Every member shares one backbone: a transformer over one token per object (built from \(c_i\) and \(s^i_0\)), one per
+            action, one global token (gravity, rates) and one output slot per movable object and chunk of frames. The number of
+            objects is not fixed.</p>
+        </div>
+
+        <h4 class="title is-6 wm-subhead">Training objectives</h4>
+        <div class="content">
+          <p>Write \(x = (G, a)\) for the condition, \(\varepsilon \sim \mathcal{N}(0, I)\) for noise of the shape of \(Y\), and
+            \(\sigma \in [0, 1]\) for a noise level (0 clean, 1 pure noise). Objects that move in the truth count fully and still ones
+            one tenth: \(\lVert Z \rVert_w^2 = \sum_{t,i} w_i \lVert z^i_t \rVert^2\) with \(w_i \in \{1, 0.1\}\).</p>
+        </div>
+        <div class="wm-eqs">
+          <div class="wm-eq"><span class="wm-eq-name">(1) Regression</span>
+            \[ \mathcal{L}_{\text{reg}} = \mathbb{E}\, \big\lVert f_\theta(x) - Y \big\rVert_w^2 \]
+            <p>One pass, one answer: the average of all futures the data allows.</p></div>
+          <div class="wm-eq"><span class="wm-eq-name">(2) Flow matching</span>
+            \[ Y_\sigma = (1 - \sigma)\, Y + \sigma\, \varepsilon, \qquad \mathcal{L}_{\text{flow}} = \mathbb{E}_{\sigma, \varepsilon}\, \big\lVert v_\theta(Y_\sigma, \sigma, x) - (\varepsilon - Y) \big\rVert_w^2 \]
+            <p>To predict, start from noise at \(\sigma = 1\) and follow \(v_\theta\) down to \(\sigma = 0\) in 32 to 50 small steps.
+              \(\sigma\) is drawn uniformly or from a logit-normal law; each draw of \(\varepsilon\) gives one possible future.</p></div>
+          <div class="wm-eq"><span class="wm-eq-name">(3) Diffusion (DDPM)</span>
+            \[ Y_\sigma = \sqrt{\bar\alpha_\sigma}\, Y + \sqrt{1 - \bar\alpha_\sigma}\, \varepsilon, \qquad \mathcal{L}_{\text{ddpm}} = \mathbb{E}_{\sigma, \varepsilon}\, \big\lVert \varepsilon_\theta(Y_\sigma, \sigma, x) - \varepsilon \big\rVert^2 \]
+            <p>The network predicts the added noise; \(\bar\alpha\) is a cosine schedule and sampling uses deterministic DDIM steps.</p></div>
+          <div class="wm-eq"><span class="wm-eq-name">(4) Diffusion Forcing</span>
+            \[ \sigma = (\sigma_1, \dots, \sigma_K) \ \text{independent, one per chunk of frames}, \qquad \mathcal{L}_{\text{df}} = \mathbb{E}\, \big\lVert v_\theta(Y_\sigma, \sigma, x) - (\varepsilon - Y) \big\rVert_w^2 \]
+            <p>The sampler lowers the levels in a staggered order, so early frames are clean while late ones are still noisy; a known
+              beginning of the trajectory is simply \(\sigma_k = 0\).</p></div>
+          <div class="wm-eq"><span class="wm-eq-name">(5) JEPA with a state decoder</span>
+            \[ \mathcal{L}_{\text{jepa}} = \ell\big(\hat z,\ \mathrm{sg}[E_{\bar\phi}(Y)]\big) + \lambda_v \mathcal{L}_{\text{var}}(\hat z) + \lambda_c \mathcal{L}_{\text{cov}}(\hat z) + \big\lVert D(E_\phi(Y)) - Y \big\rVert^2 + \big\lVert D(\hat z) - Y \big\rVert^2, \qquad \hat z = g_\theta(x),\ \ \hat Y = D(\hat z) \]
+            <p>The predictor \(g_\theta\) predicts latents of the future. An encoder \(E_\phi\) of state chunks and a decoder \(D\) are
+              trained to reconstruct states; the targets come from \(E_{\bar\phi}\), a slow copy of the encoder
+              (\(\bar\phi \leftarrow 0.99\,\bar\phi + 0.01\,\phi\)). \(\ell\) is a smooth L1 loss, \(\mathrm{sg}\) stops gradients, and the
+              variance and covariance terms (VICReg) prevent all latents from collapsing to one point.</p></div>
+          <div class="wm-eq"><span class="wm-eq-name">(6) Autoregressive step model</span>
+            \[ \hat s_{t+1} = \hat s_t \oplus h_\theta\big(\hat s_{t-4:t},\, G,\, a\big), \qquad t = 0, \dots, T-1 \]
+            <p>One pass per frame, fed its own output; trained on single transitions with noise on the input and an eight-step
+              unrolled loss. Designed, not yet trained.</p></div>
+          <div class="wm-eq"><span class="wm-eq-name">(7) Contact head</span>
+            \[ \ell^{ij}_t = \frac{q^{i\top}_t k_j}{\sqrt{d}} + b, \qquad \mathcal{L}_\kappa = \mathrm{BCE}\big(\ell, \kappa\big), \qquad \mathcal{L} + \lambda_\kappa \mathcal{L}_\kappa \]
+            <p>Added to any member: each output slot asks every object whether they touch in that frame. Many tasks are about
+              contacts ("hits the blue ball", "never touches the barrier").</p></div>
+        </div>
+
+        <h4 class="title is-6 wm-subhead">How a prediction is judged, in two spaces</h4>
+        <div class="content">
+          <p>A task defines checks \(g_k(s_{1:T}, \kappa) \in \{0, 1\}\) (a contact before a deadline, an end region, a speed, a tilt) and
+            the verdict \(V = \prod_k g_k\). The same checks run on PhysX's trajectory and on the model's. Besides the usual distance
+            errors over the objects \(\mathcal{M}\) that really move, the number that matters when the model replaces the simulator is
+            the verdict agreement \(\alpha\):</p>
+        </div>
+        \[ \mathrm{ADE} = \frac{1}{|\mathcal{M}|\, T} \sum_{i \in \mathcal{M}} \sum_{t=1}^{T} \big\lVert \hat p^i_t - p^i_t \big\rVert, \qquad \mathrm{FDE} = \frac{1}{|\mathcal{M}|} \sum_{i \in \mathcal{M}} \big\lVert \hat p^i_T - p^i_T \big\rVert, \qquad \alpha = \Pr\big[\, V(\hat Y, \hat\kappa) = V(\Phi(G, a)) \,\big] \]
+
+        <h4 class="title is-6 wm-subhead">Members of the family, and where each has been trained</h4>
+        <div class="table-container">
+          <table class="table is-narrow is-fullwidth wm-table wm-family">
+            <thead><tr><th>Member</th><th>Objective</th><th>Toy runs (this proposal)</th><th>End-to-end study</th><th>Scaled study</th></tr></thead>
+            <tbody>
+              <tr><td>Regression</td><td>(1)</td><td>trained (A)</td><td>trained</td><td>trained</td></tr>
+              <tr><td>Flow matching</td><td>(2)</td><td>trained (B)</td><td>trained</td><td>trained, uniform and logit-normal \(\sigma\)</td></tr>
+              <tr><td>Diffusion (DDPM)</td><td>(3)</td><td>no</td><td>trained</td><td>trained, did not converge</td></tr>
+              <tr><td>Diffusion Forcing</td><td>(4)</td><td>trained</td><td>no</td><td>trained</td></tr>
+              <tr><td>JEPA with a state decoder</td><td>(5)</td><td>trained (C, C2)</td><td>no</td><td>trained</td></tr>
+              <tr><td>Autoregressive step model</td><td>(6)</td><td>designed</td><td>no</td><td>no</td></tr>
+              <tr><td>Contact head</td><td>(7)</td><td>no</td><td>contacts as output channels</td><td>on every member</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <ul class="wm-note-list">
+          <li><strong>Data.</strong> Toy runs: 96 PhysX rollouts of the benchmark's rooms, 2 s at 30 frames per second. End-to-end study:
+            generated table-top and room scenes, 11 s at 10 frames per second, positions, rotations and contacts. Scaled study: 79,000
+            rollouts from twelve scene families, 3 s at 30 frames per second, with object parts, joints and several actions at once.</li>
+          <li><strong>Reference points, not members:</strong> "nothing moves", a network without attention (MLP), and a language model
+            prompted to write the future as text.</li>
+          <li><strong>Best so far.</strong> In the scaled study regression and JEPA reach an ADE of 0.55 to 0.57 m over 3 s on unseen
+            scenes, flow matching 0.62 to 0.64 m. In the end-to-end study the best model agrees with PhysX's verdict on 77 percent of
+            actions but recognizes only 24 percent of the real successes. None is accurate enough yet to stand in for the simulator.
+            Distance errors favour the deterministic members, whose one answer is an average of the possible futures, while a
+            generative member's sample is one of them; verdict agreement \(\alpha\) is the fairer yardstick, and the scaled study
+            measures it next.</li>
+        </ul>
+      </div>
+
       <div class="wm-section" id="world_model-io">
-        <h3 class="title is-4">3. Input and output</h3>
+        <h3 class="title is-4">4. Input and output</h3>
         <div class="content">
           <ul>
             <li><strong>Input:</strong> 27 object rows. The <span class="wm-accent-red">red ball</span>'s row holds
@@ -364,7 +479,7 @@
       </div>
 
       <div class="wm-section" id="world_model-training">
-        <h3 class="title is-4">4. Training objective</h3>
+        <h3 class="title is-4">5. Training objective</h3>
         <div class="content">
           <p>Variant B, the primary model, is rectified flow matching over the whole 60-frame tensor.</p>
           <ul>
@@ -401,7 +516,7 @@
       </div>
 
       <div class="wm-section" id="world_model-forcing">
-        <h3 class="title is-4">5. Diffusion Forcing variant</h3>
+        <h3 class="title is-4">6. Diffusion Forcing variant</h3>
         <div class="content">
           <p>
             Same data, same network, one change in training: each frame gets its own noise level instead of one
@@ -421,7 +536,7 @@
       </div>
 
       <div class="wm-section" id="world_model-counterfactuals">
-        <h3 class="title is-4">6. Counterfactuals built in</h3>
+        <h3 class="title is-4">7. Counterfactuals built in</h3>
         <div class="content">
           <p>
             The inputs are the explicit scene graph and the explicit action, so a counterfactual is an edited input
@@ -491,7 +606,7 @@
       </div>
 
       <div class="wm-section" id="world_model-jepa">
-        <h3 class="title is-4">7. JEPA variant (C)</h3>
+        <h3 class="title is-4">8. JEPA variant (C)</h3>
         <div class="content">
           <p>
             An encoder maps a scene-graph state to one embedding per object; a slowly updated copy of the encoder
@@ -564,7 +679,7 @@
       </div>
 
       <div class="wm-section" id="world_model-step">
-        <h3 class="title is-4">8. Variant D: autoregressive next-state predictor</h3>
+        <h3 class="title is-4">9. Variant D: autoregressive next-state predictor</h3>
         <div class="content">
           <p>
             Input: the state at frame t (plus the last 4 frames) and the pairwise geometry, recomputed every step.
@@ -595,6 +710,76 @@
           <p class="wm-note">Positions and velocities are the recorded PhysX states of the sample rollout
             (x and z components; y is constant at -2.20 m); the change shown each tick is the quantity one network
             pass of variant D has to predict.</p>
+        </div>
+      </div>
+
+      <div class="wm-section wm-math" id="world_model-todo">
+        <h3 class="title is-4">10. Failure modes and physics-grounded fixes (to do)</h3>
+        <div class="content">
+          <p>Two failures show up in every member trained so far. <strong>Ghost motion:</strong> objects that stand still from the
+            start, and that nothing in the action touches, are predicted to drift (in the toy runs 84 to 100 percent of still objects
+            move more than 1 cm). <strong>Inconsistent kinematics:</strong> predicted positions and velocities do not agree with each
+            other at the same frame, so no physical motion could produce them; with objects also overlapping by a median of 15 to 34 cm,
+            none of 58 held-out predictions passes the benchmark's checks. A higher weight on still objects and soft position-velocity
+            and overlap penalties were tried on 96 samples and changed the ghost-motion rate little, so the plan puts fixes that hold
+            <em>by construction</em> first and physics penalties second. Each item is a feature to
+            implement in the shared predictor; the ids are for tracking.</p>
+        </div>
+
+        <h4 class="title is-6 wm-subhead">A. Ghost motion: motion needs a cause</h4>
+        <ul class="wm-todo">
+          <li data-todo="WM-A1"><span class="wm-todo-id">WM-A1</span><span class="wm-badge-todo">to do</span>
+            <strong>Motion gate.</strong> A head predicts whether each object moves at all, \(\hat\mu_i = \sigma(u_i)\), trained on
+            \(m_i = \mathbb{1}\big[\max_t \lVert p^i_t - p^i_0 \rVert \gt 1\,\text{cm}\big]\); the trajectory is the still pose plus the gated change,
+            and objects with \(\hat\mu_i \lt 0.5\) are pinned exactly at inference:
+            \[ \hat Y^i = Y^i_{\text{still}} + \hat\mu_i \big( f_\theta(x)^i - Y^i_{\text{still}} \big), \qquad \mathcal{L}_{\mu} = \mathrm{BCE}(\hat\mu_i, m_i) \]</li>
+          <li data-todo="WM-A2"><span class="wm-todo-id">WM-A2</span><span class="wm-badge-todo">to do</span>
+            <strong>Causal-cone penalty.</strong> An object may start moving only once something moving touches it (a support counts).
+            Activation spreads along contacts from the acted objects (and objects already moving at \(t = 0\)); motion outside the
+            cone is penalised. In training the true contacts \(\kappa\) can stand in for \(\hat\kappa\):
+            \[ \zeta^i_0 = \mathbb{1}[i \text{ acted on or moving}], \quad \zeta^i_t = \max\Big(\zeta^i_{t-1},\ \max_j \zeta^j_{t-1}\, \hat\kappa^{ij}_t\Big), \qquad \mathcal{L}_{\text{cause}} = \sum_{t,i} \big(1 - \zeta^i_t\big)\, \big\lVert \hat y^i_t - y^i_{\text{still}} \big\rVert^2 \]</li>
+          <li data-todo="WM-A3"><span class="wm-todo-id">WM-A3</span><span class="wm-badge-todo">to do</span>
+            <strong>Local attention.</strong> Output slots of two objects attend to each other only when their collision boxes are within
+            reach (the distance the fastest object can travel in the horizon), as in graph-network simulators; far objects cannot
+            move each other.</li>
+          <li data-todo="WM-A4"><span class="wm-todo-id">WM-A4</span><span class="wm-badge-todo">to do</span>
+            <strong>Exact zeros.</strong> Add an L1 term on still objects' displacement (a squared error tolerates many small drifts), and
+            report the ghost-motion rate next to ADE on every run.</li>
+        </ul>
+
+        <h4 class="title is-6 wm-subhead">B. Kinematics: positions, velocities and physics that agree</h4>
+        <ul class="wm-todo">
+          <li data-todo="WM-B1"><span class="wm-todo-id">WM-B1</span><span class="wm-badge-todo">to do</span>
+            <strong>Integrate instead of predicting twice.</strong> Predict velocities and spins only and integrate them with the
+            evaluator's trapezoid rule, so positions and velocities agree exactly; keep the position loss on the integrated positions
+            so that integration drift is trained away (\(\mathrm{Exp}\) is the rotation of a rotation vector, \(\omega\) in world axes):
+            \[ \hat p_t = \hat p_{t-1} + \tfrac{\Delta t}{2}\,(\hat v_{t-1} + \hat v_t), \qquad \hat R_t = \mathrm{Exp}\big(\tfrac{\Delta t}{2}\,(\hat\omega_{t-1} + \hat\omega_t)\big)\, \hat R_{t-1} \]</li>
+          <li data-todo="WM-B2"><span class="wm-todo-id">WM-B2</span><span class="wm-badge-todo">to do</span>
+            <strong>Free flight follows gravity.</strong> While an object touches nothing (the floor counts as an object), its acceleration
+            is gravity, \(\mathbf{g} = (0, 0, -9.81)\) m/s², and its spin is constant:
+            \[ \mathcal{L}_{\text{ff}} = \sum_{t,i} \Big(1 - \max_j \hat\kappa^{ij}_t\Big) \Big( \big\lVert \tfrac{\hat v^i_{t+1} - \hat v^i_t}{\Delta t} - \mathbf{g} \big\rVert^2 + \big\lVert \hat\omega^i_{t+1} - \hat\omega^i_t \big\rVert^2 \Big) \]</li>
+          <li data-todo="WM-B3"><span class="wm-todo-id">WM-B3</span><span class="wm-badge-todo">to do</span>
+            <strong>No energy from nothing.</strong> After the action, kinetic plus potential energy may only fall (friction, inelastic
+            contacts), up to the evaluator's tolerance \(\delta\) (15 percent plus 0.03 J), with \(g = 9.81\) m/s²:
+            \[ E_t = \sum_i \tfrac12 m_i \lVert \hat v^i_t \rVert^2 + \tfrac12\, \hat\omega^{i\top}_t I_i\, \hat\omega^i_t + m_i\, g\, \hat z^i_t, \qquad \mathcal{L}_E = \sum_t \mathrm{relu}\big(E_{t+1} - E_t - \delta\big)^2 \]</li>
+          <li data-todo="WM-B4"><span class="wm-todo-id">WM-B4</span><span class="wm-badge-todo">to do</span>
+            <strong>Momentum at contacts.</strong> When two objects touch only each other in a frame (no floor or fixed object involved),
+            their momentum changes cancel: \(m_i \Delta \hat v^i_t + m_j \Delta \hat v^j_t \approx 0\); a small soft penalty.</li>
+          <li data-todo="WM-B5"><span class="wm-todo-id">WM-B5</span><span class="wm-badge-todo">to do</span>
+            <strong>No overlap, no sinking.</strong> Penalise penetration between object parts (the convex parts, not one box per object)
+            beyond 5 mm, and any part below the floor:
+            \(\mathcal{L}_{\text{pen}} = \sum \mathrm{relu}(d^{ij}_t - 5\,\text{mm})^2,\ \mathcal{L}_{\text{floor}} = \sum \mathrm{relu}(-z^{i}_{\text{low},t})^2\).</li>
+          <li data-todo="WM-B6"><span class="wm-todo-id">WM-B6</span><span class="wm-badge-todo">to do</span>
+            <strong>Train against the judge.</strong> The benchmark already screens predicted motion with numbers: free-flight position
+            residual 15 mm, velocity residual 0.15 m/s, rotation residual 10 degrees, energy increase, penetration 5 mm. Use the same
+            quantities as hinge losses, so the model is trained on exactly what it is judged by.</li>
+        </ul>
+        <div class="content">
+          <p><strong>How to add them.</strong> Penalties act on outputs converted back to metres and metres per second, with masses and
+            inertias taken from the object tokens and \(\Delta t = 1/30\) s; inequality constraints are hinge losses; penalty weights
+            ramp up after a warm-up so that they do not stall early learning; every residual is reported on validation next to ADE,
+            the ghost-motion rate and the verdict agreement \(\alpha\). Suggested order: B1 and A1 (constructions, nothing to tune),
+            then A2 and B2 (they need the contact head), then B3 to B6.</p>
         </div>
       </div>
 
@@ -655,8 +840,59 @@
         </div>
       </div>
 
+      <div class="wm-section wm-math" id="post_training-symbols">
+        <h3 class="title is-4">2. Post-training in symbols</h3>
+        <div class="content">
+          <p>The notation of the World model tab carries over: \(G\) is the scene graph, \(a\) an action, \(\Phi\) the simulator and
+            \(V\) a task's verdict. What is new is the language model as a policy.</p>
+        </div>
+        <dl class="wm-defs">
+          <dt>\(x\)</dt><dd>the prompt: instruction, two pictures, the scene as data, the rules of the checks, the answer format</dd>
+          <dt>\(y = (y_1, \dots, y_L)\)</dt><dd>the answer, a sequence of tokens (JSON)</dd>
+          <dt>\(\pi_\theta(y \mid x) = \prod_{l} \pi_\theta(y_l \mid x, y_{\lt l})\)</dt><dd>the language model as a policy over answers</dd>
+          <dt>\(W = W_0 + BA\)</dt><dd>LoRA: every weight matrix \(W_0\) stays frozen and only the low-rank \(B A\) (rank 32) is trained, about 1 percent of the weights</dd>
+          <dt>\(\pi_{\text{ref}}\)</dt><dd>the model before training, the anchor for DPO</dd>
+          <dt>\(\psi(y)\)</dt><dd>the parser: the action \(a\) the answer states (new poses, or a launch velocity), or \(\bot\) when it breaks the answer contract</dd>
+          <dt>\(r(x, y)\)</dt><dd>the reward, always computed by code, never by a person or another model</dd>
+        </dl>
+
+        <h4 class="title is-6 wm-subhead">The verified reward</h4>
+        <div class="content">
+          <p>For a launch the reward is built from the simulator's own verdict, with partial credit so that a group of failed answers
+            can still be ranked (\(K\) checks, \(\mathbb{1}[\cdot]\) is 1 when true):</p>
+        </div>
+        \[ r(x, y) = 0.1\,\mathbb{1}[\psi(y) \text{ parses}] + 0.2\,\mathbb{1}[\psi(y) \text{ is allowed}] + 0.4\, \frac{1}{K}\sum_{k=1}^{K} g_k\big(\Phi(G, \psi(y))\big) + 0.3\, V\big(\Phi(G, \psi(y))\big) \]
+        <div class="content">
+          <p>For a static edit the simulator is replaced by geometric checks on the new poses (the requested relations, overlaps,
+            support, tilt), which agree with PhysX's verdict on 60 of 61 stored answers:
+            \(r = 0.05\, r_{\text{format}} + 0.10\, r_{\text{contract}} + 0.35\, r_{\text{relation}} + 0.20\, r_{\text{physical}} + 0.30\, r_{\text{pass}}\).</p>
+        </div>
+
+        <h4 class="title is-6 wm-subhead">Three ways to train</h4>
+        <div class="wm-eqs">
+          <div class="wm-eq"><span class="wm-eq-name">SFT: imitate reference answers</span>
+            \[ \mathcal{L}_{\text{SFT}}(\theta) = -\,\mathbb{E}_{(x, y^\star)}\, \log \pi_\theta(y^\star \mid x) \]
+            <p>\(y^\star\) is the verified reference answer. The control arm: it teaches one way of answering and needs a reference
+              for every task.</p></div>
+          <div class="wm-eq"><span class="wm-eq-name">DPO: prefer the better of two own answers</span>
+            \[ \mathcal{L}_{\text{DPO}}(\theta) = -\,\mathbb{E}_{(x, y_w, y_l)} \log \sigma\!\Big( \beta \log \frac{\pi_\theta(y_w \mid x)}{\pi_{\text{ref}}(y_w \mid x)} - \beta \log \frac{\pi_\theta(y_l \mid x)}{\pi_{\text{ref}}(y_l \mid x)} \Big) \]
+            <p>For each prompt the start model writes several answers; the best and the worst become a pair \((y_w, y_l)\) when their
+              rewards differ by at least 0.25. \(\beta = 0.1\). Offline: the simulator scores the answers once, before training.</p></div>
+          <div class="wm-eq"><span class="wm-eq-name">GRPO: learn from a group of fresh answers</span>
+            \[ \hat A_g = \frac{r_g - \operatorname{mean}(r_{1:G})}{\operatorname{std}(r_{1:G}) + \delta}, \qquad
+               J(\theta) = \mathbb{E}\Big[ \frac{1}{\sum_{g} |y_g|} \sum_{g=1}^{G} \sum_{l=1}^{|y_g|} \min\big(\rho_{g,l} \hat A_g,\ \operatorname{clip}(\rho_{g,l}, 1 \pm \epsilon)\, \hat A_g\big) \Big] - \beta\, D_{\mathrm{KL}}\big(\pi_\theta \,\Vert\, \pi_{\text{ref}}\big) \]
+            <p>For every prompt the current model writes \(G\) answers \(y_1, \dots, y_G\), each is scored, and each answer's advantage is
+              its reward relative to its own group. \(\rho_{g,l}\) is the probability ratio of token \(l\) under the new and the sampling
+              policy. In our run \(G = 8\), two prompts per update, 100 updates, \(\beta = 0\) and one gradient step per batch, so
+              \(\rho = 1\), the clip never binds and the update is</p>
+            \[ \nabla_\theta J = \frac{1}{\sum_{g} |y_g|} \sum_{g=1}^{G} \hat A_g \sum_{l=1}^{|y_g|} \nabla_\theta \log \pi_\theta\big(y_{g,l} \mid x, y_{g, \lt l}\big) \]
+            <p>A group whose answers all score the same carries no signal (\(\hat A_g = 0\)); that was 32 percent of the groups on
+              average. Online: every sampled launch is simulated during training.</p></div>
+        </div>
+      </div>
+
       <div class="wm-section" id="post_training-examples">
-        <h3 class="title is-4">2. Training examples from the benchmark</h3>
+        <h3 class="title is-4">3. Training examples from the benchmark</h3>
         <div class="content">
           <p>Five real tasks, two static edits and three launches from easy to hard. Each one shows the task, then how the reference
             answer and the answers of three models fare in the simulator, then the reward each answer would receive in training.
@@ -677,7 +913,7 @@
       </div>
 
       <div class="wm-section" id="post_training-grpo">
-        <h3 class="title is-4">3. GRPO: learning from a group of its own answers</h3>
+        <h3 class="title is-4">4. GRPO: learning from a group of its own answers</h3>
         <div class="content">
           <p>For each prompt the model writes a group of answers; each is scored, and the update favours the answers that beat their
             group's average. Below, a real group of sixteen answers from the untrained 7B model on a static edit, and thirteen launches
@@ -698,7 +934,7 @@
       </div>
 
       <div class="wm-section" id="post_training-dpo">
-        <h3 class="title is-4">4. DPO: learning from a better and a worse answer</h3>
+        <h3 class="title is-4">5. DPO: learning from a better and a worse answer</h3>
         <div class="content">
           <p>The offline baseline: answers are sampled and scored once, then the model is trained to prefer the better answer of each
             pair. No simulator runs during training.</p>
@@ -718,7 +954,7 @@
       </div>
 
       <div class="wm-section" id="post_training-lora">
-        <h3 class="title is-4">5. What is trained, and where the simulator sits</h3>
+        <h3 class="title is-4">6. What is trained, and where the simulator sits</h3>
         <div class="content">
           <p>The 7.6 billion weights of the language model stay frozen. LoRA adds two small matrices beside every linear layer and
             trains only those, about one percent of the model, which is what lets a ten-thousand-token example fit one graphics card.</p>
@@ -767,7 +1003,7 @@
       </div>
 
       <div class="wm-section" id="post_training-experiment">
-        <h3 class="title is-4">6. The first experiment</h3>
+        <h3 class="title is-4">7. The first experiment</h3>
         <div class="content">
           <p>Static edits and launches of every difficulty from the benchmark, split into training tasks and held-out test tasks.
             Difficulty is measured by guessing: a task is easy when at least half of random answers pass, hard when fewer than
@@ -778,6 +1014,64 @@
           <table class="table is-fullwidth is-narrow wm-table pt-experiment" id="pt-experiment-table"></table>
         </div>
         <p class="wm-note">The trained models' numbers are in the Results tab.</p>
+      </div>
+
+      <div class="wm-section wm-math" id="post_training-wm-judge">
+        <h3 class="title is-4">8. Next: a world model as the judge</h3>
+        <div class="content">
+          <p>GRPO needs a verdict for every answer it samples, and today each launch verdict is a PhysX simulation. The proposal is to
+            ask the world model instead, hosted on the same machine as the language model, so that a whole group of answers is judged
+            in one batched pass:</p>
+        </div>
+        \[ \hat r(x, y) = 0.1\,\mathbb{1}[\psi(y) \text{ parses}] + 0.2\,\mathbb{1}[\psi(y) \text{ is allowed}] + 0.4\, \frac{1}{K}\sum_{k} \hat g_k + 0.3\, \hat p(x, y) \]
+        \[ \hat p(x, y) = \frac{1}{S} \sum_{s=1}^{S} V\big(Y^{(s)}\big), \qquad Y^{(s)} \sim p_\theta\big(\cdot \mid G, \psi(y)\big) \]
+        <div class="content">
+          <p>A generative world model gives \(S\) possible futures, so \(\hat p\) is a probability of success rather than a yes or no
+            (\(S = 1\) for a deterministic one). DPO needs the same verdicts, only once and offline.</p>
+        </div>
+        <div class="table-container">
+          <table class="table is-narrow is-fullwidth wm-table wm-count">
+            <thead><tr><th>Judging launches</th><th>PhysX</th><th>World model</th></tr></thead>
+            <tbody>
+              <tr><td>One verdict</td><td>35 s median, 56 s for one in ten, up to 409 s (one simulator process)</td><td>1.6 ms (regression) to 52 ms (flow matching), batched on one GPU</td></tr>
+              <tr><td>Our GRPO run: 747 launches over 100 updates</td><td>7.8 hours of four simulator processes, in 8.0 hours of training</td><td>about 1 to 40 s in total</td></tr>
+              <tr><td>A larger run: 64 prompts &times; 8 answers per update, 1,000 updates</td><td>about 5,000 simulator-hours</td><td>about 15 minutes (regression) to 7.4 hours (flow matching)</td></tr>
+              <tr><td>Where it runs</td><td>separate simulator jobs on RTX graphics cards, scheduled next to the trainer</td><td>on the language model's own node</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="wm-note">PhysX times are those of our GRPO run (the benchmark's rollout with contact records, 2 s of motion). World-model
+          times were measured on the 1.3-million-weight toy model with 19 movable objects on one RTX A5000; the scaled study's
+          23-million-weight predictor costs more per pass, still far below a simulation.</p>
+        <h4 class="title is-6 wm-subhead">What accuracy is needed</h4>
+        <div class="content">
+          <p>Not a small distance error but the same verdicts as PhysX on the answers the policy actually writes. Two numbers decide:
+            the agreement \(\alpha\) and the false-success rate \(\mathrm{FS}\), measured on the policy's own samples
+            \(y \sim \pi_\theta\):</p>
+        </div>
+        \[ \alpha = \Pr_{y \sim \pi_\theta}\big[\hat V = V\big], \qquad \mathrm{FS} = \Pr_{y \sim \pi_\theta}\big[\hat V = 1 \mid V = 0\big] \]
+        <div class="content">
+          <p>Random mistakes are tolerable. If every verdict were flipped independently with probability \(\eta \lt 1/2\), the expected
+            reward would be \(\mathbb{E}[\hat r] = (1 - 2\eta)\, \mathbb{E}[r] + \eta\): answers keep their order and GRPO's signal only
+            shrinks. Systematic false successes are not tolerable: training searches for answers the world model wrongly accepts and
+            makes them more likely (model exploitation).</p>
+        </div>
+        <h4 class="title is-6 wm-subhead">Safeguards</h4>
+        <div class="content">
+          <ul>
+            <li><strong>Audit.</strong> PhysX re-checks a share \(q\) of the answers in every update, in particular each group's best
+              answer, the one GRPO reinforces most; audited answers keep PhysX's reward.</li>
+            <li><strong>Doubt goes to PhysX.</strong> When the world model's samples disagree about the verdict
+              (\(0 \lt \hat p \lt 1\)), that answer is simulated.</li>
+            <li><strong>The judge keeps learning.</strong> Every audited answer becomes a new training rollout for the world model, on
+              exactly the answers the policy now writes.</li>
+            <li><strong>The final word stays with PhysX:</strong> trained models are judged by the simulator on held-out tasks, as now.</li>
+          </ul>
+          <p><strong>Where it stands.</strong> Not yet: in the end-to-end study the best world model recognizes 24 percent of real
+            successes, and the toy models' predicted trajectories pass none of the benchmark's checks. The switch is gated on
+            \(\alpha\) and \(\mathrm{FS}\) measured on policy samples. Static edits already work this way: their reward replaces the
+            simulator with geometric checks that agree with PhysX on 60 of 61 stored answers.</p>
+        </div>
       </div>
 
       <!-- this block's data and script (deferred: they run after the page is parsed, in this order, after project.js) -->

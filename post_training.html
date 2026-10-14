@@ -8,11 +8,15 @@
   <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
   <link rel="stylesheet" href="./static/css/bulma.min.css?v=58b2865922">
   <link rel="stylesheet" href="./static/css/index.css?v=747bae5899">
-  <link rel="stylesheet" href="./static/css/project.css?v=4bddc081cc">
+  <link rel="stylesheet" href="./static/css/project.css?v=be34cf39e5">
+  <link rel="stylesheet" href="./static/vendor/katex/katex.min.css">
   <link rel="stylesheet" href="./static/css/post_training.css?v=750ba8efc2">
   <link rel="icon" href="./static/images/favicon.svg">
   <!-- standalone preview of the two post-training blocks; tools/install_post_training_block.py copies them into index.html -->
   <script defer src="./static/js/project.js?v=ae13504ea8"></script>
+  <script defer src="./static/vendor/katex/katex.min.js"></script>
+  <script defer src="./static/vendor/katex/contrib/auto-render.min.js"></script>
+  <script defer src="./static/js/math.js?v=8d20f73fbf"></script>
 </head>
 <body>
 
@@ -69,8 +73,59 @@
         </div>
       </div>
 
+      <div class="wm-section wm-math" id="post_training-symbols">
+        <h3 class="title is-4">2. Post-training in symbols</h3>
+        <div class="content">
+          <p>The notation of the World model tab carries over: \(G\) is the scene graph, \(a\) an action, \(\Phi\) the simulator and
+            \(V\) a task's verdict. What is new is the language model as a policy.</p>
+        </div>
+        <dl class="wm-defs">
+          <dt>\(x\)</dt><dd>the prompt: instruction, two pictures, the scene as data, the rules of the checks, the answer format</dd>
+          <dt>\(y = (y_1, \dots, y_L)\)</dt><dd>the answer, a sequence of tokens (JSON)</dd>
+          <dt>\(\pi_\theta(y \mid x) = \prod_{l} \pi_\theta(y_l \mid x, y_{\lt l})\)</dt><dd>the language model as a policy over answers</dd>
+          <dt>\(W = W_0 + BA\)</dt><dd>LoRA: every weight matrix \(W_0\) stays frozen and only the low-rank \(B A\) (rank 32) is trained, about 1 percent of the weights</dd>
+          <dt>\(\pi_{\text{ref}}\)</dt><dd>the model before training, the anchor for DPO</dd>
+          <dt>\(\psi(y)\)</dt><dd>the parser: the action \(a\) the answer states (new poses, or a launch velocity), or \(\bot\) when it breaks the answer contract</dd>
+          <dt>\(r(x, y)\)</dt><dd>the reward, always computed by code, never by a person or another model</dd>
+        </dl>
+
+        <h4 class="title is-6 wm-subhead">The verified reward</h4>
+        <div class="content">
+          <p>For a launch the reward is built from the simulator's own verdict, with partial credit so that a group of failed answers
+            can still be ranked (\(K\) checks, \(\mathbb{1}[\cdot]\) is 1 when true):</p>
+        </div>
+        \[ r(x, y) = 0.1\,\mathbb{1}[\psi(y) \text{ parses}] + 0.2\,\mathbb{1}[\psi(y) \text{ is allowed}] + 0.4\, \frac{1}{K}\sum_{k=1}^{K} g_k\big(\Phi(G, \psi(y))\big) + 0.3\, V\big(\Phi(G, \psi(y))\big) \]
+        <div class="content">
+          <p>For a static edit the simulator is replaced by geometric checks on the new poses (the requested relations, overlaps,
+            support, tilt), which agree with PhysX's verdict on 60 of 61 stored answers:
+            \(r = 0.05\, r_{\text{format}} + 0.10\, r_{\text{contract}} + 0.35\, r_{\text{relation}} + 0.20\, r_{\text{physical}} + 0.30\, r_{\text{pass}}\).</p>
+        </div>
+
+        <h4 class="title is-6 wm-subhead">Three ways to train</h4>
+        <div class="wm-eqs">
+          <div class="wm-eq"><span class="wm-eq-name">SFT: imitate reference answers</span>
+            \[ \mathcal{L}_{\text{SFT}}(\theta) = -\,\mathbb{E}_{(x, y^\star)}\, \log \pi_\theta(y^\star \mid x) \]
+            <p>\(y^\star\) is the verified reference answer. The control arm: it teaches one way of answering and needs a reference
+              for every task.</p></div>
+          <div class="wm-eq"><span class="wm-eq-name">DPO: prefer the better of two own answers</span>
+            \[ \mathcal{L}_{\text{DPO}}(\theta) = -\,\mathbb{E}_{(x, y_w, y_l)} \log \sigma\!\Big( \beta \log \frac{\pi_\theta(y_w \mid x)}{\pi_{\text{ref}}(y_w \mid x)} - \beta \log \frac{\pi_\theta(y_l \mid x)}{\pi_{\text{ref}}(y_l \mid x)} \Big) \]
+            <p>For each prompt the start model writes several answers; the best and the worst become a pair \((y_w, y_l)\) when their
+              rewards differ by at least 0.25. \(\beta = 0.1\). Offline: the simulator scores the answers once, before training.</p></div>
+          <div class="wm-eq"><span class="wm-eq-name">GRPO: learn from a group of fresh answers</span>
+            \[ \hat A_g = \frac{r_g - \operatorname{mean}(r_{1:G})}{\operatorname{std}(r_{1:G}) + \delta}, \qquad
+               J(\theta) = \mathbb{E}\Big[ \frac{1}{\sum_{g} |y_g|} \sum_{g=1}^{G} \sum_{l=1}^{|y_g|} \min\big(\rho_{g,l} \hat A_g,\ \operatorname{clip}(\rho_{g,l}, 1 \pm \epsilon)\, \hat A_g\big) \Big] - \beta\, D_{\mathrm{KL}}\big(\pi_\theta \,\Vert\, \pi_{\text{ref}}\big) \]
+            <p>For every prompt the current model writes \(G\) answers \(y_1, \dots, y_G\), each is scored, and each answer's advantage is
+              its reward relative to its own group. \(\rho_{g,l}\) is the probability ratio of token \(l\) under the new and the sampling
+              policy. In our run \(G = 8\), two prompts per update, 100 updates, \(\beta = 0\) and one gradient step per batch, so
+              \(\rho = 1\), the clip never binds and the update is</p>
+            \[ \nabla_\theta J = \frac{1}{\sum_{g} |y_g|} \sum_{g=1}^{G} \hat A_g \sum_{l=1}^{|y_g|} \nabla_\theta \log \pi_\theta\big(y_{g,l} \mid x, y_{g, \lt l}\big) \]
+            <p>A group whose answers all score the same carries no signal (\(\hat A_g = 0\)); that was 32 percent of the groups on
+              average. Online: every sampled launch is simulated during training.</p></div>
+        </div>
+      </div>
+
       <div class="wm-section" id="post_training-examples">
-        <h3 class="title is-4">2. Training examples from the benchmark</h3>
+        <h3 class="title is-4">3. Training examples from the benchmark</h3>
         <div class="content">
           <p>Five real tasks, two static edits and three launches from easy to hard. Each one shows the task, then how the reference
             answer and the answers of three models fare in the simulator, then the reward each answer would receive in training.
@@ -91,7 +146,7 @@
       </div>
 
       <div class="wm-section" id="post_training-grpo">
-        <h3 class="title is-4">3. GRPO: learning from a group of its own answers</h3>
+        <h3 class="title is-4">4. GRPO: learning from a group of its own answers</h3>
         <div class="content">
           <p>For each prompt the model writes a group of answers; each is scored, and the update favours the answers that beat their
             group's average. Below, a real group of sixteen answers from the untrained 7B model on a static edit, and thirteen launches
@@ -112,7 +167,7 @@
       </div>
 
       <div class="wm-section" id="post_training-dpo">
-        <h3 class="title is-4">4. DPO: learning from a better and a worse answer</h3>
+        <h3 class="title is-4">5. DPO: learning from a better and a worse answer</h3>
         <div class="content">
           <p>The offline baseline: answers are sampled and scored once, then the model is trained to prefer the better answer of each
             pair. No simulator runs during training.</p>
@@ -132,7 +187,7 @@
       </div>
 
       <div class="wm-section" id="post_training-lora">
-        <h3 class="title is-4">5. What is trained, and where the simulator sits</h3>
+        <h3 class="title is-4">6. What is trained, and where the simulator sits</h3>
         <div class="content">
           <p>The 7.6 billion weights of the language model stay frozen. LoRA adds two small matrices beside every linear layer and
             trains only those, about one percent of the model, which is what lets a ten-thousand-token example fit one graphics card.</p>
@@ -181,7 +236,7 @@
       </div>
 
       <div class="wm-section" id="post_training-experiment">
-        <h3 class="title is-4">6. The first experiment</h3>
+        <h3 class="title is-4">7. The first experiment</h3>
         <div class="content">
           <p>Static edits and launches of every difficulty from the benchmark, split into training tasks and held-out test tasks.
             Difficulty is measured by guessing: a task is easy when at least half of random answers pass, hard when fewer than
@@ -192,6 +247,64 @@
           <table class="table is-fullwidth is-narrow wm-table pt-experiment" id="pt-experiment-table"></table>
         </div>
         <p class="wm-note">The trained models' numbers are in the Results tab.</p>
+      </div>
+
+      <div class="wm-section wm-math" id="post_training-wm-judge">
+        <h3 class="title is-4">8. Next: a world model as the judge</h3>
+        <div class="content">
+          <p>GRPO needs a verdict for every answer it samples, and today each launch verdict is a PhysX simulation. The proposal is to
+            ask the world model instead, hosted on the same machine as the language model, so that a whole group of answers is judged
+            in one batched pass:</p>
+        </div>
+        \[ \hat r(x, y) = 0.1\,\mathbb{1}[\psi(y) \text{ parses}] + 0.2\,\mathbb{1}[\psi(y) \text{ is allowed}] + 0.4\, \frac{1}{K}\sum_{k} \hat g_k + 0.3\, \hat p(x, y) \]
+        \[ \hat p(x, y) = \frac{1}{S} \sum_{s=1}^{S} V\big(Y^{(s)}\big), \qquad Y^{(s)} \sim p_\theta\big(\cdot \mid G, \psi(y)\big) \]
+        <div class="content">
+          <p>A generative world model gives \(S\) possible futures, so \(\hat p\) is a probability of success rather than a yes or no
+            (\(S = 1\) for a deterministic one). DPO needs the same verdicts, only once and offline.</p>
+        </div>
+        <div class="table-container">
+          <table class="table is-narrow is-fullwidth wm-table wm-count">
+            <thead><tr><th>Judging launches</th><th>PhysX</th><th>World model</th></tr></thead>
+            <tbody>
+              <tr><td>One verdict</td><td>35 s median, 56 s for one in ten, up to 409 s (one simulator process)</td><td>1.6 ms (regression) to 52 ms (flow matching), batched on one GPU</td></tr>
+              <tr><td>Our GRPO run: 747 launches over 100 updates</td><td>7.8 hours of four simulator processes, in 8.0 hours of training</td><td>about 1 to 40 s in total</td></tr>
+              <tr><td>A larger run: 64 prompts &times; 8 answers per update, 1,000 updates</td><td>about 5,000 simulator-hours</td><td>about 15 minutes (regression) to 7.4 hours (flow matching)</td></tr>
+              <tr><td>Where it runs</td><td>separate simulator jobs on RTX graphics cards, scheduled next to the trainer</td><td>on the language model's own node</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="wm-note">PhysX times are those of our GRPO run (the benchmark's rollout with contact records, 2 s of motion). World-model
+          times were measured on the 1.3-million-weight toy model with 19 movable objects on one RTX A5000; the scaled study's
+          23-million-weight predictor costs more per pass, still far below a simulation.</p>
+        <h4 class="title is-6 wm-subhead">What accuracy is needed</h4>
+        <div class="content">
+          <p>Not a small distance error but the same verdicts as PhysX on the answers the policy actually writes. Two numbers decide:
+            the agreement \(\alpha\) and the false-success rate \(\mathrm{FS}\), measured on the policy's own samples
+            \(y \sim \pi_\theta\):</p>
+        </div>
+        \[ \alpha = \Pr_{y \sim \pi_\theta}\big[\hat V = V\big], \qquad \mathrm{FS} = \Pr_{y \sim \pi_\theta}\big[\hat V = 1 \mid V = 0\big] \]
+        <div class="content">
+          <p>Random mistakes are tolerable. If every verdict were flipped independently with probability \(\eta \lt 1/2\), the expected
+            reward would be \(\mathbb{E}[\hat r] = (1 - 2\eta)\, \mathbb{E}[r] + \eta\): answers keep their order and GRPO's signal only
+            shrinks. Systematic false successes are not tolerable: training searches for answers the world model wrongly accepts and
+            makes them more likely (model exploitation).</p>
+        </div>
+        <h4 class="title is-6 wm-subhead">Safeguards</h4>
+        <div class="content">
+          <ul>
+            <li><strong>Audit.</strong> PhysX re-checks a share \(q\) of the answers in every update, in particular each group's best
+              answer, the one GRPO reinforces most; audited answers keep PhysX's reward.</li>
+            <li><strong>Doubt goes to PhysX.</strong> When the world model's samples disagree about the verdict
+              (\(0 \lt \hat p \lt 1\)), that answer is simulated.</li>
+            <li><strong>The judge keeps learning.</strong> Every audited answer becomes a new training rollout for the world model, on
+              exactly the answers the policy now writes.</li>
+            <li><strong>The final word stays with PhysX:</strong> trained models are judged by the simulator on held-out tasks, as now.</li>
+          </ul>
+          <p><strong>Where it stands.</strong> Not yet: in the end-to-end study the best world model recognizes 24 percent of real
+            successes, and the toy models' predicted trajectories pass none of the benchmark's checks. The switch is gated on
+            \(\alpha\) and \(\mathrm{FS}\) measured on policy samples. Static edits already work this way: their reward replaces the
+            simulator with geometric checks that agree with PhysX on 60 of 61 stored answers.</p>
+        </div>
       </div>
 
       <!-- this block's data and script (deferred: they run after the page is parsed, in this order, after project.js) -->

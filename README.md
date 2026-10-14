@@ -267,18 +267,26 @@ hover/touch playback, click-to-pin/pause, slow motion and synchronized loops.
 
 ## How models are prompted (page)
 
-`how-it-works.html`, linked as a tab from the landing page, shows on real
-records what GPT-5.4 and Qwen3-VL-30B Thinking receive and return: an icon
-overview of one attempt (`static/js/how_it_works/overview.js`), the real prompt
-drawn to scale and filled in part by part with its actual text and images
-(`prompt.js`), and three columns (reference, GPT-5.4, Qwen) where the real
-answers type out (JSON poses, a program excerpt with its real line numbers, or
-the launch as numbers), the simulator plays them (floor plan, or the ball's
-recorded side-view path) and the measured checks decide (`answer.js`). Data:
-`static/data/how_it_works.js` (`window.HW_DATA`) and the input views under
-`static/images/how_it_works/`, written by `tools/extract_how_it_works.py` (run
-with the simagent Isaac interpreter; the program excerpts are the line ranges
-in `CODE_EXCERPTS`).
+`how-it-works.html` follows one real attempt step by step, at the reader's pace (Back / Next, the step list or the arrow
+keys; nothing advances on its own), for three examples (a static edit, a throw answered with numbers, the same throw
+answered with a program) and either model: the task and the two images the models receive, the full prompt split into
+its sections (the scene also as a table, and its exact one-line JSON), the answer format (the strict JSON schema sent
+with the request, or the program contract), each model's raw reply and token use, the harness steps from the reply to
+the simulation with the actual values (contract, quaternion rescaling, carry-forward, the derived launch), every check
+with its measured value and limit, and the outcome (close-ups or the three PhysX rollout clips). Script
+`static/js/how_it_works/walkthrough.js`; data `static/data/how_it_works.js` (`window.HW_DATA`), task views under
+`static/images/how_it_works/` and rollout clips under `static/media/how_it_works/`, all written by
+`tools/extract_how_it_works.py` (run with the simagent Isaac interpreter; the static close-ups are reused from the
+benchmark page and must exist).
+
+## Formal sections (math)
+
+The World model and Post-training tabs carry formal definitions (`#world_model-symbols`, `#post_training-symbols`,
+`#post_training-wm-judge`) and the world-model to-do list (`#world_model-todo`, items `WM-A1` to `WM-B6`, each a
+`<li data-todo="...">`: physics-grounded fixes for ghost motion and inconsistent kinematics, to be implemented in the
+shared predictor). Math is written as LaTeX, `\( ... \)` inline and `\[ ... \]` displayed, inside any element with
+class `wm-math`, and typeset in the browser by `static/js/math.js` with KaTeX 0.16.11 vendored under
+`static/vendor/katex/` (MIT licence there; no CDN). Without JavaScript the LaTeX stays readable.
 
 ## Navigation shared by all pages
 

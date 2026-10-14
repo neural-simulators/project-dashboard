@@ -179,3 +179,26 @@ body { color: var(--wm-text); }
 .ov-map .ov-pulse { fill: var(--wm-amber); stroke: #fff; stroke-width: 1.5; }
 .ov-map .ov-legend { margin-bottom: 0.2rem; }
 .ov-map .ov-legend span.ov-legend-plain::before { display: none; }
+
+/* formal sections (typeset by static/js/math.js with the vendored KaTeX) */
+.wm-math .katex-display { margin: 0.6rem 0 0.9rem; overflow-x: auto; overflow-y: hidden; padding: 0.15rem 0; }
+.wm-math .katex { font-size: 1.06em; position: relative; }   /* keeps KaTeX's hidden MathML copy inside scrolling tables */
+.wm-subhead { font-family: 'Google Sans', sans-serif; color: #222; margin: 1.3rem 0 0.5rem !important; }
+.wm-defs { display: grid; grid-template-columns: minmax(10rem, max-content) 1fr; gap: 0.35rem 1.1rem; margin: 0.6rem 0 1rem;
+  padding: 0.8rem 1rem; background: #fff; border: 1px solid var(--wm-border); border-radius: 6px; }
+.wm-defs dt { color: #222; white-space: nowrap; }
+.wm-defs dd { margin: 0; color: var(--wm-text); font-size: 0.95rem; line-height: 1.45; }
+@media (max-width: 640px) { .wm-defs { grid-template-columns: 1fr; } .wm-defs dt { white-space: normal; } .wm-defs dd { margin-bottom: 0.4rem; } }
+.wm-eqs { display: grid; gap: 0.75rem; margin: 0.4rem 0 0.8rem; }
+.wm-eq { background: #fff; border: 1px solid var(--wm-border); border-radius: 6px; padding: 0.7rem 1rem 0.6rem; min-width: 0; }
+.wm-eq-name { display: block; font-family: 'Google Sans', sans-serif; font-weight: 600; color: #222; }
+.wm-eq p { margin: 0 0 0.3rem; font-size: 0.93rem; line-height: 1.5; color: var(--wm-text); }
+.wm-family td:first-child { white-space: nowrap; font-weight: 600; }
+.wm-note-list { margin: 0.5rem 0 0 1.2rem; list-style: disc; font-size: 0.93rem; line-height: 1.5; }
+.wm-note-list li + li { margin-top: 0.35rem; }
+.wm-todo { list-style: none; margin: 0.4rem 0 0.9rem; padding: 0; display: grid; gap: 0.6rem; }
+.wm-todo li { background: #fff; border: 1px solid var(--wm-border); border-left: 4px solid var(--wm-amber); border-radius: 6px;
+  padding: 0.65rem 0.95rem; font-size: 0.95rem; line-height: 1.5; min-width: 0; }
+.wm-todo-id { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.8rem; color: var(--wm-slate); margin-right: 0.45rem; }
+.wm-badge-todo { display: inline-block; font-size: 0.72rem; line-height: 1.5; padding: 0 0.5rem; margin-right: 0.45rem; border-radius: 999px;
+  color: #8a5a00; background: #fff8e8; border: 1px solid #f0d28a; vertical-align: 1px; }
