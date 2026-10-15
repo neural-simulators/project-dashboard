@@ -313,3 +313,21 @@ body { color: var(--wm-text); }
 .ov-miles li.next .ov-mile-state { color: #8a5a00; background: #fff8e8; border-color: #f0d28a; }
 .ov-mile-link { margin-left: 0.2rem; font-size: 0.86rem; white-space: nowrap; }
 @media (max-width: 760px) { .ov-miles { grid-template-columns: 1fr; } }
+
+/* idea and open-issue states (World model tab, sections 15 and 16) */
+.wm-badge-idea, .wm-badge-open { display: inline-block; font-size: 0.72rem; line-height: 1.5; padding: 0 0.5rem; margin-right: 0.45rem;
+  border-radius: 999px; vertical-align: 1px; border: 1px solid; }
+.wm-badge-idea { color: #5b3cc4; background: #f3f0fc; border-color: #cbbdf5; }
+.wm-badge-open { color: #a61e2d; background: #fdecee; border-color: #f2b8bf; }
+.wm-todo li.is-idea { border-left-color: #7048e8; }
+.wm-todo li.is-open { border-left-color: var(--wm-red); }
+.wm-datasets th, .wm-datasets td { font-size: 0.8rem; line-height: 1.35; vertical-align: top; }
+.wm-datasets td:first-child { font-weight: 600; white-space: nowrap; }
+.wm-datasets th:nth-child(4), .wm-datasets td:nth-child(4) { background: #f3f8f4; }
+.wm-todo li .table-container { margin: 0.5rem 0 0.3rem; }
+
+/* Overview: the technical motivation as a list of points */
+.ov-points { list-style: none; margin: 0 0 0.6rem; padding: 0; display: grid; gap: 0.5rem; }
+.ov-points li { background: #fff; border: 1px solid var(--wm-border); border-left: 4px solid var(--wm-red); border-radius: 6px;
+  padding: 0.55rem 0.9rem; font-size: 0.95rem; line-height: 1.55; }
+.ov-points li strong { color: #222; }

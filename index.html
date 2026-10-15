@@ -13,7 +13,7 @@
 
   <link rel="stylesheet" href="./static/css/bulma.min.css?v=58b2865922">
   <link rel="stylesheet" href="./static/css/index.css?v=747bae5899">
-  <link rel="stylesheet" href="./static/css/project.css?v=62c3cf5af5">
+  <link rel="stylesheet" href="./static/css/project.css?v=59e1a0066f">
   <link rel="stylesheet" href="./static/vendor/katex/katex.min.css">
   <link rel="icon" href="./static/images/favicon.svg">
 
@@ -119,64 +119,47 @@
 <div class="wm-panel" id="overview" data-tab-panel="overview" role="tabpanel">
   <section class="section" id="overview-main">
     <div class="container is-max-desktop">
-      <h2 class="title is-3 ov-title">Learned models that predict how a scene will move</h2>
-      <p class="ov-lead">Will the vase topple if the table is bumped? Will a thrown ball clear the barrier and land in the box?
-        Planning, robotics and scene editing all rest on predictions like these. A physics engine such as NVIDIA PhysX makes them
-        exactly, but only after the scene has been rebuilt in 3D with every object's shape, mass and friction, and it computes the
-        motion in thousands of small time steps. Language models read scenes and instructions fluently, yet have no dependable sense
-        of what will physically happen, and video generators produce futures that look right in pixels without being bound by
-        physics.</p>
-      <p class="ov-lead">This project learns the simulator: a world model that reads a scene graph, every object's shape, material,
-        pose and velocity, together with an action, and predicts how every object will move. Around it, a benchmark asks how well
-        language models reason about physics, post-training teaches open language models with a simulator as the teacher, and real
-        scenes are where the learned physics should finally be used.</p>
+      <h2 class="title is-3 ov-title">Scene-graph world models: learning 3D object dynamics from a physics engine</h2>
+      <div class="ov-motivation wm-math">
+      <p class="ov-lead">Predicting how a 3D scene evolves under an action is the core query of planning, manipulation and scene
+        editing. Rigid-body engines such as NVIDIA PhysX answer it exactly, by integrating contact-constrained dynamics in small time
+        steps (here 1,920 per simulated second), but only from a complete specification of every object's collision geometry, pose,
+        mass, friction and restitution, and only forward in time. Language models reason over scene descriptions without a reliable
+        model of the dynamics, and video diffusion models predict pixels, where physical state is entangled with appearance and tied
+        to one camera.</p>
+      <p class="ov-lead">We learn the transition model instead: a world model \(p_\theta(Y \mid G, a)\) that maps an object-centric
+        scene graph \(G\) (per object: shape, pose, velocity, mass, friction, restitution) and an action \(a\) to the full state
+        trajectory \(Y\), the position, orientation, and linear and angular velocity of every object at every frame. It is trained on
+        PhysX rollouts and judged against them, in metres and in task verdicts. A benchmark measures how well language models reason
+        about the same dynamics, and post-training uses the simulator's verdicts as verifiable rewards.</p>
       <h3 class="title is-4 ov-why-title">Why learn the simulator</h3>
-      <div class="ov-why">
-        <div class="ov-why-item">
-          <h4>Fast, and many at once</h4>
-          <p>An engine steps through time; a network predicts the whole motion in one pass, for many candidate actions in one batch,
-            on the same graphics card as a language model. Planning and training need exactly this: many previews, each in a fraction
-            of a second.</p>
-        </div>
-        <div class="ov-why-item">
-          <h4>The whole motion, not only the end</h4>
-          <p>It predicts every object's position and velocity at every moment, the dense state on which goals such as "never touch
-            the barrier" or "land within a second" are judged. A language model can state a final pose, but it cannot write out how a
-            whole room moves, moment by moment.</p>
-        </div>
-        <div class="ov-why-item">
-          <h4>What if, and why</h4>
-          <p>Forward, a counterfactual is an edited input: remove an object, add one between two others, lower a friction, set
-            gravity to the Moon's, and predict again. Backward, the same model can be asked for causes: the mass or friction that
-            explains an observed bounce, or the push that produced a motion. Together they answer counterfactuals about what was
-            actually seen, in the three steps of causal reasoning: infer what is hidden, change one thing, predict again. An engine
-            only runs forward.</p>
-        </div>
-        <div class="ov-why-item">
-          <h4>Physics, not appearance</h4>
-          <p>Motion depends on the geometry and material of objects and surfaces and on where they are in 3D, not on lighting,
-            texture or a camera. A video generator spends its capacity on pixels, needs a viewpoint to predict anything, and can let
-            an object it no longer sees drift, merge or vanish. A model of 3D state needs no camera, keeps every object, takes exact
-            actions such as a velocity or a force, and answers in metres and seconds, so physical laws can be checked on its output
-            and built into it.</p>
-        </div>
-        <div class="ov-why-item">
-          <h4>Real scenes without a digital twin</h4>
-          <p>Simulating a real place today means rebuilding it: outline every object in photographs, complete its 3D shape, give it a
-            collision body, a mass and a friction, place it faithfully in the engine, simulate, and carry the result back. Learning
-            physics in simulation opens a shorter route: read a scene graph from photographs taken from a few viewpoints, predict what
-            an instruction or an action will do, and watch it happen in the real scene, with nothing ported into a simulator and back.
-            A scene read from photographs is uncertain, so the predictions should also say how sure they are.</p>
-        </div>
-        <div class="ov-why-item">
-          <h4>A teacher for language models</h4>
-          <p>Whether an answer works physically can be decided by simulation instead of by people, so language models can be
-            measured, and open ones trained, against a simulator's verdicts. Each verdict costs a full simulation in an engine but
-            only a pass of a network in a learned simulator, which is what makes such training cheap enough to scale.</p>
-        </div>
+      <ul class="ov-points">
+        <li><strong>Amortized, batched inference.</strong> One forward pass predicts the whole horizon for every object instead of
+          thousands of sequential solver steps, and candidate actions batch on the same accelerator as the language model, which makes
+          model-predictive planning and on-policy reinforcement-learning rewards affordable.</li>
+        <li><strong>Dense spatiotemporal state.</strong> The output is the full trajectory rather than an endpoint, so temporal
+          predicates (a contact before a deadline, a region never entered, the time to rest) are evaluated on it directly; a language
+          model can state endpoints but not a dense multi-object trajectory within its token budget.</li>
+        <li><strong>Interventional, inverse and counterfactual queries.</strong> An intervention is an edit of the conditioning:
+          remove or add an object, change a mass, a friction, gravity or the action. Trained with masked conditioning, the same model
+          also runs backwards, inferring latent properties or the action from observed motion (system identification, inverse
+          dynamics), and the composition answers counterfactuals about observed scenes in Pearl's three steps: abduction, action,
+          prediction. A forward-only engine can approach these only by search.</li>
+        <li><strong>A physics-aligned representation.</strong> Metric 3D, object-centric and permutation-equivariant, conditioned on
+          geometry and material rather than appearance, and defined without a camera: no capacity goes to rendering, objects persist
+          through occlusion, actions are exact vectors, and conservation and non-penetration can be measured on the output and imposed
+          in training. Video diffusion models have none of these by construction.</li>
+        <li><strong>Sim-to-real without a digital twin.</strong> Dynamics learned in simulation apply to scene graphs estimated from
+          multi-view images, so a real scene need not be segmented, meshed, parameterized and re-simulated before a prediction, and
+          the prediction is compared with the real motion directly; uncertainty from perception propagates to calibrated bands on the
+          predicted trajectory.</li>
+        <li><strong>Verifiable rewards for language models.</strong> Physical success is decided by simulation rather than by human
+          labels, so language models are benchmarked and post-trained on simulator verdicts; a learned simulator turns each verdict
+          from a simulation into a network pass.</li>
+      </ul>
+      <p class="ov-why-note">PhysX remains the reference: it generates the training data and the final verdicts, and the learned
+        simulator is trusted only as far as its verdicts agree with PhysX's.</p>
       </div>
-      <p class="ov-why-note">The physics engine stays the referee: it produces the training data and the final verdicts, and the
-        learned simulator is trusted only as far as it agrees with it.</p>
       <h3 class="title is-4 ov-why-title">Milestones</h3>
       <ul class="ov-miles">
         <li class="done"><span class="ov-mile-state">done</span><strong>A simulation dataset.</strong> Furnished rooms and generated scenes simulated in PhysX, from rigid objects to hinged mechanisms, springs and soft bodies, with tasks whose answers the engine has verified, and scenes converted from the MOVi and Physion datasets. <a class="ov-mile-link" href="./scaled-results.html">Scaled results &rarr;</a></li>
@@ -185,7 +168,7 @@
         <li class="done"><span class="ov-mile-state">done</span><strong>First post-training.</strong> An open 7B language model trained with the simulator's verdicts as rewards (GRPO and DPO), then judged by the simulator on tasks it had not seen. <a class="ov-mile-link" href="#post-training">Post-training &rarr;</a></li>
         <li class="done"><span class="ov-mile-state">done</span><strong>The loop, end to end.</strong> Language models write tasks and propose actions, learned simulators preview them and PhysX decides, first at small scale and then on many generated scenes. <a class="ov-mile-link" href="./end-to-end.html">End-to-end study &rarr;</a></li>
         <li class="done"><span class="ov-mile-state">done</span><strong>A real scene in the simulator.</strong> A kitchen counter rebuilt from photographs as a digital twin and simulated in PhysX. <a class="ov-mile-link" href="./digital-twins.html">Digital twins &rarr;</a></li>
-        <li class="next"><span class="ov-mile-state">next</span><strong>World models that can stand in for the engine.</strong> Correct contacts, collisions and free flight first; then backward questions, error bands and descriptions in words; then the world model as the fast judge for post-training. <a class="ov-mile-link" href="#world_model-todo">World model to-dos &rarr;</a></li>
+        <li class="next"><span class="ov-mile-state">next</span><strong>World models that can stand in for the engine.</strong> A training set an order of magnitude larger than Physion and MOVi; correct contacts, collisions and free flight; then backward questions, error bands and descriptions in words, and the world model as the fast judge for post-training. <a class="ov-mile-link" href="#world_model-todo">World model to-dos &rarr;</a></li>
         <li class="next"><span class="ov-mile-state">next</span><strong>Real scenes without a twin.</strong> Scene graphs read from photographs and predictions shown in the real scene, with training data beyond rigid objects and sparse scenes: cloth, soft bodies and furnished rooms. <a class="ov-mile-link" href="#WM-I1">Real scenes &rarr;</a></li>
       </ul>
       <div class="wm-anim ov-map" id="ov-map">
@@ -910,7 +893,9 @@
           <p class="wm-todo-groups">All groups: <a href="#world_model-todo">A ghost motion, B kinematics, C shape and identity</a>
             (this section) &middot; <a href="#world_model-language-uncertainty">D words, E error bands</a> (11) &middot;
             <a href="#world_model-collisions">F collisions</a> (12) &middot; <a href="#world_model-backward">G backward questions</a>
-            (13) &middot; <a href="#world_model-data-real">H training data and speed, I real scenes</a> (14)</p>
+            (13) &middot; <a href="#world_model-data-real">H training data and speed, I real scenes</a> (14) &middot;
+            <a href="#world_model-tracking">J ideas from tracking and forecasting</a> (15) &middot;
+            <a href="#world_model-issues">K known issues</a> (16)</p>
         </div>
 
         <h4 class="title is-6 wm-subhead">A. Ghost motion: motion needs a cause</h4>
@@ -956,8 +941,9 @@
             \[ \mathcal{L}_{\text{ff}} = \sum_{t,i} \Big(1 - \max_j \hat\kappa^{ij}_t\Big) \Big( \big\lVert \tfrac{\hat v^i_{t+1} - \hat v^i_t}{\Delta t} - \mathbf{g} \big\rVert^2 + \big\lVert \hat\omega^i_{t+1} - \hat\omega^i_t \big\rVert^2 \Big) \]</li>
           <li id="WM-B3" data-todo="WM-B3"><span class="wm-todo-id">WM-B3</span><span class="wm-badge-todo">to do</span>
             <strong>No energy from nothing.</strong> After the action, kinetic plus potential energy may only fall (friction, inelastic
-            contacts), up to the evaluator's tolerance \(\delta\) (15 percent plus 0.03 J), with \(g = 9.81\) m/s²:
-            \[ E_t = \sum_i \tfrac12 m_i \lVert \hat v^i_t \rVert^2 + \tfrac12\, \hat\omega^{i\top}_t I_i\, \hat\omega^i_t + m_i\, g\, \hat z^i_t, \qquad \mathcal{L}_E = \sum_t \mathrm{relu}\big(E_{t+1} - E_t - \delta\big)^2 \]
+            contacts), up to the evaluator's tolerance \(\delta\) (15 percent plus 0.03 J), with \(g = 9.81\) m/s²; the inertia \(I_i\) is
+            given in the object's own frame and the spin in world axes, hence the rotation by \(\hat R^i_t\):
+            \[ E_t = \sum_i \tfrac12 m_i \lVert \hat v^i_t \rVert^2 + \tfrac12\, \hat\omega^{i\top}_t \hat R^i_t I_i \hat R^{i\top}_t\, \hat\omega^i_t + m_i\, g\, \hat z^i_t, \qquad \mathcal{L}_E = \sum_t \mathrm{relu}\big(E_{t+1} - E_t - \delta\big)^2 \]
             <span class="wm-todo-note">B3 and B4 are also the scaled study's proposal for what its rules leave: with step-wise prediction the energy gained from nowhere is 0.5 to 0.8 J per simulation for the best models, from 2.6 to 3.0 J in one pass (<a href="./improved-results-v2.html">Improved Results V2</a>).</span></li>
           <li id="WM-B4" data-todo="WM-B4"><span class="wm-todo-id">WM-B4</span><span class="wm-badge-todo">to do</span>
             <strong>Momentum at contacts.</strong> When two objects touch only each other in a frame (no floor or fixed object involved),
@@ -1338,6 +1324,18 @@
             actions, the learned simulator on one graphics card against PhysX, each at the accuracy it reaches. The timings of
             <a href="#world_model-why">section 2</a> come from the small toy model; this measures the scaled study's predictor and backs
             the speed claims of section 2 and of <a href="#post_training-wm-judge">Post-training, section 8</a>.</li>
+          <li id="WM-H4" data-todo="WM-H4"><span class="wm-todo-id">WM-H4</span><span class="wm-badge-todo">to do</span>
+            <strong>An order of magnitude more data than Physion and MOVi.</strong> In simulations the scaled study is already past both
+            datasets, but almost all of its rollouts are actions and what-if variations on fewer than a thousand scenes, while every
+            Physion or MOVi video is a new scene. Diversity of layouts, objects and materials is the gap to close: the target below is
+            ten times the larger of the two in distinct scenes as well as in simulations, for training and for testing, with test
+            scenes, assets and scene families held out.
+            <div class="table-container"><table class="table is-narrow is-fullwidth wm-table wm-datasets"><thead><tr><th></th><th>Physion</th><th>Kubric MOVi</th><th>Scaled study today</th><th>Target, ten times larger</th></tr></thead><tbody><tr><td>Simulator</td><td>ThreeDWorld (Unity), rendered movies</td><td>Kubric: PyBullet physics, Blender rendering</td><td>Isaac Sim 6.1 with PhysX, 1,920 steps per second; states, rendered on demand</td><td>same</td></tr><tr><td>Simulations</td><td>16,000 training + 8,000 readout + 1,200 test movies</td><td>about 9,750 training + 250 validation videos per variant, six variants (A to F): about 60,000</td><td>352,000 rollouts (314,000 pass the physics screen): 151,000 training, 58,000 validation, 143,000 test</td><td><b>at least 600,000 training</b> and <b>15,000 test</b> simulations</td></tr><tr><td>Distinct scenes</td><td>25,200, one per movie</td><td>about 60,000, one per video</td><td><b>976</b> (356 training, 140 validation, 480 test), with many actions each</td><td><b>at least 160,000 training scenes</b> (10&times; Physion), aiming at 600,000 (10&times; MOVi); <b>12,000 test scenes</b></td></tr><tr><td>Kinds of scenario</td><td>8: dominoes, support, collide, contain, drop, link, roll, drape</td><td>1: objects tossed onto a floor, in six visual variants</td><td>12 scene families, 17 task categories</td><td>all of these, plus actions in furnished rooms (H2)</td></tr><tr><td>Materials and dynamics</td><td>rigid bodies; cloth in Drape</td><td>rigid bodies; metal or rubber (A, B), scanned household objects (C to F)</td><td>rigid bodies, hinges, springs; soft bodies, cloth and ropes built from spring-linked pieces</td><td>add continuum soft bodies and cloth, articulated furniture</td></tr><tr><td>Physical properties varied</td><td>mainly the layout</td><td>material class</td><td>mass, friction and bounciness per object, in what-if pairs</td><td>continuous ranges for every object; hidden properties (G2)</td></tr><tr><td>Objects per scene</td><td>a few, by scenario</td><td>3 to 10 (A, B); 11 to 23 (D)</td><td>10 to 13 on average (8 to 10 movable)</td><td>up to 50 in furnished rooms</td></tr><tr><td>Length and rate</td><td>5 to 10 s at 30 frames per second</td><td>2 s: 24 frames at 12 per second</td><td>3 s at 30 frames per second</td><td>3 to 5 s at 30 frames per second</td></tr><tr><td>Actions</td><td>none: passive scenes</td><td>none: initial tosses</td><td>pushes, throws, drops, placements, swings, impulses, several at once</td><td>add actions written by language models (H1)</td></tr></tbody></table></div>
+            <span class="wm-todo-note">Sources: Physion, <a href="https://arxiv.org/abs/2106.08261">Bear et al., NeurIPS 2021 Datasets and
+            Benchmarks</a> (2,000 training, 1,000 readout and 150 test movies per scenario); Kubric MOVi,
+            <a href="https://github.com/google-research/kubric/tree/main/challenges/movi">Greff et al., CVPR 2022, dataset card</a>
+            (about 9,750 training and 250 validation videos per variant). The scaled study's numbers are from the
+            <a href="./scaled-results.html#mp-data">Scaled results</a> page.</span></li>
         </ul>
         <h4 class="title is-6 wm-subhead">I. From photographs to motion in real scenes</h4>
         <ul class="wm-todo">
@@ -1356,6 +1354,143 @@
         </ul>
         <p class="wm-note">H1 to H3 and I1, I2 come from the scaled study; its experiment status and open fixes are on the
           <a href="./scaled-results.html#mp-todo">Scaled results</a> page.</p>
+      </div>
+
+      <div class="wm-section wm-math" id="world_model-tracking">
+        <h3 class="title is-4">15. Borrowed from tracking, detection and forecasting (ideas to discuss)</h3>
+        <div class="content">
+          <p>Predicting a trajectory is regression of 3D positions, orientations and velocities over time, close to what point
+            tracking, object detection and trajectory forecasting optimise in pixels or on maps. Three of their tools are already in
+            the plan: the corner loss of 6D pose estimation (<a href="#WM-F5">F5</a>) and collision guidance from MotionDiffuser and
+            CTG (<a href="#WM-F6">F6</a>), both implemented in the scaled study's iteration 3, and winner-takes-all hypotheses from
+            trajectory forecasting (<a href="#WM-E5">E5</a>, not implemented). The items below are the others worth trying; none is
+            implemented.</p>
+          <p><strong>Which to back first.</strong> For objects passing through each other, the main failure: collision guidance (F6)
+            first, because it exists and needs no retraining, although it can only push objects apart and cannot produce the bounce;
+            then iterative refinement (J1), the idea of TAPIR and its relatives, which gives the network what it lacks, the geometry at
+            the predicted positions throughout the motion, and composes with step-wise blocks and guidance. The corner loss (F5) targets
+            toppling rather than passing through, and winner-takes-all (E5) targets forks; both are cheap and worth keeping. Iteration
+            3's measurements decide the order.</p>
+        </div>
+        <ul class="wm-todo">
+          <li id="WM-J1" data-todo="WM-J1" class="is-idea"><span class="wm-todo-id">WM-J1</span><span class="wm-badge-idea">idea</span>
+            <strong>Iterative refinement with geometry recomputed at the current estimate.</strong> Point trackers initialise a whole
+            track and refine it several times with features read at the current estimate (TAPIR, PIPs, CoTracker; RAFT for optical
+            flow; iterative box refinement in Deformable DETR). Here: start from the one-shot or step-wise prediction, recompute gaps,
+            normals, approach speeds and times to impact (F2) along the predicted trajectory, at sub-steps, predict a correction, and
+            train every iterate with RAFT's sequence loss:
+            \[ Y^{(k+1)} = Y^{(k)} + \Delta_\theta\big(Y^{(k)},\ \phi(Y^{(k)}),\ G,\ a\big), \quad k = 0, \dots, K - 1, \qquad
+               \mathcal{L}_{\text{seq}} = \sum_{k=1}^{K} \gamma^{K-k}\, \big\lVert Y^{(k)} - Y \big\rVert_w^2, \ \ \gamma = 0.8 \]</li>
+          <li id="WM-J2" data-todo="WM-J2" class="is-idea"><span class="wm-todo-id">WM-J2</span><span class="wm-badge-idea">idea</span>
+            <strong>A memory token per object across blocks.</strong> Step-wise blocks (F1) pass on only the decoded 15-number state,
+            so contact history and whatever else the network knew is lost at every block boundary. Trackers carry one query per object
+            from frame to frame (TrackFormer, MOTR); carry each object's latent \(h^i\) as well:
+            \[ \big(\hat s_{6b+1\,:\,6b+6},\ h_{b+1}\big) = f_\theta\big(\hat s_{6b},\ h_b,\ G,\ a_b\big) \]</li>
+          <li id="WM-J3" data-todo="WM-J3" class="is-idea"><span class="wm-todo-id">WM-J3</span><span class="wm-badge-idea">idea</span>
+            <strong>Train on its own predictions.</strong> At test time a block starts from the model's own, imperfect end state; in
+            training, from the true one. The pushforward trick of neural PDE solvers (Brandstetter et al. 2022), like scheduled sampling
+            in sequence models, starts the next block from the model's own prediction without back-propagating through it. Gaussian
+            noise on the start state did not help (F1), which suggests the model's own errors are not Gaussian:
+            \[ \mathcal{L}_{\text{pf}} = \ell\Big( f_\theta\big(\mathrm{sg}[\hat s_{6b+6}],\ G\big),\ s_{6b+7\,:\,6b+12} \Big), \qquad
+               \hat s_{6b+6} \text{ from } f_\theta(s_{6b}, G, a_b) \]</li>
+          <li id="WM-J4" data-todo="WM-J4" class="is-idea"><span class="wm-todo-id">WM-J4</span><span class="wm-badge-idea">idea</span>
+            <strong>Symmetries: rotations about the vertical, shifts along the floor.</strong> The physics of a scene is unchanged when
+            the whole scene and the action are rotated about the direction of gravity or shifted horizontally. Forecasting models build
+            this in with agent-centred frames (HiVT, QCNet), detectors with augmentation. Train with random such transforms \(T\), or
+            express each object's motion in a frame aligned with gravity and the action; at test time, average over a few rotations, a
+            cheap ensemble whose spread feeds E1:
+            \[ \Phi(TG,\ Ta) = T\,\Phi(G, a) \ \ \text{for } T \in \mathrm{SE}(2) \text{ in the floor plane}, \qquad
+               \hat Y_{\text{tta}} = \frac{1}{K} \sum_{k=1}^{K} T_k^{-1} f_\theta\big(T_k G,\ T_k a\big) \]</li>
+          <li id="WM-J5" data-todo="WM-J5" class="is-idea"><span class="wm-todo-id">WM-J5</span><span class="wm-badge-idea">idea</span>
+            <strong>Rotation losses that respect geometry.</strong> Measure orientation error as the angle of the rotation between
+            prediction and truth (or its smooth surrogate \(1 - \cos d\)) rather than a squared difference of matrix entries, and, as in
+            pose estimation of symmetric objects (PoseCNN's ADD-S), ignore rotations about an object's symmetry axes in the orientation
+            loss while still supervising its spin (\(\mathcal{S}_i\) is the symmetry group of object \(i\)'s shape):
+            \[ d(\hat R, R) = \arccos \frac{\mathrm{tr}(\hat R^\top R) - 1}{2}, \qquad \mathcal{L}_{\text{rot}} = \min_{S \in \mathcal{S}_i} d\big(\hat R\, S,\ R\big) \]</li>
+          <li id="WM-J6" data-todo="WM-J6" class="is-idea"><span class="wm-todo-id">WM-J6</span><span class="wm-badge-idea">idea</span>
+            <strong>Robust, uncertainty-aware regression.</strong> Errors around impacts are heavy-tailed, so under a squared loss a
+            few missed bounces dominate training. Use the Smooth L1 loss of detection (Fast R-CNN) or the Laplace likelihood of trajectory
+            forecasters (HiVT, QCNet), whose scale \(b_\theta\) doubles as a predicted spread (E2):
+            \[ \mathcal{L}_{\text{lap}} = \frac{\lvert y - \mu_\theta \rvert}{b_\theta} + \log 2 b_\theta \]</li>
+          <li id="WM-J7" data-todo="WM-J7" class="is-idea"><span class="wm-todo-id">WM-J7</span><span class="wm-badge-idea">idea</span>
+            <strong>Rare events count more.</strong> Contacts, bounces and topples occupy a few percent of the frames. Train the
+            contact head with the focal loss of dense detection (Lin et al. 2017) and over-sample training blocks that contain an
+            impact, as hard-example mining does (OHEM); F4's double weight on new contacts is the simplest version:
+            \[ \mathrm{FL}(p_t) = -(1 - p_t)^{\gamma} \log p_t \]</li>
+          <li id="WM-J8" data-todo="WM-J8" class="is-idea"><span class="wm-todo-id">WM-J8</span><span class="wm-badge-idea">idea</span>
+            <strong>A ballistic reference, and projection at test time.</strong> Trackers predict with a constant-velocity Kalman model
+            (SORT); its physical version, constant velocity plus gravity until the first contact, is the simplest reference to report
+            next to "nothing moves". After a prediction, a few iterations of position-based dynamics (M&uuml;ller et al. 2007) move
+            overlapping objects apart in proportion to their inverse masses, and velocities are recomputed from the corrected positions:
+            hard constraints at test time, complementary to guidance (F6):
+            \[ \hat p^i_t \leftarrow \hat p^i_t - \frac{w_i}{w_i + w_j}\, \big(d_{ij}\big)^{+} n_{ij}, \qquad
+               \hat p^j_t \leftarrow \hat p^j_t + \frac{w_j}{w_i + w_j}\, \big(d_{ij}\big)^{+} n_{ij}, \qquad w_i = 1 / m_i \]</li>
+        </ul>
+      </div>
+
+      <div class="wm-section wm-math" id="world_model-issues">
+        <h3 class="title is-4">16. Known issues</h3>
+        <div class="content">
+          <p>Bugs and blind spots found while reading the code and the results, with their state. Numbers affected by an open issue
+            should be checked before they are compared.</p>
+        </div>
+        <ul class="wm-todo">
+          <li id="WM-K1" data-todo="WM-K1" class="is-open"><span class="wm-todo-id">WM-K1</span><span class="wm-badge-open">open</span>
+            <strong>The DDPM sampler divides by nearly zero at its first step.</strong> The scaled study's DDPM member samples with DDIM
+            from \(t = 1\), where its cosine schedule gives \(\bar\alpha(1) \approx 2 \times 10^{-15}\) in single precision. The first
+            step's estimate \(\hat Y_0 = \big(Y_t - \sqrt{1 - \bar\alpha}\, \hat\varepsilon\big) / \sqrt{\bar\alpha}\) therefore divides by
+            about \(4 \times 10^{-8}\), and the clamp to \(\pm 6\) saturates every coordinate. Its reported failure (3.0 m average
+            error on validation scenes, 2.4 m drift of objects that never move) is more likely this bug than a property of diffusion;
+            the end-to-end study's DDPM clamps \(\bar\alpha \ge 10^{-4}\) and trained normally. Fix: the same clamp (or clip
+            \(\beta_t \le 0.999\) as in improved DDPM), then re-evaluate.</li>
+          <li id="WM-K2" data-todo="WM-K2" class="is-open"><span class="wm-todo-id">WM-K2</span><span class="wm-badge-open">open</span>
+            <strong>No gravity in free flight.</strong> Integrated motion starts from zero acceleration and nothing teaches gravity, so
+            objects in the air fly straight: the free-flight acceleration error is 9.2 to 10.3 m/s² in every model. Fix: gravity by
+            default (<a href="#WM-B2">B2</a>).</li>
+          <li id="WM-K3" data-todo="WM-K3" class="is-open"><span class="wm-todo-id">WM-K3</span><span class="wm-badge-open">open</span>
+            <strong>The position update is off by half an acceleration step.</strong> Positions are summed with end-of-frame velocities,
+            \(p_t = p_{t-1} + v_t \Delta t\). Under a constant acceleration \(a\) this misplaces every frame by
+            \(\tfrac12 a \Delta t^2\), 5.5 mm per frame under gravity and 16 cm after one second of free fall, so positions and velocities
+            can never both match a falling object. Mostly hidden today, because K2 keeps accelerations near zero in flight; once
+            gravity is the default it will show. Fix: the trapezoid
+            rule \(p_t = p_{t-1} + \tfrac{\Delta t}{2}(v_{t-1} + v_t)\), exact for constant acceleration and the rule the benchmark's own
+            motion screen uses (<a href="#WM-B1">B1</a>).</li>
+          <li id="WM-K4" data-todo="WM-K4" class="is-open"><span class="wm-todo-id">WM-K4</span><span class="wm-badge-open">open</span>
+            <strong>Orientation and spin do not have to agree.</strong> Orientation is predicted as a change from the post-action pose
+            and spin separately, so no rotation of the object need produce the predicted orientations. Fix: integrate the spin
+            (<a href="#WM-B1">B1</a>).</li>
+          <li id="WM-K5" data-todo="WM-K5" class="is-open"><span class="wm-todo-id">WM-K5</span><span class="wm-badge-open">open</span>
+            <strong>A bounce cannot happen inside a frame.</strong> The model outputs a smooth acceleration per frame, but a bounce is a
+            velocity jump within one; at 30 frames per second a cone at 4.5 m/s moves 15 cm between frames, more than a wall's thickness,
+            so a smooth path passes through or averages the two outcomes. F1 to F6 address parts of it
+            (<a href="#world_model-collisions">section 12</a>); ending a block at the predicted time of impact is a further option to
+            discuss.</li>
+          <li id="WM-K6" data-todo="WM-K6" class="is-done"><span class="wm-todo-id">WM-K6</span><span class="wm-badge-done">fixed</span>
+            <strong>The first overlap rule could not see thin obstacles.</strong> Iteration 1 checked axis-aligned boxes every third
+            frame, 45 cm apart at 4.5 m/s, and treated fixed objects stored after the moving ones (most walls, poles and ramps) as
+            points. The bug was fixed on 15 October and iteration 3 checks pieces every frame (<a href="#WM-F3">F3</a>); Improved Results
+            V1's overlap numbers undercount until they are recomputed.</li>
+          <li id="WM-K7" data-todo="WM-K7" class="is-open"><span class="wm-todo-id">WM-K7</span><span class="wm-badge-open">open</span>
+            <strong>The cause rule reads the answer.</strong> Iteration 1's rule against motion before contact uses the true moment each
+            object starts to move, so it cannot act at inference or on a scene without a simulation. Fix: the causal cone over predicted
+            contacts (<a href="#WM-A2">A2</a>).</li>
+          <li id="WM-K8" data-todo="WM-K8" class="is-open"><span class="wm-todo-id">WM-K8</span><span class="wm-badge-open">open</span>
+            <strong>No measure catches missing motion.</strong> Every violation measure punishes moving too much (overlap, bystanders,
+            energy), none moving too little, so a timid model that barely moves scores well on all of them. Report, for objects that
+            really move, the ratio of predicted to true path length; a timid model has \(\rho \lt 1\):
+            \[ \rho = \frac{1}{|\mathcal{M}|} \sum_{i \in \mathcal{M}} \frac{\sum_t \lVert \hat p^i_{t+1} - \hat p^i_t \rVert}{\sum_t \lVert p^i_{t+1} - p^i_t \rVert} \]</li>
+          <li id="WM-K9" data-todo="WM-K9" class="is-open"><span class="wm-todo-id">WM-K9</span><span class="wm-badge-open">open</span>
+            <strong>Single-sample distance errors favour regression.</strong> A regressor predicts the average of the possible
+            futures, a generative member draws one of them and is penalised for it, so ADE ranks the two unfairly. Compare on verdict
+            agreement \(\alpha\), and score generative members with several samples (best of \(k\), or the energy score
+            \(\mathbb{E}\lVert X - y \rVert - \tfrac12 \mathbb{E}\lVert X - X' \rVert\)).</li>
+          <li id="WM-K10" data-todo="WM-K10" class="is-done"><span class="wm-todo-id">WM-K10</span><span class="wm-badge-done">fixed</span>
+            <strong>Energy formula on this page.</strong> B3 used the inertia in the object's frame with the spin in world axes; it now
+            rotates the inertia into world axes.</li>
+        </ul>
+        <p class="wm-note">Resolved since first noted: the Scaled results planning tables showed 0 percent in every cell before their
+          runs finished (now filled in), and models were chosen and reported on the same validation scenes (test results are now on
+          held-out test tasks).</p>
       </div>
 
       <!-- this block's data and scripts (deferred: they run after the page is parsed, in this order) -->
@@ -1678,7 +1813,8 @@
       <h2 class="wm-intro-title">What has been measured so far</h2>
       <p>Every number in this tab is decided by the simulator, not by a person or by a model acting as judge: how well GPT-5.4 and an
         open model edit and launch objects in simulated rooms, how the first small world models compare with PhysX, and what a 7B open
-        model gains from post-training with simulator rewards. The end-to-end and scaled studies have their own tabs.</p>
+        model gains from post-training with simulator rewards. The end-to-end and scaled studies have their own tabs, and bugs that
+        affect reported numbers are listed under <a href="#world_model-issues">known issues</a>.</p>
     </div>
   </div>
   <!-- ---------- result: benchmark_v31 ---------- -->
