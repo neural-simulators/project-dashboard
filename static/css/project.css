@@ -159,10 +159,13 @@ body { color: var(--wm-text); }
 }
 @media (min-width: 1216px) {
   .container.is-max-desktop:has(> .wm-tabs) { max-width: 1152px; }
-  .tabs.wm-tabs { overflow: visible; }
-  .tabs.wm-tabs ul { flex-wrap: wrap; }
+  .tabs.wm-tabs { overflow: visible; white-space: normal; }
+  .tabs.wm-tabs ul { flex-wrap: wrap; flex-shrink: 1; justify-content: center; }
   .tabs.wm-tabs a { padding: 0.5em 0.55em; font-size: 0.95rem; }
   .wm-tabs .icon:first-child { margin-right: 0.3em; }
+}
+@media (min-width: 1408px) {   /* nine or more tabs: one row on large screens */
+  .container.is-max-desktop:has(> .wm-tabs) { max-width: 1344px; }
 }
 
 /* overview project map: boxes link to their tab; the walk-through lights one link at a time */
@@ -202,3 +205,37 @@ body { color: var(--wm-text); }
 .wm-todo-id { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.8rem; color: var(--wm-slate); margin-right: 0.45rem; }
 .wm-badge-todo { display: inline-block; font-size: 0.72rem; line-height: 1.5; padding: 0 0.5rem; margin-right: 0.45rem; border-radius: 999px;
   color: #8a5a00; background: #fff8e8; border: 1px solid #f0d28a; vertical-align: 1px; }
+
+/* section 11 figures (language head and uncertainty) and the event timeline */
+.lg-fig text { font-size: 13px; fill: #333; }
+.lg-fig .lg-box { fill: #fff; stroke: #c7cdd6; stroke-width: 1.5; }
+.lg-fig .lg-model { fill: #e8eef9; stroke: var(--wm-blue); }
+.lg-fig .lg-code { fill: #eef7f0; stroke: #2b8a3e; }
+.lg-fig .lg-physx { fill: #fdecee; stroke: var(--wm-red); }
+.lg-fig .lg-text { fill: #f3f0fc; stroke: #7048e8; }
+.lg-fig .lg-new { fill: #fff8e8; stroke: var(--wm-amber); stroke-dasharray: 5 3; }
+.lg-fig .lg-stack { fill: #fff; stroke: #8da2c0; }
+.lg-fig .lg-arrow { fill: none; stroke: #55606e; stroke-width: 1.6; }
+.lg-fig .lg-thin { stroke-width: 1.2; stroke: #8a94a3; }
+.lg-fig .lg-dash { stroke-dasharray: 6 4; }
+.lg-fig .lg-amber { stroke: #c77d00; }
+.lg-fig .lg-label { font-size: 12.5px; fill: #55606e; }
+.lg-fig .lg-amberlabel { fill: #a86800; }
+.lg-fig .lg-note { font-size: 12.5px; fill: #55606e; }
+.lg-fig .lg-bad { fill: var(--wm-red); }
+.lg-fig .lg-strong { font-weight: 700; }
+.lg-fig .ue-frame { fill: #fff; stroke: #c7cdd6; }
+.lg-fig .ue-band { fill: rgba(31, 111, 235, 0.16); stroke: rgba(31, 111, 235, 0.45); stroke-width: 1; }
+.lg-fig .ue-sample { fill: none; stroke: #9aa3ad; stroke-width: 1; opacity: 0.75; }
+.lg-fig .ue-truth { fill: none; stroke: #222; stroke-width: 2.2; stroke-dasharray: 7 4; }
+.wm-timeline { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.8rem; margin: 0.6rem 0 1rem; }
+.wm-tl-col { background: #fff; border: 1px solid var(--wm-border); border-top: 4px solid #2b8a3e; border-radius: 6px; padding: 0.6rem 0.85rem; min-width: 0; }
+.wm-tl-col.wm-tl-bad { border-top-color: var(--wm-red); }
+.wm-tl-head { font-family: 'Google Sans', sans-serif; font-weight: 600; color: #222; margin: 0 0 0.4rem; font-size: 0.95rem; }
+.wm-tl-col ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.25rem; }
+.wm-tl-col li { font-size: 0.92rem; line-height: 1.45; padding-left: 0.1rem; }
+.wm-tl-col li b { display: inline-block; min-width: 3.4rem; font-variant-numeric: tabular-nums; color: #222; }
+.wm-tl-col li.bad { color: var(--wm-red); }
+.wm-tl-col li.bad i { color: #8a1c2b; }
+.wm-tl-diff { margin: 0.5rem 0 0; font-size: 0.9rem; color: var(--wm-text); border-top: 1px solid var(--wm-border); padding-top: 0.4rem; }
+@media (max-width: 760px) { .wm-timeline { grid-template-columns: 1fr; } }

@@ -13,7 +13,7 @@
 
   <link rel="stylesheet" href="./static/css/bulma.min.css?v=58b2865922">
   <link rel="stylesheet" href="./static/css/index.css?v=747bae5899">
-  <link rel="stylesheet" href="./static/css/project.css?v=eae1be030d">
+  <link rel="stylesheet" href="./static/css/project.css?v=c3a7c9cfd4">
   <link rel="stylesheet" href="./static/vendor/katex/katex.min.css">
   <link rel="icon" href="./static/images/favicon.svg">
 
@@ -849,6 +849,181 @@
             the ghost-motion rate and the verdict agreement \(\alpha\). Suggested order: B1 and A1 (constructions, nothing to tune),
             then A2 and B2 (they need the contact head), then B3 to B6; for shape, C1 and C4 first (cheap and exact), then C2 and C3.</p>
         </div>
+      </div>
+
+      <div class="wm-section wm-math" id="world_model-language-uncertainty">
+        <h3 class="title is-4">11. Saying what happens, and how sure it is (to do)</h3>
+        <div class="content">
+          <p>Two features make the world model usable by people. It should say in words what its predicted trajectory contains, and
+            when, while staying faithful to that trajectory even when the trajectory is wrong. And it should attach an honest error band
+            to what it predicts, which matters most on real scenes, where the scene graph itself is estimated from photographs. The
+            uncertainty items build on items 3, 11 and 16 of the to-do list on the Scaled results page.</p>
+        </div>
+
+        <h4 class="title is-6 wm-subhead">D. A description in words that cannot contradict the trajectory</h4>
+        <figure class="wm-figure">
+          <div class="wm-svg-scroll">
+            <svg class="wm-diagram lg-fig" viewBox="0 0 900 350" role="img" aria-label="The transformer's trajectory and contact heads feed a fixed event extractor whose events are turned into text; the same extractor on PhysX rollouts gives the training targets and the differences; a new event head is trained on PhysX events and kept consistent with the model's own trajectory.">
+<defs><marker id="lg-head-d" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#55606e"/></marker></defs><rect x="10" y="26" width="112" height="60" rx="8" class="lg-box "/><text x="66" y="52" text-anchor="middle" font-weight="700">scene graph</text><text x="66" y="68" text-anchor="middle">+ action</text>
+<rect x="138" y="26" width="112" height="60" rx="8" class="lg-box lg-model"/><text x="194" y="60" text-anchor="middle" font-weight="700">transformer</text>
+<rect x="266" y="26" width="112" height="60" rx="8" class="lg-box "/><text x="322" y="52" text-anchor="middle" font-weight="700">trajectory</text><text x="322" y="68" text-anchor="middle">and contacts</text>
+<rect x="394" y="26" width="112" height="60" rx="8" class="lg-box lg-code"/><text x="450" y="44" text-anchor="middle" font-weight="700">event</text><text x="450" y="60" text-anchor="middle">extractor</text><text x="450" y="76" text-anchor="middle">fixed code</text>
+<rect x="522" y="26" width="112" height="60" rx="8" class="lg-box "/><text x="578" y="52" text-anchor="middle" font-weight="700">events of the</text><text x="578" y="68" text-anchor="middle">prediction</text>
+<rect x="650" y="26" width="112" height="60" rx="8" class="lg-box lg-text"/><text x="706" y="44" text-anchor="middle" font-weight="700">verbalizer</text><text x="706" y="60" text-anchor="middle">templates,</text><text x="706" y="76" text-anchor="middle">then small LM</text>
+<rect x="778" y="26" width="112" height="60" rx="8" class="lg-box lg-text"/><text x="834" y="52" text-anchor="middle" font-weight="700">text with</text><text x="834" y="68" text-anchor="middle">times</text>
+<path d="M122,56 L136,56" marker-end="url(#lg-head-d)" class="lg-arrow "/>
+<path d="M250,56 L264,56" marker-end="url(#lg-head-d)" class="lg-arrow "/>
+<path d="M378,56 L392,56" marker-end="url(#lg-head-d)" class="lg-arrow "/>
+<path d="M506,56 L520,56" marker-end="url(#lg-head-d)" class="lg-arrow "/>
+<path d="M634,56 L648,56" marker-end="url(#lg-head-d)" class="lg-arrow "/>
+<path d="M762,56 L776,56" marker-end="url(#lg-head-d)" class="lg-arrow "/>
+<rect x="138" y="156" width="112" height="60" rx="8" class="lg-box lg-new"/><text x="194" y="182" text-anchor="middle" font-weight="700">event head</text><text x="194" y="198" text-anchor="middle">(new)</text>
+<rect x="266" y="156" width="112" height="60" rx="8" class="lg-box lg-physx"/><text x="322" y="174" text-anchor="middle" font-weight="700">PhysX rollout</text><text x="322" y="190" text-anchor="middle">(training and</text><text x="322" y="206" text-anchor="middle">evaluation)</text>
+<rect x="394" y="156" width="112" height="60" rx="8" class="lg-box lg-code"/><text x="450" y="174" text-anchor="middle" font-weight="700">event</text><text x="450" y="190" text-anchor="middle">extractor</text><text x="450" y="206" text-anchor="middle">same code</text>
+<rect x="522" y="156" width="112" height="60" rx="8" class="lg-box "/><text x="578" y="182" text-anchor="middle" font-weight="700">events of</text><text x="578" y="198" text-anchor="middle">PhysX</text>
+<rect x="650" y="156" width="112" height="60" rx="8" class="lg-box lg-text"/><text x="706" y="174" text-anchor="middle" font-weight="700">difference</text><text x="706" y="190" text-anchor="middle">missed, extra,</text><text x="706" y="206" text-anchor="middle">late events</text>
+<path d="M194,86 L194,154" marker-end="url(#lg-head-d)" class="lg-arrow "/>
+<path d="M378,186 L392,186" marker-end="url(#lg-head-d)" class="lg-arrow "/>
+<path d="M506,186 L520,186" marker-end="url(#lg-head-d)" class="lg-arrow "/>
+<path d="M634,186 L648,186" marker-end="url(#lg-head-d)" class="lg-arrow "/>
+<path d="M620,86 L666,154" marker-end="url(#lg-head-d)" class="lg-arrow lg-thin"/>
+<path d="M732,156 L732,88" marker-end="url(#lg-head-d)" class="lg-arrow lg-thin"/>
+<path d="M234,156 L234,124 L558,124 L558,88" marker-end="url(#lg-head-d)" class="lg-arrow lg-dash lg-amber"/>
+<text x="274" y="117" text-anchor="start" class="lg-label lg-amberlabel">kept consistent with its own trajectory</text>
+<path d="M194,216 L194,252 L578,252 L578,218" marker-end="url(#lg-head-d)" class="lg-arrow lg-dash"/>
+<text x="274" y="270" text-anchor="start" class="lg-label">trained on the events of PhysX</text>
+<text x="10" y="312" text-anchor="start" class="lg-note">Events: a contact begins or ends, an object lands, comes to rest, tips over, enters or leaves a region.</text>
+<text x="10" y="332" text-anchor="start" class="lg-note lg-bad">Impossible events: overlap deeper than 5 mm, sinking into a support, motion without a cause, energy gain.</text>
+            </svg>
+          </div>
+          <figcaption>The text describes the events found in the model's own predicted trajectory, so it cannot claim a collision that
+            the trajectory does not contain. The same extractor, run on PhysX, gives the training targets and the list of what the
+            prediction missed.</figcaption>
+        </figure>
+        <div class="wm-timeline">
+          <div class="wm-tl-col">
+            <p class="wm-tl-head">What PhysX did: events extracted from the sample task's real rollout</p>
+            <ol>
+              <li><b>0.00 s</b> The red ball is launched at 3.9 m/s, 60 degrees up.</li>
+              <li><b>0.33 s</b> It reaches its highest point, its centre 0.68 m above the floor.</li>
+              <li><b>0.46 s</b> It passes over the gray barrier with 22 cm to spare.</li>
+              <li><b>0.69 s</b> It lands on the floor.</li>
+              <li><b>0.87 s</b> It hits the blue ball.</li>
+              <li><b>0.90 s</b> The blue ball starts rolling.</li>
+              <li><b>2.00 s</b> Both balls are still rolling at about 0.6 m/s; the blue ball is 0.73 m from where it started.</li>
+            </ol>
+          </div>
+          <div class="wm-tl-col wm-tl-bad">
+            <p class="wm-tl-head">What a faulty prediction would say (illustration, not a model output)</p>
+            <ol>
+              <li><b>0.00 s</b> The red ball is launched at 3.9 m/s, 60 degrees up.</li>
+              <li class="bad"><b>0.20 s</b> The blue ball starts moving although nothing touches it. <i>Impossible: motion without a cause.</i></li>
+              <li class="bad"><b>0.71 s</b> The red ball lands 5 cm inside the floor. <i>Impossible: it sinks.</i></li>
+              <li><b>2.00 s</b> The red ball comes to rest 0.4 m short of the blue ball.</li>
+            </ol>
+            <p class="wm-tl-diff">Compared with PhysX: <b>missed</b> the hit at 0.87 s; <b>extra</b> motion of the blue ball before any contact.</p>
+          </div>
+        </div>
+        <ul class="wm-todo">
+          <li data-todo="WM-D1"><span class="wm-todo-id">WM-D1</span><span class="wm-badge-todo">to do</span>
+            <strong>Event extractor, fixed code.</strong> One function turns any trajectory with contacts into a list of timed events,
+            \(\mathcal{E}(s_{1:T}, \kappa) = \{(t,\ \text{type},\ i,\ j,\ \text{value})\}\): a contact begins or ends, an object lands, comes to
+            rest, tips over, enters or leaves a region or a container; and the impossible ones: an overlap deeper than 5 mm, sinking into a
+            support, motion outside the causal cone of WM-A2, an energy gain (WM-B3). Run on PhysX it labels every rollout for free, and most
+            of it exists already in the benchmark's goal checks (contacts, deadlines, end regions, rest). Events written by the language
+            model that generates the scenes are needed only for intent ("the ball was meant to land in the box").</li>
+          <li data-todo="WM-D2"><span class="wm-todo-id">WM-D2</span><span class="wm-badge-todo">to do</span>
+            <strong>Event head, trained on PhysX and consistent with itself.</strong> A light head on the transformer's output slots predicts
+            the events directly (per object pair and frame: a contact begins or ends; per object: lands, rests, tips, enters a region). It is
+            trained on the PhysX events and pulled toward the events of the model's own trajectory. Where the two disagree, the model
+            contradicts itself, which is a useful flag of low confidence:
+            \[ \mathcal{L}_{\text{ev}} = \mathrm{BCE}\big(\hat e,\ \mathcal{E}(s_{1:T}, \kappa)\big) + \lambda\, \mathrm{BCE}\big(\hat e,\ \mathrm{sg}[\mathcal{E}(\hat Y, \hat\kappa)]\big) \]</li>
+          <li data-todo="WM-D3"><span class="wm-todo-id">WM-D3</span><span class="wm-badge-todo">to do</span>
+            <strong>Verbalizer.</strong> Events become sentences: first with templates (exact, no model), then with a small language model
+            fine-tuned on pairs of event list and paragraph, its wording varied by a larger model that paraphrases the template text while the
+            facts stay fixed. The text is parsed back into events and must reproduce the input list exactly. A language decoder that reads
+            the hidden states directly can come later, only with this round-trip check: a decoder that reads features is free to describe
+            what usually happens rather than what this trajectory shows.</li>
+          <li data-todo="WM-D4"><span class="wm-todo-id">WM-D4</span><span class="wm-badge-todo">to do</span>
+            <strong>Anomalies and differences in words.</strong> Every imperfect prediction made during training is an example of an
+            impossible event with an exact label (overlap depth, sinking, unexplained motion), so no special data set of anomalies is needed:
+            the toy models alone overlap objects by a median of 15 to 34 cm. Comparing the predicted and the PhysX event lists gives missed,
+            extra and late events, and event-level F1 and timing error join the metrics next to ADE. Captions of rendered frames by a
+            vision-language model stay an outside check that the text matches what a person sees, and the only option on real scenes
+            without a simulated truth. They are not training labels: the geometric labels are exact, and captions miss centimetre
+            overlaps.</li>
+        </ul>
+
+        <h4 class="title is-6 wm-subhead">E. Error bands that mean something</h4>
+        <figure class="wm-figure">
+          <div class="wm-svg-scroll">
+            <svg class="wm-diagram lg-fig" viewBox="0 0 900 300" role="img" aria-label="A scene graph with ranges estimated from photographs is sampled K times; the world model draws S futures for each; per object and frame the 5 and 95 percent quantiles form a band, calibrated on held-out simulations; the chart shows sample paths, the band and the PhysX truth inside it.">
+<defs><marker id="lg-head-u" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#55606e"/></marker></defs><rect x="10" y="40" width="130" height="70" rx="8" class="lg-box lg-physx"/><text x="75" y="71" text-anchor="middle" font-weight="700">photographs</text><text x="75" y="87" text-anchor="middle">of a real scene</text>
+<rect x="10" y="150" width="130" height="120" rx="8" class="lg-box "/><text x="75" y="182" text-anchor="middle" font-weight="700">scene graph</text><text x="75" y="198" text-anchor="middle">with ranges:</text><text x="75" y="214" text-anchor="middle">position ± 2 cm</text><text x="75" y="230" text-anchor="middle">mass 0.2 to 0.3 kg</text><text x="75" y="246" text-anchor="middle">friction 0.4 to 0.8</text>
+<path d="M75,110 L75,148" marker-end="url(#lg-head-u)" class="lg-arrow "/>
+<rect x="176" y="132" width="110" height="70" rx="8" class="lg-box lg-stack"/>
+<rect x="184" y="140" width="110" height="70" rx="8" class="lg-box lg-stack"/>
+<rect x="192" y="148" width="110" height="70" rx="8" class="lg-box lg-stack"/>
+<text x="247" y="170" text-anchor="middle" class="lg-strong">K scene samples</text>
+<text x="247" y="186" text-anchor="middle" class="">drawn from</text>
+<text x="247" y="202" text-anchor="middle" class="">the ranges</text>
+<path d="M140,210 L174,210" marker-end="url(#lg-head-u)" class="lg-arrow "/>
+<rect x="338" y="150" width="130" height="70" rx="8" class="lg-box lg-model"/><text x="403" y="181" text-anchor="middle" font-weight="700">world model</text><text x="403" y="197" text-anchor="middle">S samples each</text>
+<path d="M310,186 L336,186" marker-end="url(#lg-head-u)" class="lg-arrow "/>
+<rect x="338" y="40" width="130" height="70" rx="8" class="lg-box "/><text x="403" y="71" text-anchor="middle" font-weight="700">K × S futures</text><text x="403" y="87" text-anchor="middle">in one batch</text>
+<path d="M403,150 L403,112" marker-end="url(#lg-head-u)" class="lg-arrow "/>
+<path d="M468,75 L586,75" marker-end="url(#lg-head-u)" class="lg-arrow "/>
+<text x="527" y="96" text-anchor="middle" class="lg-label">quantiles per</text>
+<text x="527" y="112" text-anchor="middle" class="lg-label">object and frame</text>
+<text x="338" y="252" text-anchor="start" class="lg-note">calibrated on held-out simulations:</text>
+<text x="338" y="268" text-anchor="start" class="lg-note">the 90% band must contain the truth</text>
+<text x="338" y="284" text-anchor="start" class="lg-note">in 90% of cases (conformal scaling)</text>
+<rect x="590" y="40" width="290" height="230" class="ue-frame"/>
+<path d="M600.0,262.0 L606.9,255.6 L613.8,249.5 L620.7,243.6 L627.6,238.0 L634.5,232.5 L641.4,227.3 L648.3,222.2 L655.2,217.8 L662.1,213.6 L669.0,209.3 L675.9,205.4 L682.8,201.9 L689.7,198.7 L696.6,195.5 L703.5,192.8 L710.4,190.3 L717.3,187.8 L724.2,185.9 L731.1,184.5 L738.0,182.9 L744.9,182.2 L751.8,182.0 L758.7,181.7 L765.6,181.5 L772.5,181.5 L779.4,181.5 L786.3,181.5 L793.2,181.5 L800.1,181.5 L807.0,181.5 L813.9,181.5 L820.8,181.5 L827.7,181.5 L834.6,181.5 L841.5,181.5 L848.4,181.5 L855.3,181.5 L862.2,181.5 L869.1,181.5 L876.0,181.5 L876.0,67.5 L869.1,69.6 L862.2,70.3 L855.3,71.3 L848.4,72.4 L841.5,74.1 L834.6,76.8 L827.7,79.6 L820.8,82.7 L813.9,85.5 L807.0,88.3 L800.1,91.3 L793.2,94.5 L786.3,98.0 L779.4,101.7 L772.5,106.5 L765.6,110.7 L758.7,114.1 L751.8,118.0 L744.9,122.7 L738.0,127.7 L731.1,132.9 L724.2,138.0 L717.3,143.4 L710.4,149.0 L703.5,154.4 L696.6,160.0 L689.7,166.4 L682.8,172.3 L675.9,178.7 L669.0,185.0 L662.1,191.9 L655.2,198.8 L648.3,206.0 L641.4,213.3 L634.5,221.0 L627.6,228.7 L620.7,236.7 L613.8,244.9 L606.9,253.3 L600.0,262.0 Z" class="ue-band"/><path d="M600.0,262.0 L613.8,247.5 L627.6,234.1 L641.4,221.7 L655.2,210.4 L669.0,200.1 L682.8,190.8 L696.6,182.6 L710.4,175.5 L724.2,169.3 L738.0,164.3 L751.8,160.3 L765.6,157.3 L779.4,155.4 L793.2,154.5 L807.0,154.4 L820.8,154.4 L834.6,154.4 L848.4,154.4 L862.2,154.4 L876.0,154.4" class="ue-sample"/><path d="M600.0,262.0 L613.8,247.4 L627.6,233.7 L641.4,220.9 L655.2,209.0 L669.0,198.0 L682.8,187.8 L696.6,178.6 L710.4,170.3 L724.2,162.8 L738.0,156.3 L751.8,150.6 L765.6,145.8 L779.4,142.0 L793.2,139.0 L807.0,136.9 L820.8,135.7 L834.6,135.4 L848.4,135.4 L862.2,135.4 L876.0,135.4" class="ue-sample"/><path d="M600.0,262.0 L613.8,248.4 L627.6,235.7 L641.4,223.9 L655.2,213.0 L669.0,203.1 L682.8,194.0 L696.6,185.9 L710.4,178.6 L724.2,172.3 L738.0,166.9 L751.8,162.4 L765.6,158.9 L779.4,156.2 L793.2,154.5 L807.0,153.6 L820.8,153.5 L834.6,153.5 L848.4,153.5 L862.2,153.5 L876.0,153.5" class="ue-sample"/><path d="M600.0,262.0 L613.8,245.6 L627.6,230.3 L641.4,216.0 L655.2,202.7 L669.0,190.4 L682.8,179.2 L696.6,169.0 L710.4,159.8 L724.2,151.7 L738.0,144.6 L751.8,138.5 L765.6,133.5 L779.4,129.4 L793.2,126.5 L807.0,124.5 L820.8,123.6 L834.6,123.5 L848.4,123.5 L862.2,123.5 L876.0,123.5" class="ue-sample"/><path d="M600.0,262.0 L613.8,245.7 L627.6,230.4 L641.4,216.1 L655.2,202.8 L669.0,190.5 L682.8,179.2 L696.6,168.9 L710.4,159.6 L724.2,151.3 L738.0,144.0 L751.8,137.7 L765.6,132.4 L779.4,128.1 L793.2,124.7 L807.0,122.4 L820.8,121.1 L834.6,120.8 L848.4,120.8 L862.2,120.8 L876.0,120.8" class="ue-sample"/><path d="M600.0,262.0 L613.8,246.6 L627.6,232.2 L641.4,218.7 L655.2,206.3 L669.0,194.8 L682.8,184.3 L696.6,174.8 L710.4,166.3 L724.2,158.8 L738.0,152.3 L751.8,146.7 L765.6,142.2 L779.4,138.6 L793.2,136.0 L807.0,134.4 L820.8,133.8 L834.6,133.8 L848.4,133.8 L862.2,133.8 L876.0,133.8" class="ue-sample"/><path d="M600.0,262.0 L613.8,249.5 L627.6,238.1 L641.4,227.8 L655.2,218.7 L669.0,210.6 L682.8,203.6 L696.6,197.8 L710.4,193.1 L724.2,189.5 L738.0,186.9 L751.8,185.5 L765.6,185.2 L779.4,185.2 L793.2,185.2 L807.0,185.2 L820.8,185.2 L834.6,185.2 L848.4,185.2 L862.2,185.2 L876.0,185.2" class="ue-sample"/><path d="M600.0,262.0 L613.8,246.5 L627.6,232.0 L641.4,218.5 L655.2,206.1 L669.0,194.8 L682.8,184.4 L696.6,175.2 L710.4,167.0 L724.2,159.8 L738.0,153.6 L751.8,148.5 L765.6,144.5 L779.4,141.5 L793.2,139.5 L807.0,138.6 L820.8,138.5 L834.6,138.5 L848.4,138.5 L862.2,138.5 L876.0,138.5" class="ue-sample"/><path d="M600.0,262.0 L613.8,249.3 L627.6,237.2 L641.4,225.8 L655.2,215.0 L669.0,204.8 L682.8,195.2 L696.6,186.3 L710.4,178.0 L724.2,170.4 L738.0,163.3 L751.8,156.9 L765.6,151.2 L779.4,146.0 L793.2,141.5 L807.0,137.7 L820.8,134.4 L834.6,131.8 L848.4,129.8 L862.2,128.5 L876.0,127.8" class="ue-sample"/><path d="M600.0,262.0 L613.8,248.3 L627.6,235.5 L641.4,223.5 L655.2,212.4 L669.0,202.2 L682.8,192.8 L696.6,184.3 L710.4,176.7 L724.2,169.9 L738.0,164.0 L751.8,159.0 L765.6,154.8 L779.4,151.5 L793.2,149.1 L807.0,147.5 L820.8,146.8 L834.6,146.7 L848.4,146.7 L862.2,146.7 L876.0,146.7" class="ue-sample"/><path d="M600.0,262.0 L613.8,246.7 L627.6,232.3 L641.4,218.9 L655.2,206.4 L669.0,194.9 L682.8,184.3 L696.6,174.7 L710.4,166.0 L724.2,158.2 L738.0,151.4 L751.8,145.5 L765.6,140.6 L779.4,136.6 L793.2,133.6 L807.0,131.5 L820.8,130.3 L834.6,130.1 L848.4,130.1 L862.2,130.1 L876.0,130.1" class="ue-sample"/><path d="M600.0,262.0 L613.8,246.3 L627.6,231.5 L641.4,217.5 L655.2,204.4 L669.0,192.0 L682.8,180.5 L696.6,169.9 L710.4,160.1 L724.2,151.1 L738.0,142.9 L751.8,135.6 L765.6,129.1 L779.4,123.4 L793.2,118.6 L807.0,114.6 L820.8,111.5 L834.6,109.2 L848.4,107.7 L862.2,107.0 L876.0,107.0" class="ue-sample"/><path d="M600.0,262.0 L613.8,246.7 L627.6,232.5 L641.4,219.3 L655.2,207.1 L669.0,195.9 L682.8,185.7 L696.6,176.6 L710.4,168.5 L724.2,161.4 L738.0,155.4 L751.8,150.4 L765.6,146.4 L779.4,143.4 L793.2,141.5 L807.0,140.5 L820.8,140.4 L834.6,140.4 L848.4,140.4 L862.2,140.4 L876.0,140.4" class="ue-sample"/><path d="M600.0,262.0 L613.8,248.2 L627.6,235.7 L641.4,224.4 L655.2,214.4 L669.0,205.6 L682.8,198.2 L696.6,192.0 L710.4,187.0 L724.2,183.4 L738.0,181.0 L751.8,179.9 L765.6,179.8 L779.4,179.8 L793.2,179.8 L807.0,179.8 L820.8,179.8 L834.6,179.8 L848.4,179.8 L862.2,179.8 L876.0,179.8" class="ue-sample"/><path d="M600.0,262.0 L606.9,254.2 L613.8,246.6 L620.7,239.3 L627.6,232.2 L634.5,225.3 L641.4,218.7 L648.3,212.3 L655.2,206.1 L662.1,200.1 L669.0,194.4 L675.9,188.9 L682.8,183.7 L689.7,178.6 L696.6,173.8 L703.5,169.3 L710.4,164.9 L717.3,160.8 L724.2,157.0 L731.1,153.3 L738.0,149.9 L744.9,146.7 L751.8,143.7 L758.7,141.0 L765.6,138.5 L772.5,136.3 L779.4,134.2 L786.3,132.4 L793.2,130.8 L800.1,129.5 L807.0,128.4 L813.9,127.5 L820.8,126.9 L827.7,126.4 L834.6,126.2 L841.5,126.2 L848.4,126.2 L855.3,126.2 L862.2,126.2 L869.1,126.2 L876.0,126.2" class="ue-truth"/>
+<text x="735" y="292" text-anchor="middle" class="lg-label">time (0 to 2 s)</text>
+<text x="614" y="140" text-anchor="middle" class="lg-label" transform="rotate(-90 614 140)">distance travelled</text>
+<rect x="760" y="206" width="12" height="10" class="ue-band"/>
+<text x="778" y="215" text-anchor="start" class="lg-label">90% band</text>
+<path d="M760,230 L772,230" class="ue-sample ue-key"/>
+<text x="778" y="234" text-anchor="start" class="lg-label">samples</text>
+<path d="M760,249 L772,249" class="ue-truth"/>
+<text x="778" y="253" text-anchor="start" class="lg-label">PhysX (truth)</text>
+            </svg>
+          </div>
+          <figcaption>Uncertainty from the input (a scene graph estimated from photographs) and from the model, propagated together. The
+            chart is a sketch of the intended display, not a model output.</figcaption>
+        </figure>
+        <ul class="wm-todo">
+          <li data-todo="WM-E1"><span class="wm-todo-id">WM-E1</span><span class="wm-badge-todo">to do</span>
+            <strong>Two sources, propagated together.</strong> Input uncertainty: the perception step returns each property with a range
+            (position, size, mass, friction), the scene graph is sampled \(K\) times from it, and every sample is predicted. Model
+            uncertainty: generative members draw \(S\) futures each; the regressor needs an ensemble of 3 to 5 networks or a spread head.
+            The \(K \times S\) futures run as one batch; on the toy model, 64 futures take about 3 s with flow matching or 0.1 s with the
+            regressor:
+            \[ \tilde G^{(k)} \sim q(G \mid \text{photographs}), \qquad Y^{(k,s)} \sim p_\theta\big(\cdot \mid \tilde G^{(k)}, a\big), \qquad
+               \text{band}^i_t = \big[\, Q_{0.05}\{\hat p^{i,(k,s)}_t\},\ Q_{0.95}\{\hat p^{i,(k,s)}_t\} \,\big] \]</li>
+          <li data-todo="WM-E2"><span class="wm-todo-id">WM-E2</span><span class="wm-badge-todo">to do</span>
+            <strong>What changes in training.</strong> Feed scene graphs perturbed the way perception errs, while the targets stay the
+            PhysX rollout of the true scene, so the model learns the outcomes that a noisy description allows; keep physical parameters
+            randomised, and hidden at times (Scaled results item 11). For the regressor, add a spread head trained with the Gaussian
+            likelihood, or quantile heads with the pinball loss; generative members need no new head:
+            \[ \min_\theta\ \mathbb{E}_{G,\ \tilde G \sim n(\cdot \mid G)}\ \mathcal{L}\big(f_\theta(\tilde G, a),\ \Phi(G, a)\big), \qquad
+               \mathcal{L}_{\text{NLL}} = \frac{\lVert y - \mu_\theta \rVert^2}{2\sigma_\theta^2} + \log \sigma_\theta, \qquad
+               \rho_q(u) = \max\big(q\,u,\ (q - 1)\,u\big) \]</li>
+          <li data-todo="WM-E3"><span class="wm-todo-id">WM-E3</span><span class="wm-badge-todo">to do</span>
+            <strong>Calibration with a guarantee (conformal prediction).</strong> On held-out simulations, score each trajectory by its worst
+            normalised error and scale the band by the right quantile of those scores; a new true trajectory then stays inside the band with
+            probability at least \(1 - \alpha\). Report coverage (it must match, for example 90 percent) and band width, by kind of task;
+            on real scenes, check against PhysX run on the digital twin:
+            \[ r_j = \max_{t,\,i} \frac{\lVert p^i_t - \hat p^i_t \rVert}{\hat\sigma^i_t}, \qquad \hat c = r_{(\lceil (n+1)(1-\alpha) \rceil)}, \qquad
+               \Pr\big[\, \lVert p^i_t - \hat p^i_t \rVert \le \hat c\, \hat\sigma^i_t\ \ \text{for all } t, i \,\big] \ge 1 - \alpha \]</li>
+          <li data-todo="WM-E4"><span class="wm-todo-id">WM-E4</span><span class="wm-badge-todo">to do</span>
+            <strong>Bands in metres, probabilities for forks.</strong> A "5 percent band" of a coordinate depends on where the origin is, so
+            bands are stated as distances (the 90 percent band is within 4 cm at 1 s) or relative to the distance travelled. Where the
+            outcome forks (the ball passes left or right of an obstacle), a band through the middle covers a path no sample takes: report
+            each branch's probability with a few sample paths, and give events probabilities too ("hits the blue ball in 7 of 8 samples,
+            between 0.84 and 0.90 s"), which the verbalizer of D can say in words.</li>
+        </ul>
       </div>
 
       <!-- this block's data and scripts (deferred: they run after the page is parsed, in this order) -->
