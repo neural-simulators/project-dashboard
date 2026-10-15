@@ -10,9 +10,9 @@
     { edges: ['b-p'], text: 'The simulator’s verdicts on a model’s answers become the reward for post-training.' },
     { edges: ['p-e'], text: 'Language models propose actions for a task.' },
     { edges: ['w-e'], text: 'A learned simulator previews each action before anything is executed.' },
-    { edges: ['w-p'], text: 'Next: the world model as a fast judge during post-training, milliseconds instead of a simulation.' },
+    { edges: ['w-p'], text: 'The aim: the world model as a fast judge during post-training, a network pass instead of a simulation.' },
     { edges: ['r-d'], text: 'Today a real scene must be rebuilt as a digital twin before PhysX can move anything.' },
-    { edges: ['r-w', 'w-r'], text: 'Next: a scene graph from photographs goes straight into the world model, and the motion is shown in the real scene.' }
+    { edges: ['r-w', 'w-r'], text: 'The aim: a scene graph read from photographs goes straight into the world model, and the motion is watched in the real scene.' }
   ];
 
   WM.ready(function () {

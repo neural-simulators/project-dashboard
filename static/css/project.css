@@ -239,3 +239,67 @@ body { color: var(--wm-text); }
 .wm-tl-col li.bad i { color: #8a1c2b; }
 .wm-tl-diff { margin: 0.5rem 0 0; font-size: 0.9rem; color: var(--wm-text); border-top: 1px solid var(--wm-border); padding-top: 0.4rem; }
 @media (max-width: 760px) { .wm-timeline { grid-template-columns: 1fr; } }
+
+/* Clip groups: comparison galleries of the results pages, folded by kind of scene (static/js/clip_groups.js) */
+.clipfam-list { margin: 0.5rem 0 0.9rem; }
+.clipfam-hint { font-size: 0.85rem; color: var(--wm-muted); margin: 0.2rem 0 0.4rem; }
+.clipfam { background: #fff; border: 1px solid var(--wm-border); border-radius: 8px; margin: 0.35rem 0; }
+.clipfam > summary { cursor: pointer; list-style: none; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.15rem 0.65rem; padding: 0.5rem 0.8rem; }
+.clipfam > summary::-webkit-details-marker { display: none; }
+.clipfam > summary::before { content: '\25B8'; color: var(--wm-slate); display: inline-block; width: 0.8rem; transition: transform 0.15s; }
+.clipfam[open] > summary::before { transform: rotate(90deg); }
+.clipfam > summary:hover { background: #f5f7fa; border-radius: 8px; }
+.clipfam-name { font-weight: 600; color: #222; }
+.clipfam-count { font-size: 0.88rem; color: var(--wm-slate); }
+.clipfam-kinds { font-size: 0.85rem; color: var(--wm-muted); }
+.clipfam > .gallery { margin: 0 0.8rem 0.8rem; }
+.clipfam > .wm-note { margin: 0 0.8rem 0.4rem; }
+
+/* to-do states (World model tab): first version, done, running, waiting; a note under an item says where it was built */
+.wm-badge-first, .wm-badge-done, .wm-badge-run, .wm-badge-wait { display: inline-block; font-size: 0.72rem; line-height: 1.5; padding: 0 0.5rem;
+  margin-right: 0.45rem; border-radius: 999px; vertical-align: 1px; border: 1px solid; }
+.wm-badge-first { color: #0b7a5c; background: #e9f7f1; border-color: #9fd8c1; }
+.wm-badge-done { color: #2b6e35; background: #eef7f0; border-color: #a9d8b4; }
+.wm-badge-run { color: #1f5fbf; background: #eef3fc; border-color: #b8cdf2; }
+.wm-badge-wait { color: #5f6873; background: #f4f5f7; border-color: #d0d5dc; }
+.wm-todo li.is-first { border-left-color: #12b886; }
+.wm-todo li.is-done { border-left-color: #2b8a3e; }
+.wm-todo li.is-run { border-left-color: var(--wm-blue); }
+.wm-todo li.is-wait { border-left-color: #adb5bd; }
+.wm-todo-note { display: block; margin-top: 0.4rem; padding-top: 0.35rem; border-top: 1px dashed var(--wm-border); font-size: 0.9rem; color: var(--wm-slate); }
+.wm-todo-groups { font-size: 0.9rem; color: var(--wm-slate); }
+.wm-todo li:target, .wm-moat-family:target { box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.25); }
+
+/* comparison with other approaches (World model tab, section 2) */
+.wm-moat th, .wm-moat td { font-size: 0.8rem; line-height: 1.35; vertical-align: top; }
+.wm-moat th { min-width: 6.5rem; }
+.wm-moat td:first-child { font-weight: 600; min-width: 12rem; }
+.wm-moat th:nth-child(2), .wm-moat td:nth-child(2) { background: #f3f8f4; }
+.wm-moat .lv { font-size: 1rem; line-height: 1; }
+.wm-moat .lv2 { color: #2b8a3e; }
+.wm-moat .lv1 { color: #c77d00; }
+.wm-moat .lv0 { color: #a3abb5; }
+.wm-moat small { color: var(--wm-muted); font-size: 0.74rem; }
+.wm-claim { display: inline-block; font-size: 0.7rem; line-height: 1.45; padding: 0 0.45rem; border-radius: 999px; border: 1px solid; white-space: nowrap; vertical-align: 1px; }
+.wm-claim.shown { color: #2b6e35; background: #eef7f0; border-color: #a9d8b4; }
+.wm-claim.partly { color: #8a5a00; background: #fff8e8; border-color: #f0d28a; }
+.wm-claim.design { color: #1f5fbf; background: #eef3fc; border-color: #b8cdf2; }
+.wm-claim.toshow { color: #5f6873; background: #f4f5f7; border-color: #d0d5dc; }
+.wm-claim-ref { font-size: 0.82rem; color: var(--wm-slate); }
+.wm-moat-families { margin: 0.4rem 0 0.6rem; }
+.wm-moat-family { background: #fff; border: 1px solid var(--wm-border); border-radius: 6px; margin: 0.35rem 0; }
+.wm-moat-family > summary { cursor: pointer; padding: 0.45rem 0.8rem; font-weight: 600; color: #222; }
+.wm-moat-who { font-weight: 400; font-size: 0.88rem; color: var(--wm-slate); margin-left: 0.3rem; }
+.wm-moat-family > div { padding: 0 0.95rem 0.55rem; font-size: 0.93rem; line-height: 1.5; }
+.wm-moat-family ul { list-style: disc; margin: 0.2rem 0 0.5rem 1.2rem; }
+.wm-moat-family li + li { margin-top: 0.25rem; }
+.wm-moat-edge { font-weight: 600; margin: 0.2rem 0 0.1rem; }
+
+/* Overview: why learn the simulator */
+.ov-why-title { margin: 1.6rem 0 0.7rem !important; }
+.ov-why { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.8rem; margin: 0 0 0.6rem; }
+.ov-why-item { background: #fff; border: 1px solid var(--wm-border); border-top: 3px solid var(--wm-red); border-radius: 8px; padding: 0.7rem 0.95rem 0.75rem; min-width: 0; }
+.ov-why-item h4 { font-family: 'Google Sans', sans-serif; font-weight: 600; font-size: 1.02rem; color: #222; margin: 0 0 0.3rem; }
+.ov-why-item p { font-size: 0.95rem; line-height: 1.55; margin: 0; color: var(--wm-text); }
+.ov-why-note { font-size: 0.95rem; color: var(--wm-slate); margin: 0.2rem 0 1.4rem; }
+@media (max-width: 760px) { .ov-why { grid-template-columns: 1fr; } }

@@ -38,10 +38,19 @@
     return names.length ? names : TAB_NAMES;
   }
 
+  /* A hash names a tab, or an element inside one (a section or a to-do item such as #WM-F3): that tab is shown. */
   function tabFromHash() {
     var h = (window.location.hash || '').replace(/^#/, '');
     var names = tabNames();
-    return names.indexOf(h) >= 0 ? h : names[0];
+    if (names.indexOf(h) >= 0) return h;
+    var el = h ? document.getElementById(h) : null;
+    var panel = el && el.closest ? el.closest('[data-tab-panel]') : null;
+    return panel ? panel.getAttribute('data-tab-panel') : names[0];
+  }
+
+  function deepTarget() {
+    var h = (window.location.hash || '').replace(/^#/, '');
+    return h && tabNames().indexOf(h) < 0 ? document.getElementById(h) : null;
   }
 
   function showTab(name) {
@@ -61,11 +70,14 @@
 
   function initTabs() {
     showTab(tabFromHash());
+    /* the browser could not scroll to an element while its tab was hidden */
+    var first = deepTarget();
+    if (first && first.scrollIntoView) setTimeout(function () { first.scrollIntoView({ block: 'start' }); }, 0);
     window.addEventListener('hashchange', function () {
       showTab(tabFromHash());
-      var nav = document.getElementById('wm-tabs');
-      if (nav && nav.scrollIntoView) {
-        nav.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' });
+      var target = deepTarget() || document.getElementById('wm-tabs');
+      if (target && target.scrollIntoView) {
+        target.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' });
       }
     });
   }

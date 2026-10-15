@@ -15,8 +15,13 @@ standalone pages that share the same navigation:
 - **Results** (`#results`): one block per result (benchmark, toy world model,
   post-training).
 - Standalone pages: `how-it-works.html`, `benchmark.html` (the full benchmark
-  results, under the Results tab), `end-to-end.html` and `scaled-results.html`
-  (co-author pages), `digital-twins.html`.
+  results, under the Results tab), `end-to-end.html`, `scaled-results.html` and
+  `improved-results-v*.html` (co-author pages), `digital-twins.html`.
+
+The Overview is motivation only: why learn the simulator, and what each part of
+the project is for, without results, numbers or plans. Proposals and ideas live
+on the model tabs (World model, Post-training), with ids and equations; results
+pages keep results and point to the ideas by id.
 
 Every tab and page opens with a short intro box (`<div class="wm-intro">`: a
 question as its title, the idea and why it matters in plain words, optionally a
@@ -279,9 +284,13 @@ benchmark page and must exist).
 ## Formal sections (math)
 
 The World model and Post-training tabs carry formal definitions (`#world_model-symbols`, `#post_training-symbols`,
-`#post_training-wm-judge`) and the world-model to-do list (`#world_model-todo`, items `WM-A1` to `WM-B6`, each a
-`<li data-todo="...">`: physics-grounded fixes for ghost motion and inconsistent kinematics, to be implemented in the
-shared predictor). Math is written as LaTeX, `\( ... \)` inline and `\[ ... \]` displayed, inside any element with
+`#post_training-wm-judge`), the comparison with other approaches (`#world_model-compare`, moved from the scaled
+results page) and the world-model to-do list: groups A to C in `#world_model-todo` (ghost motion, kinematics, shape and
+identity), D and E in `#world_model-language-uncertainty`, F (collisions) in `#world_model-collisions`, G (backward
+questions) in `#world_model-backward`, H and I (training data, speed, real scenes) in `#world_model-data-real`. Each
+item is `<li id="WM-F3" data-todo="WM-F3">` with a state badge (`wm-badge-todo`, `-first`, `-done`, `-run`, `-wait`)
+and, once something was built, a `wm-todo-note` linking to its results. A link to any element inside a tab, such as
+`index.html#WM-F3`, opens that tab and scrolls to it (`static/js/project.js`). Math is written as LaTeX, `\( ... \)` inline and `\[ ... \]` displayed, inside any element with
 class `wm-math`, and typeset in the browser by `static/js/math.js` with KaTeX 0.16.11 vendored under
 `static/vendor/katex/` (MIT licence there; no CDN). Without JavaScript the LaTeX stays readable.
 
@@ -289,7 +298,7 @@ class `wm-math`, and typeset in the browser by `static/js/math.js` with KaTeX 0.
 
 The project's tabs are listed once, in `static/js/site_nav.js`: Overview, World
 model, Post-training, How models are prompted, Results, End-to-end study,
-Scaled results, Digital twins. Every standalone page (`end-to-end.html`,
+Scaled results, Improved Results V1 and V2, Digital twins. Every standalone page (`end-to-end.html`,
 `scaled-results.html`, `how-it-works.html`, `digital-twins.html`,
 `benchmark.html`) carries an empty
 `<nav class="tabs is-centered is-boxed wm-tabs" data-site-nav="KEY">` under its
@@ -302,6 +311,13 @@ that `<nav data-site-nav="end-to-end">` (or `"scaled-results"`) element, load
 `./static/js/site_nav.js`, and keep their intro box, instead of a hand-written
 tab bar; otherwise a rebuild brings back a stale tab list.
 `tools/check_nav.py` fails when they do not.
+
+Those generators copy the `<head>` of `end-to-end.html`, so a script added there
+reaches every regenerated page. `static/js/clip_groups.js` uses this: on the
+results pages it folds each comparison gallery (a `.gallery` with its own
+`grid-template-columns`) into closed groups by kind of scene, folds theme
+galleries under their `p.dhead` heading, and plays a clip while the pointer is
+over it or its open group (styles under "Clip groups" in `project.css`).
 
 To add a tab or page: add one line to the list in `site_nav.js`, mirror it in
 `index.html`'s tab bar, give a new page the `<nav data-site-nav>` element and the

@@ -8,12 +8,12 @@
   <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
   <link rel="stylesheet" href="./static/css/bulma.min.css?v=58b2865922">
   <link rel="stylesheet" href="./static/css/index.css?v=747bae5899">
-  <link rel="stylesheet" href="./static/css/project.css?v=c3a7c9cfd4">
+  <link rel="stylesheet" href="./static/css/project.css?v=f4f73551d1">
   <link rel="stylesheet" href="./static/css/digital_twin.css?v=696467804c">
   <link rel="icon" href="./static/images/favicon.svg">
   <script defer src="./static/js/fontawesome.all.min.js?v=20a3ef6979"></script>
-  <script defer src="./static/js/site_nav.js?v=1bc609167f"></script>
-  <script defer src="./static/js/project.js?v=ae13504ea8"></script>
+  <script defer src="./static/js/site_nav.js?v=2121de9837"></script>
+  <script defer src="./static/js/project.js?v=889865b42c"></script>
   <script defer src="./static/data/digital_twin.js?v=de67070a92"></script>
   <script defer src="./static/js/digital_twin/main.js?v=873e5dfa53"></script>
 </head>
@@ -39,8 +39,8 @@
 <div class="container is-max-desktop wm-intro-wrap">
   <div class="wm-intro">
     <h2 class="wm-intro-title">Why digital twins, and why go beyond them?</h2>
-    <p>Real-time physics on a real scene is hard today. A physics engine needs every object as a 3D shape with a collision body, a mass and a friction, so a real scene must first be rebuilt as a digital twin: objects outlined in photographs, completed into full 3D shapes, placed in the scene and given physical parameters, before PhysX can move anything. This page follows that route on a real kitchen counter.</p>
-    <p>The longer-term aim is to skip most of the rebuild: read a scene graph (objects, sizes, poses, materials) from the photographs, let the world model predict the motion directly, and show the result in the real images.</p>
+    <p>Physics on a real scene is hard today. A physics engine needs every object as a 3D shape with a collision body, a mass and a friction, so a real scene must first be rebuilt as a digital twin: objects outlined in photographs, completed into full 3D shapes, placed faithfully in the simulator and given physical parameters, before PhysX can move anything, and whatever it predicts has to be carried back to the real scene. This page follows that route on a real kitchen counter.</p>
+    <p>The aim is to need no twin at all. The world model learns physics in simulation; with an efficient way to read a scene graph (objects, shapes, poses, materials) from photographs taken from a few viewpoints, it can predict directly from that scene graph, an instruction and an action, and the motion can be watched in the real scene itself, with nothing ported into a simulator and back. The twin stays useful as a yardstick: it gives PhysX's answer on a real scene's geometry, to check the world model against.</p>
   </div>
 </div>
 

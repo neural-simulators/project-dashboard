@@ -8,12 +8,12 @@
   <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
   <link rel="stylesheet" href="./static/css/bulma.min.css?v=58b2865922">
   <link rel="stylesheet" href="./static/css/index.css?v=747bae5899">
-  <link rel="stylesheet" href="./static/css/project.css?v=c3a7c9cfd4">
+  <link rel="stylesheet" href="./static/css/project.css?v=f4f73551d1">
   <link rel="stylesheet" href="./static/vendor/katex/katex.min.css">
   <link rel="stylesheet" href="./static/css/post_training.css?v=750ba8efc2">
   <link rel="icon" href="./static/images/favicon.svg">
   <!-- standalone preview of the two post-training blocks; tools/install_post_training_block.py copies them into index.html -->
-  <script defer src="./static/js/project.js?v=ae13504ea8"></script>
+  <script defer src="./static/js/project.js?v=889865b42c"></script>
   <script defer src="./static/vendor/katex/katex.min.js"></script>
   <script defer src="./static/vendor/katex/contrib/auto-render.min.js"></script>
   <script defer src="./static/js/math.js?v=8d20f73fbf"></script>
@@ -301,9 +301,17 @@
             <li><strong>The final word stays with PhysX:</strong> trained models are judged by the simulator on held-out tasks, as now.</li>
           </ul>
           <p><strong>Where it stands.</strong> Not yet: in the end-to-end study the best world model recognizes 24 percent of real
-            successes, and the toy models' predicted trajectories pass none of the benchmark's checks. The switch is gated on
-            \(\alpha\) and \(\mathrm{FS}\) measured on policy samples. Static edits already work this way: their reward replaces the
-            simulator with geometric checks that agree with PhysX on 60 of 61 stored answers.</p>
+            successes, and the toy models' predicted trajectories pass none of the benchmark's checks. The scaled study's step-wise
+            models agree with PhysX's verdict on 91 percent of its stored test simulations
+            (<a href="./improved-results-v2.html">Improved Results V2</a>), but agreement and false successes on a policy's own answers
+            are not measured yet. The switch is gated on \(\alpha\) and \(\mathrm{FS}\) measured on policy samples. Static edits
+            already work this way: their reward replaces the simulator with geometric checks that agree with PhysX on 60 of 61 stored
+            answers.</p>
+          <p><strong>Two places to use it.</strong> The benchmark's launch tasks, as above, and the scaled study's action planner, for
+            which GRPO with the learned simulator as the reward and PhysX checks on a quarter of the samples (\(q = 1/4\)) waits for a
+            decision. Two world-model items decide how far such a judge can be trusted: actions written by language models in its
+            training data (<a href="./index.html#WM-H1">WM-H1</a>; the policy's actions are what it must judge) and its speed at planning batch
+            sizes (<a href="./index.html#WM-H3">WM-H3</a>).</p>
         </div>
       </div>
 
