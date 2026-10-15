@@ -15,7 +15,8 @@ from html.parser import HTMLParser
 from pathlib import Path
 
 PAGES = {"end-to-end.html": "end-to-end", "scaled-results.html": "scaled-results", "how-it-works.html": "how-it-works",
-         "digital-twins.html": "digital-twins", "benchmark.html": "results"}
+         "digital-twins.html": "digital-twins", "benchmark.html": "results",
+         "physics-guided.html": "physics-guided"}
 
 
 def site_tabs(root):

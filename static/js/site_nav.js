@@ -13,6 +13,7 @@
     { key: 'results', label: 'Results', icon: 'fa-chart-bar', href: './index.html#results' },
     { key: 'end-to-end', label: 'End-to-end study', icon: 'fa-route', href: './end-to-end.html' },
     { key: 'scaled-results', label: 'Scaled results', icon: 'fa-project-diagram', href: './scaled-results.html' },
+    { key: 'physics-guided', label: 'Physics-guided predictors', icon: 'fa-atom', href: './physics-guided.html' },
     { key: 'digital-twins', label: 'Digital twins', icon: 'fa-cube', href: './digital-twins.html' }
   ];
   window.SITE_TABS = TABS;
