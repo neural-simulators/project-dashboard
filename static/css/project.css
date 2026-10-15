@@ -303,3 +303,13 @@ body { color: var(--wm-text); }
 .ov-why-item p { font-size: 0.95rem; line-height: 1.55; margin: 0; color: var(--wm-text); }
 .ov-why-note { font-size: 0.95rem; color: var(--wm-slate); margin: 0.2rem 0 1.4rem; }
 @media (max-width: 760px) { .ov-why { grid-template-columns: 1fr; } }
+
+/* Overview: milestones, done and next */
+.ov-miles { list-style: none; margin: 0 0 1.6rem; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.55rem 0.8rem; }
+.ov-miles li { background: #fff; border: 1px solid var(--wm-border); border-left: 4px solid #2b8a3e; border-radius: 6px; padding: 0.5rem 0.85rem; font-size: 0.94rem; line-height: 1.5; min-width: 0; }
+.ov-miles li.next { border-left-color: var(--wm-amber); }
+.ov-mile-state { display: inline-block; font-size: 0.72rem; line-height: 1.5; padding: 0 0.5rem; margin-right: 0.5rem; border-radius: 999px; border: 1px solid; vertical-align: 1px; }
+.ov-miles li.done .ov-mile-state { color: #2b6e35; background: #eef7f0; border-color: #a9d8b4; }
+.ov-miles li.next .ov-mile-state { color: #8a5a00; background: #fff8e8; border-color: #f0d28a; }
+.ov-mile-link { margin-left: 0.2rem; font-size: 0.86rem; white-space: nowrap; }
+@media (max-width: 760px) { .ov-miles { grid-template-columns: 1fr; } }

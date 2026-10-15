@@ -13,7 +13,7 @@
 
   <link rel="stylesheet" href="./static/css/bulma.min.css?v=58b2865922">
   <link rel="stylesheet" href="./static/css/index.css?v=747bae5899">
-  <link rel="stylesheet" href="./static/css/project.css?v=f4f73551d1">
+  <link rel="stylesheet" href="./static/css/project.css?v=62c3cf5af5">
   <link rel="stylesheet" href="./static/vendor/katex/katex.min.css">
   <link rel="icon" href="./static/images/favicon.svg">
 
@@ -171,6 +171,17 @@
       </div>
       <p class="ov-why-note">The physics engine stays the referee: it produces the training data and the final verdicts, and the
         learned simulator is trusted only as far as it agrees with it.</p>
+      <h3 class="title is-4 ov-why-title">Milestones</h3>
+      <ul class="ov-miles">
+        <li class="done"><span class="ov-mile-state">done</span><strong>A simulation dataset.</strong> Furnished rooms and generated scenes simulated in PhysX, from rigid objects to hinged mechanisms, springs and soft bodies, with tasks whose answers the engine has verified, and scenes converted from the MOVi and Physion datasets. <a class="ov-mile-link" href="./scaled-results.html">Scaled results &rarr;</a></li>
+        <li class="done"><span class="ov-mile-state">done</span><strong>Language models on the benchmark.</strong> GPT-5.4 and open Qwen models evaluated on a subset of the benchmark, from static edits to launches and throws, every answer judged by PhysX, with the cases where they succeed and where they fail shown side by side. <a class="ov-mile-link" href="#results">Results &rarr;</a></li>
+        <li class="done"><span class="ov-mile-state">done</span><strong>First world models.</strong> Initial variants trained on the simulator's rollouts (regression, flow matching, diffusion, Diffusion Forcing, JEPA) and written in one notation, then first physics-guided versions that keep still objects still and predict step by step. <a class="ov-mile-link" href="#design">World model &rarr;</a></li>
+        <li class="done"><span class="ov-mile-state">done</span><strong>First post-training.</strong> An open 7B language model trained with the simulator's verdicts as rewards (GRPO and DPO), then judged by the simulator on tasks it had not seen. <a class="ov-mile-link" href="#post-training">Post-training &rarr;</a></li>
+        <li class="done"><span class="ov-mile-state">done</span><strong>The loop, end to end.</strong> Language models write tasks and propose actions, learned simulators preview them and PhysX decides, first at small scale and then on many generated scenes. <a class="ov-mile-link" href="./end-to-end.html">End-to-end study &rarr;</a></li>
+        <li class="done"><span class="ov-mile-state">done</span><strong>A real scene in the simulator.</strong> A kitchen counter rebuilt from photographs as a digital twin and simulated in PhysX. <a class="ov-mile-link" href="./digital-twins.html">Digital twins &rarr;</a></li>
+        <li class="next"><span class="ov-mile-state">next</span><strong>World models that can stand in for the engine.</strong> Correct contacts, collisions and free flight first; then backward questions, error bands and descriptions in words; then the world model as the fast judge for post-training. <a class="ov-mile-link" href="#world_model-todo">World model to-dos &rarr;</a></li>
+        <li class="next"><span class="ov-mile-state">next</span><strong>Real scenes without a twin.</strong> Scene graphs read from photographs and predictions shown in the real scene, with training data beyond rigid objects and sparse scenes: cloth, soft bodies and furnished rooms. <a class="ov-mile-link" href="#WM-I1">Real scenes &rarr;</a></li>
+      </ul>
       <div class="wm-anim ov-map" id="ov-map">
         <div class="wm-svg-scroll">
           <svg class="wm-diagram" viewBox="0 0 920 360" role="img" aria-labelledby="ov-map-title">
