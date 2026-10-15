@@ -1205,8 +1205,8 @@
         </div>
         \[ \mathrm{pass}(\hat Y) = \max_{t,\ k \in \{0, \frac13, \frac23\},\ i \ne j} \Big( d_{ij}\big(\hat s_{t+k}\big) - d_{ij}\big(s_{t+k}\big) \Big)^{+} \]
         <div class="content">
-          <p>All items come from the scaled study's physics iterations: F1 and F2 are its iteration 2 (<a href="./improved-results-v2.html">Improved Results V2</a>); F3 to F6 are iteration 3,
-            trained and being evaluated, each on top of F1 and F2.</p>
+          <p>All items come from the scaled study's physics iterations: F1 and F2 are its iteration 2 (<a href="./improved-results-v2.html">Improved Results V2</a>); F3 to F6 are iteration 3
+            (<a href="./improved-results-v3.html">Improved Results V3</a>), each on top of F1 and F2, with F6's test numbers still being computed.</p>
         </div>
         <ul class="wm-todo">
           <li id="WM-F1" data-todo="WM-F1" class="is-done"><span class="wm-todo-id">WM-F1</span><span class="wm-badge-done">done</span>
@@ -1226,31 +1226,35 @@
                \ell_{ij} = \frac{q_i^\top k_j}{\sqrt d} + b_\phi\big(g_{ij}, n_{ij}, u_{ij}, \tau_{ij}\big) \]
             <span class="wm-todo-note">Done in <a href="./improved-results-v2.html">Improved Results V2</a>: a little more accurate (0.45 to 0.43 m for regression, 0.60 to 0.55 m for flow
             matching), passing through unchanged (4.6 to 4.5 cm).</span></li>
-          <li id="WM-F3" data-todo="WM-F3" class="is-run"><span class="wm-todo-id">WM-F3</span><span class="wm-badge-run">running</span>
+          <li id="WM-F3" data-todo="WM-F3" class="is-done"><span class="wm-todo-id">WM-F3</span><span class="wm-badge-done">done</span>
             <strong>No-penetration loss on the pieces.</strong> Penalise overlap deeper than in the real motion, beyond 1 cm, in every
             frame, each object's box against its neighbours' largest pieces. The depth is measured along the contact direction from the
             last frame without overlap, so an object half way through a wall is pushed back, not through. It replaces the first overlap
             rule of B5:
             \[ \mathcal{L}_{\text{pen}} = \sum_{t,\, i \ne j} \Big( \big( d_{ij}(\hat s_t) - d_{ij}(s_t) - 1\,\text{cm} \big)^{+} \Big)^2, \qquad
-               d_{ij} \text{ measured along } n_{ij}(t_0),\ \ t_0 \text{ the last frame without overlap} \]</li>
-          <li id="WM-F4" data-todo="WM-F4" class="is-run"><span class="wm-todo-id">WM-F4</span><span class="wm-badge-run">running</span>
+               d_{ij} \text{ measured along } n_{ij}(t_0),\ \ t_0 \text{ the last frame without overlap} \]
+            <span class="wm-todo-note">Measured in <a href="./improved-results-v3.html">Improved Results V3</a>: the clearest gain against passing through so far, 4.5 to 2.9 cm deeper than reality on average for regression and 4.3 to 3.0 cm for flow matching; simulations with a pair more than 5 cm too deep fall from 31 to 21 percent and from 32 to 23 percent, for 4 percent more position error.</span></li>
+          <li id="WM-F4" data-todo="WM-F4" class="is-done"><span class="wm-todo-id">WM-F4</span><span class="wm-badge-done">done</span>
             <strong>The contact law.</strong> An object inside another by more than 5 mm must not keep moving inward along the contact
             normal: the velocity-level non-penetration condition that physics engines enforce at every contact. Objects that start a new
             contact in a block count twice in the loss, since the contact decides what happens next:
             \[ \mathcal{L}_{\text{law}} = \sum_{t,\, i \ne j} \mathbb{1}\big[d_{ij}(\hat s_t) \gt 5\,\text{mm}\big] \Big( \big( (\hat v^i_t - \hat v^j_t)^\top n_{ij} \big)^{+} \Big)^2, \qquad
-               w_i = 2 \ \text{if } i \text{ starts a contact in the block, else } 1 \]</li>
-          <li id="WM-F5" data-todo="WM-F5" class="is-run"><span class="wm-todo-id">WM-F5</span><span class="wm-badge-run">running</span>
+               w_i = 2 \ \text{if } i \text{ starts a contact in the block, else } 1 \]
+            <span class="wm-todo-note">Measured in <a href="./improved-results-v3.html">Improved Results V3</a>: nothing measurable on top of F3 (2.9 cm), although in the cone clip the cone now stops upright in front of the wall instead of grazing into it.</span></li>
+          <li id="WM-F5" data-todo="WM-F5" class="is-done"><span class="wm-todo-id">WM-F5</span><span class="wm-badge-done">done</span>
             <strong>Corner loss.</strong> The distance between each object's eight predicted and true box corners \(c_k\), so position
             and orientation are both in metres and a toppled tall object counts fully (the point-matching loss of 6D pose estimation).
             New measures come with it: rotation and tilt error, and whether objects that topple in PhysX (upright after the action,
             tilted beyond 45 degrees at the end) topple in the prediction:
-            \[ \mathcal{L}_{\text{corner}} = \frac{1}{8} \sum_{k=1}^{8} \big\lVert (\hat R^i_t c_k + \hat p^i_t) - (R^i_t c_k + p^i_t) \big\rVert \]</li>
+            \[ \mathcal{L}_{\text{corner}} = \frac{1}{8} \sum_{k=1}^{8} \big\lVert (\hat R^i_t c_k + \hat p^i_t) - (R^i_t c_k + p^i_t) \big\rVert \]
+            <span class="wm-todo-note">Measured in <a href="./improved-results-v3.html">Improved Results V3</a>: tilt error stays at 27 to 30 degrees, as without it; toppling recall, which F3 had lowered (43 to 25 percent for regression), comes back to 36 to 44 percent. Rotation needs another fix (K4, J5); a rotation study is running in the scaled study.</span></li>
           <li id="WM-F6" data-todo="WM-F6" class="is-run"><span class="wm-todo-id">WM-F6</span><span class="wm-badge-run">running</span>
             <strong>Collision guidance while sampling.</strong> No retraining: at every denoising step of a generative member, the current
             estimate of the clean trajectory \(\hat Y\) is nudged down the gradient of an overlap energy, measured along the contact
             direction from before the overlap; regression gets five such correction steps after its prediction (as in MotionDiffuser and
             CTG):
-            \[ \hat Y \leftarrow \hat Y - \eta\, \nabla_{\hat Y}\, C(\hat Y), \qquad C(Y) = \sum_{t,\, i \ne j} \Big( \big(d_{ij}(Y_t)\big)^{+} \Big)^2 \]</li>
+            \[ \hat Y \leftarrow \hat Y - \eta\, \nabla_{\hat Y}\, C(\hat Y), \qquad C(Y) = \sum_{t,\, i \ne j} \Big( \big(d_{ij}(Y_t)\big)^{+} \Big)^2 \]
+            <span class="wm-todo-note">In the cone clip of <a href="./improved-results-v3.html">Improved Results V3</a>, flow matching with guidance stops the cone upright next to the wall; the test numbers are still being computed (guidance roughly doubles the cost of evaluation).</span></li>
           <li id="WM-F7" data-todo="WM-F7" class="is-wait"><span class="wm-todo-id">WM-F7</span><span class="wm-badge-wait">waiting for a decision</span>
             <strong>Point clouds for contact geometry.</strong> Only if boxes and pieces are not enough after F3 to F6: surface points per
             object as the shape input and for contact distances (<a href="#WM-C2">C2</a>), which would also work on real depth data
@@ -1365,12 +1369,14 @@
             CTG (<a href="#WM-F6">F6</a>), both implemented in the scaled study's iteration 3, and winner-takes-all hypotheses from
             trajectory forecasting (<a href="#WM-E5">E5</a>, not implemented). The items below are the others worth trying; none is
             implemented.</p>
-          <p><strong>Which to back first.</strong> For objects passing through each other, the main failure: collision guidance (F6)
-            first, because it exists and needs no retraining, although it can only push objects apart and cannot produce the bounce;
-            then iterative refinement (J1), the idea of TAPIR and its relatives, which gives the network what it lacks, the geometry at
-            the predicted positions throughout the motion, and composes with step-wise blocks and guidance. The corner loss (F5) targets
-            toppling rather than passing through, and winner-takes-all (E5) targets forks; both are cheap and worth keeping. Iteration
-            3's measurements decide the order.</p>
+          <p><strong>Which to back first.</strong> Iteration 3 has settled part of it. Against passing through, the no-penetration
+            loss (F3) is the clearest gain so far, but one simulation in five still has a pair more than 5 cm too deep. Collision
+            guidance (F6) comes next because it exists and needs no retraining, if its test numbers confirm the cone clip; it can only
+            push objects apart, not produce the bounce. Then iterative refinement (J1), the idea of TAPIR and its relatives, which gives
+            the network what it still lacks, the geometry at the predicted positions throughout the motion, and composes with
+            step-wise blocks and guidance. Rotation did not improve with the corner loss (F5): tilt error stays near 28 degrees, so the
+            candidates there are integrating the spin (K4, B1) and a geodesic, symmetry-aware rotation loss (J5). Winner-takes-all
+            (E5) targets forks and stays useful for the regressor.</p>
         </div>
         <ul class="wm-todo">
           <li id="WM-J1" data-todo="WM-J1" class="is-idea"><span class="wm-todo-id">WM-J1</span><span class="wm-badge-idea">idea</span>
