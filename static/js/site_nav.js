@@ -16,6 +16,7 @@
     { key: 'improved-results-v1', label: 'Improved Results V1', icon: 'fa-atom', href: './improved-results-v1.html' },
     { key: 'improved-results-v2', label: 'Improved Results V2', icon: 'fa-shapes', href: './improved-results-v2.html' },
     { key: 'improved-results-v3', label: 'Improved Results V3', icon: 'fa-car-crash', href: './improved-results-v3.html' },
+    { key: 'improved-results-v4', label: 'Improved Results V4', icon: 'fa-sync-alt', href: './improved-results-v4.html' },
     { key: 'digital-twins', label: 'Digital twins', icon: 'fa-cube', href: './digital-twins.html' }
   ];
   window.SITE_TABS = TABS;
