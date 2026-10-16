@@ -19,7 +19,8 @@ PAGES = {"end-to-end.html": "end-to-end", "scaled-results.html": "scaled-results
          "improved-results-v1.html": "improved-results-v1",
          "improved-results-v2.html": "improved-results-v2",
          "improved-results-v3.html": "improved-results-v3",
-         "improved-results-v4.html": "improved-results-v4"}
+         "improved-results-v4.html": "improved-results-v4",
+         "improved-results-v5.html": "improved-results-v5"}
 
 
 def site_tabs(root):
