@@ -8,7 +8,7 @@
   <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
   <link rel="stylesheet" href="./static/css/bulma.min.css?v=58b2865922">
   <link rel="stylesheet" href="./static/css/index.css?v=747bae5899">
-  <link rel="stylesheet" href="./static/css/project.css?v=59e1a0066f">
+  <link rel="stylesheet" href="./static/css/project.css?v=861b29d9d0">
   <link rel="stylesheet" href="./static/vendor/katex/katex.min.css">
   <link rel="stylesheet" href="./static/css/post_training.css?v=750ba8efc2">
   <link rel="icon" href="./static/images/favicon.svg">
@@ -301,10 +301,12 @@
             <li><strong>The final word stays with PhysX:</strong> trained models are judged by the simulator on held-out tasks, as now.</li>
           </ul>
           <p><strong>Where it stands.</strong> Not yet: in the end-to-end study the best world model recognizes 24 percent of real
-            successes, and the toy models' predicted trajectories pass none of the benchmark's checks. The scaled study's step-wise
-            models agree with PhysX's verdict on 91 percent of its stored test simulations
-            (<a href="./improved-results-v2.html">Improved Results V2</a>), but agreement and false successes on a policy's own answers
-            are not measured yet. The switch is gated on \(\alpha\) and \(\mathrm{FS}\) measured on policy samples. Static edits
+            successes, and the toy models' predicted trajectories pass none of the benchmark's checks. The scaled study's best model
+            (V5) gives the same verdict as PhysX on about 90 percent of its stored test simulations, but on the reviewer study's
+            balanced items (two real successes and two failures per task) its predicted motion lets reviewers, and the rule checks, agree
+            with PhysX only 61 to 68 percent of the time, and only 29 to 43 percent of real successes are found
+            (<a href="./improved-results-v5.html">Improved Results V5</a>): a judge built on it today would under-reward rather than
+            over-reward. Agreement and false successes on a policy's own answers are not measured yet. The switch is gated on \(\alpha\) and \(\mathrm{FS}\) measured on policy samples. Static edits
             already work this way: their reward replaces the simulator with geometric checks that agree with PhysX on 60 of 61 stored
             answers.</p>
           <p><strong>Two places to use it.</strong> The benchmark's launch tasks, as above, and the scaled study's action planner, for
