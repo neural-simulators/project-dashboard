@@ -19,6 +19,7 @@
     { key: 'improved-results-v4', label: 'Improved Results V4', icon: 'fa-sync-alt', href: './improved-results-v4.html' },
     { key: 'improved-results-v5', label: 'Improved Results V5', icon: 'fa-link', href: './improved-results-v5.html' },
     { key: 'failure-analysis', label: 'Failure analysis', icon: 'fa-stethoscope', href: './failure-analysis.html' },
+    { key: 'video-models', label: 'Video models', icon: 'fa-film', href: './video-models.html' },
     { key: 'digital-twins', label: 'Digital twins', icon: 'fa-cube', href: './digital-twins.html' }
   ];
   window.SITE_TABS = TABS;
