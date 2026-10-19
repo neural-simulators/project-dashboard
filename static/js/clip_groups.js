@@ -127,6 +127,7 @@
   }, { threshold: 0.25 }) : null;
 
   function setupGroup(d) {
+    d.clipSetup = true;
     var clips = function () { return [].slice.call(d.querySelectorAll('video')); };
     var on = function () {
       d.clipHovered = true;
@@ -142,6 +143,7 @@
 
   function setupClip(v) {
     if (v.autoplay || v.hasAttribute('autoplay')) { return; }
+    v.clipBound = true;
     v.muted = true;
     v.clipGroup = v.closest('details.clipfam');
     if (seen) { seen.observe(v); }
@@ -154,11 +156,77 @@
     v.addEventListener('blur', function () { if (!(v.clipGroup && v.clipGroup.clipHovered)) { stop(v); } });
   }
 
+  // Site rule (2026-10-18): no clip autoplays, every clip group sits in a collapsed block that opens on a click, and
+  // clips play on hover or click. Pages built before the rule (and pages that render their clips with a script) are
+  // brought in line here: autoplay is stripped, any clip container that is not already inside a <details> is folded
+  // under its nearest preceding heading, and hover/click play is bound to every clip.
+  var BLOCKS = ['.gallery', '.bm-card', '.dt-video-gallery', '.mvids', '.extgrid', 'figure', '.card'];
+
+  function headingFor(el) {
+    var node = el;
+    while (node && node !== document.body) {
+      var s = node.previousElementSibling;
+      while (s) {
+        if (/^H[2-5]$/.test(s.tagName) || (s.tagName === 'P' && (s.classList.contains('dhead') || s.classList.contains('qhead'))) || s.classList.contains('qhead')) {
+          return s.textContent.trim().replace(/\s+/g, ' ').slice(0, 90);
+        }
+        s = s.previousElementSibling;
+      }
+      node = node.parentElement;
+      if (node && (node.tagName === 'SECTION' || node.classList.contains('wm-section'))) {
+        var h = node.querySelector('h2, h3, h4');
+        if (h) { return h.textContent.trim().replace(/\s+/g, ' ').slice(0, 90); }
+      }
+    }
+    return 'Clips';
+  }
+
+  function blockOf(v) {
+    for (var i = 0; i < BLOCKS.length; i++) { var b = v.closest(BLOCKS[i]); if (b) { return b; } }
+    return v.parentElement;
+  }
+
+  function enforce() {
+    [].forEach.call(document.querySelectorAll('video[autoplay]'), function (v) { v.removeAttribute('autoplay'); v.autoplay = false; stop(v); });
+    var pending = [];
+    [].forEach.call(document.querySelectorAll('video'), function (v) {
+      if (v.closest('details')) { return; }
+      var b = blockOf(v);
+      if (b && pending.indexOf(b) < 0 && !b.closest('details')) { pending.push(b); }
+    });
+    var byHeading = {};
+    pending.forEach(function (b) {
+      if (!b.parentNode) { return; }
+      var title = headingFor(b), prev = b.previousElementSibling;
+      var d = (prev && prev.classList && prev.classList.contains('clipfam-auto') && prev.getAttribute('data-title') === title) ? prev : null;
+      if (!d) {
+        d = document.createElement('details');
+        d.className = 'clipfam clipfam-theme clipfam-auto';
+        d.setAttribute('data-title', title);
+        var sm = document.createElement('summary'), name = document.createElement('span'), count = document.createElement('span');
+        name.className = 'clipfam-name'; name.textContent = title;
+        count.className = 'clipfam-count';
+        sm.appendChild(name); sm.appendChild(count); d.appendChild(sm);
+        b.parentNode.insertBefore(d, b);
+      }
+      d.appendChild(b);
+      var n = d.querySelectorAll('video').length;
+      d.querySelector('.clipfam-count').textContent = n + (n === 1 ? ' clip' : ' clips');
+      byHeading[title] = d;
+    });
+    [].forEach.call(document.querySelectorAll('details.clipfam'), function (d) {
+      if (canHover && !d.clipSetup) { d.clipSetup = true; setupGroup(d); }
+    });
+    [].forEach.call(document.querySelectorAll('video'), function (v) {
+      if (!v.clipBound) { v.clipBound = true; setupClip(v); }
+    });
+  }
+
   function init() {
     [].forEach.call(document.querySelectorAll('.gallery'), regroup);
     [].forEach.call(document.querySelectorAll('.gallery'), foldTheme);
-    if (canHover) { [].forEach.call(document.querySelectorAll('details.clipfam'), setupGroup); }
-    [].forEach.call(document.querySelectorAll('.gallery video'), setupClip);
+    enforce();
+    window.addEventListener('load', function () { enforce(); setTimeout(enforce, 1500); setTimeout(enforce, 4000); });
   }
   if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); } else { init(); }
 })();
