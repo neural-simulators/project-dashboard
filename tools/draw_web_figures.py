@@ -284,9 +284,9 @@ def figure_step(S):
 
 
 def figure_bidirectional():
-    """One token set (scene, properties, action, motion) under four masks, one network, and how each family answers."""
+    """One token set (scene, properties, action, motion) under five masks, one network, and how each family answers."""
     import random
-    svg = Svg(900, 516)
+    svg = Svg(900, 586)
     TOK, GAP = 22, 4
     SX, PX, AX, YX = 160, 256, 360, 410                     # left edges of the scene, property, action and motion tokens
     groups = [("scene  G∖P", SX, 3, 0), ("properties  P", PX, 3, 6), ("action  a", AX, 1, 10), ("motion  Y: 3 s in 10 chunks", YX, 10, 0)]
@@ -337,6 +337,7 @@ def figure_bidirectional():
         ("Backward", "infer the properties", dict(P=True), "P ~ p(P | Y, a, G∖P)", "which mass, friction, bounce?"),
         ("Backward", "infer the action", dict(a=True), "a ~ p(a | Y, P, G∖P)", "which push made this motion?"),
         ("Both at once", "infer and continue", dict(P=True, Y="late"), "P, Y₄…₁₀ ~ p(· | Y₁…₃, a, G∖P)", "unknown properties: what next?"),
+        ("Backwards in time", "from the end state", dict(P=True, Y="early"), "P, Y₁…₉ ~ p(· | Y₁₀, a, G∖P)", "which histories end here?"),
     ]
     seed = 0
     for r, (name, sub, hid, eq, gloss) in enumerate(rows):
@@ -353,24 +354,28 @@ def figure_bidirectional():
         token(AX, y, "act", hid.get("a", False), "a", seed)
         for j in range(10):
             seed += 1
-            hidden = hid.get("Y") == "all" or (hid.get("Y") == "late" and j >= 3)
+            hidden = hid.get("Y") == "all" or (hid.get("Y") == "late" and j >= 3) or (hid.get("Y") == "early" and j < 9)
             token(YX + j * (TOK + GAP), y, "motion", hidden, j, seed)
         if hid.get("Y") == "late":
             svg.text(YX + 1.5 * (TOK + GAP) - 2, y + TOK + 9, "first 0.9 s seen", size=9.5, anchor="middle", fill=C["muted"])
+        if hid.get("Y") == "early":
+            svg.text(YX + 10 * (TOK + GAP) - GAP, y + TOK + 9, "last 0.3 s seen: the end state", size=9.5, anchor="end", fill=C["muted"])
         svg.arrow(670, cy, 688, cy)
         svg.text(694, cy - 8, eq, size=11.5, weight="bold", fill=C["blue"])
         svg.text(694, cy + 9, gloss, size=11, fill=C["muted"])
 
     # the shared network
-    svg.rect(SX, 244, 666 - SX, 46, fill=C["blue_fill"], stroke=C["blue"], sw=1.6)
-    svg.text((SX + 666) / 2, 259, "the same network answers every row:  vθ(Xσ, σ, m, G∖P)", size=12.5, anchor="middle", weight="bold", fill=C["blue"])
-    svg.text((SX + 666) / 2, 277, "one transformer over all tokens; the mask m marks the hidden ones", size=11.5, anchor="middle")
-    svg.lines(0, 246, ["training: a random mask", "per example (motion 60%,", "properties 20%, action", "10%, a mix 10%)"], size=11, step=14, fill=C["muted"])
-    svg.rect(694, 250, 13, 13, fill=C["blue_fill"], stroke=C["blue"], sw=1.2, rx=2)
-    svg.text(712, 257, "given: clean, held fixed", size=11)
-    svg.parts.append('<rect x="694" y="272" width="13" height="13" rx="2" fill="url(#noise0)" stroke="%s" stroke-width="1.2" stroke-dasharray="3 2"/>' % C["muted"])
-    svg.text(712, 279, "hidden: starts as noise and", size=11)
-    svg.text(712, 293, "is filled in by the model", size=11)
+    svg.rect(SX, 294, 666 - SX, 46, fill=C["blue_fill"], stroke=C["blue"], sw=1.6)
+    svg.text((SX + 666) / 2, 309, "the same network answers every row:  vθ(Xσ, σ, m, G∖P)", size=12.5, anchor="middle", weight="bold", fill=C["blue"])
+    svg.text((SX + 666) / 2, 327, "one transformer over all tokens; the mask m marks the hidden ones", size=11.5, anchor="middle")
+    svg.text(450, 358, "Diffusion Forcing's per-chunk noise levels (objective 4) let the hidden chunks be cleaned in any order:", size=11, anchor="middle", fill=C["muted"])
+    svg.text(450, 372, "forward from a known beginning (row 4), or backward from a known end (row 5).", size=11, anchor="middle", fill=C["muted"])
+    svg.lines(0, 296, ["training: a random mask", "per example (motion 60%,", "properties 20%, action", "10%, a mix 10%)"], size=11, step=14, fill=C["muted"])
+    svg.rect(694, 300, 13, 13, fill=C["blue_fill"], stroke=C["blue"], sw=1.2, rx=2)
+    svg.text(712, 307, "given: clean, held fixed", size=11)
+    svg.parts.append('<rect x="694" y="322" width="13" height="13" rx="2" fill="url(#noise0)" stroke="%s" stroke-width="1.2" stroke-dasharray="3 2"/>' % C["muted"])
+    svg.text(712, 329, "hidden: starts as noise and", size=11)
+    svg.text(712, 343, "is filled in by the model", size=11)
 
     # how each family answers
     cards = [
@@ -401,10 +406,10 @@ def figure_bidirectional():
     ]
     for k, (title, color, body) in enumerate(cards):
         x = k * 304
-        svg.rect(x, 318, 292, 192, stroke=color, sw=1.6)
-        svg.text(x + 12, 338, title, size=13, weight="bold", fill=color)
-        svg.lines(x + 12, 362, body, size=11.5, step=20)
-    return svg.render("One model, both directions: the same tokens under four masks, the shared network, and how each family answers")
+        svg.rect(x, 388, 292, 192, stroke=color, sw=1.6)
+        svg.text(x + 12, 408, title, size=13, weight="bold", fill=color)
+        svg.lines(x + 12, 432, body, size=11.5, step=20)
+    return svg.render("One model, both directions: the same tokens under five masks, the shared network, and how each family answers")
 
 
 def main():

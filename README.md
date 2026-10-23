@@ -127,7 +127,8 @@ static/js/world_model/anim_pipeline.js   scene graph -> tokens -> transformer ->
 static/js/world_model/anim_flow.js       flow-matching phases on the red ball's recorded path (canvas)
 static/js/world_model/anim_step.js       variant D step loop, one recorded frame per tick (canvas)
 static/js/world_model/anim_forcing.js    Diffusion Forcing strip, 60 squares (SVG)
-static/js/world_model/anim_bidirectional.js   one masked model, forward and backward questions on a toy crate scene;
+static/js/world_model/anim_bidirectional.js   one masked model, four questions on a toy crate scene (forward; backward from
+                                 the whole motion; infer from 0.9 s and continue; backwards in time from the last 0.3 s);
                                  regression / flow matching / diffusion; exact grid posterior of the toy, computed in the
                                  browser when the World model tab is first shown (canvas)
 static/js/{fontawesome.all,bulma-carousel,bulma-slider}.min.js, index.js
