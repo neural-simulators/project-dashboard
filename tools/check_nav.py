@@ -22,6 +22,7 @@ PAGES = {"end-to-end.html": "end-to-end", "scaled-results.html": "scaled-results
          "improved-results-v4.html": "improved-results-v4",
          "improved-results-v5.html": "improved-results-v5",
          "improved-results-v6.html": "improved-results-v6",
+         "improved-results-v7.html": "improved-results-v7",
          "failure-analysis.html": "failure-analysis",
          "rubble-demo.html": "rubble-demo",
          "video-models.html": "video-models"}

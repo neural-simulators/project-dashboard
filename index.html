@@ -122,6 +122,12 @@
         </a>
       </li>
       <li role="presentation">
+        <a href="./improved-results-v7.html">
+          <span class="icon is-small"><i class="fas fa-layer-group" aria-hidden="true"></i></span>
+          <span>Improved Results V7</span>
+        </a>
+      </li>
+      <li role="presentation">
         <a href="./failure-analysis.html">
           <span class="icon is-small"><i class="fas fa-stethoscope" aria-hidden="true"></i></span>
           <span>Failure analysis</span>
@@ -683,6 +689,7 @@
           <li><strong>V4: rotation and built-in physics, on four scenes first.</strong> Corners as outputs was the clear winner for rotation: lower position error and twice the toppling recall. Built-in gravity at the centre of mass made free flight right without costing accuracy, and fast-spin data helped spins. Velocity from motion, the third law at impacts, chained-block training, statics and rolling all cost accuracy and were dropped. <span class="wm-iter-link"><a href="./improved-results-v4.html">Improved Results V4</a></span></li>
           <li><strong>V5: pendulum and spring equations.</strong> Joint equations as built-in motion, trained on every scene, gave the lowest error so far (0.435 m against 0.459 m), with the largest gains on pendulums and springs and half the joint stretch. Flow matching beats block diffusion. Reviewers judging V5's predicted motion agree with PhysX only 61 to 67 percent of the time, against 80 to 91 percent on PhysX's motion: the simulator, not the reviewer, is the bottleneck. <span class="wm-iter-link"><a href="./improved-results-v5.html">Improved Results V5</a></span></li>
           <li><strong>V6: why collisions fail.</strong> From the physics engine's exact state just before an impact, V5 still gives the struck object almost none of its push; trained on many more impacts of one scene, the same network gets it right, while stronger losses, own-rollout training and shorter steps do not. A contact constraint at generation (exact part shapes, momentum shared) lowers the test error (0.443 to 0.434 m) and halves passing through (4.2 to 1.9 cm). <span class="wm-iter-link"><a href="./improved-results-v6.html">Improved Results V6</a></span></li>
+          <li><strong>V7: flow on top of regression, engine continuations.</strong> Two ways to get multi-step behaviour into flow matching without a loss through its sampler. Flow on top of the multi-step regression model learns almost no spread (the physics is deterministic given the scene table), and its one-step correction undoes the chain training (validation 0.368 to 0.399 m). Exact next steps from the physics engine at flow's own drifted states make flow worse (test 0.494 to 0.502 m, bystanders moved 4.4 to 8.4 percent): they teach it to carry on from the drift instead of steering back. Both stopped at the 6-hour check. <span class="wm-iter-link"><a href="./improved-results-v7.html">Improved Results V7</a></span></li>
           <li><strong>Failure analysis.</strong> Each 0.2 s step is accurate (about 2 cm, 6 cm at collisions), but fed back block after block the error reaches about 1.5 m by 3 s; with the true speed restored at every block it stays at 18 cm, so speed precision is the bottleneck (K11). With enough examples of one interaction a plain model learns the contact without extra rules; training on its own mistakes (DAgger) did not help. <span class="wm-iter-link"><a href="./failure-analysis.html">Failure analysis</a></span></li>
         </ul>
         <h4 class="title is-6 wm-subhead">What still fails</h4>
