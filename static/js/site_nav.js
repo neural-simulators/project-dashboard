@@ -7,12 +7,14 @@
   'use strict';
   var TABS = [
     { key: 'overview', label: 'Overview', icon: 'fa-home', href: './index.html#overview' },
+    { key: 'dataset', label: 'Dataset', icon: 'fa-database', href: './dataset.html' },
     { key: 'design', label: 'World model', icon: 'fa-drafting-compass', href: './index.html#design' },
     { key: 'post-training', label: 'Post-training', icon: 'fa-graduation-cap', href: './index.html#post-training' },
     { key: 'how-it-works', label: 'How models are prompted', icon: 'fa-comment-dots', href: './how-it-works.html' },
     { key: 'results', label: 'Results', icon: 'fa-chart-bar', href: './index.html#results' },
     { key: 'end-to-end', label: 'End-to-end study', icon: 'fa-route', href: './end-to-end.html' },
     { key: 'scaled-results', label: 'Scaled results', icon: 'fa-project-diagram', href: './scaled-results.html' },
+    { key: 'summary', label: 'Summary', icon: 'fa-table', href: './summary.html' },
     { key: 'improved-results-v1', label: 'Improved Results V1', icon: 'fa-atom', href: './improved-results-v1.html' },
     { key: 'improved-results-v2', label: 'Improved Results V2', icon: 'fa-shapes', href: './improved-results-v2.html' },
     { key: 'improved-results-v3', label: 'Improved Results V3', icon: 'fa-car-crash', href: './improved-results-v3.html' },

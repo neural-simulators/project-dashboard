@@ -16,6 +16,7 @@ from pathlib import Path
 
 PAGES = {"end-to-end.html": "end-to-end", "scaled-results.html": "scaled-results", "how-it-works.html": "how-it-works",
          "digital-twins.html": "digital-twins", "benchmark.html": "results",
+         "dataset.html": "dataset", "summary.html": "summary",
          "improved-results-v1.html": "improved-results-v1",
          "improved-results-v2.html": "improved-results-v2",
          "improved-results-v3.html": "improved-results-v3",
