@@ -15,6 +15,7 @@
     { key: 'end-to-end', label: 'End-to-end study', icon: 'fa-route', href: './end-to-end.html' },
     { key: 'scaled-results', label: 'Scaled results', icon: 'fa-project-diagram', href: './scaled-results.html' },
     { key: 'summary', label: 'Summary', icon: 'fa-table', href: './summary.html' },
+    { key: 'ablations', label: 'Ablations', icon: 'fa-sliders-h', href: './ablations.html' },
     { key: 'improved-results-v1', label: 'Improved Results V1', icon: 'fa-atom', href: './improved-results-v1.html' },
     { key: 'improved-results-v2', label: 'Improved Results V2', icon: 'fa-shapes', href: './improved-results-v2.html' },
     { key: 'improved-results-v3', label: 'Improved Results V3', icon: 'fa-car-crash', href: './improved-results-v3.html' },
