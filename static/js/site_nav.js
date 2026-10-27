@@ -25,7 +25,8 @@
     { key: 'failure-analysis', label: 'Failure analysis', icon: 'fa-stethoscope', href: './failure-analysis.html' },
     { key: 'rubble-demo', label: 'Rubble demo', icon: 'fa-hard-hat', href: './rubble-demo.html' },
     { key: 'video-models', label: 'Video models', icon: 'fa-film', href: './video-models.html' },
-    { key: 'digital-twins', label: 'Digital twins', icon: 'fa-cube', href: './digital-twins.html' }
+    { key: 'digital-twins', label: 'Digital twins', icon: 'fa-cube', href: './digital-twins.html' },
+    { key: 'twins-v2', label: 'Twins v2', icon: 'fa-couch', href: './twins-v2.html' }
   ];
   window.SITE_TABS = TABS;
 
