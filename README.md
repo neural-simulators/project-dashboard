@@ -14,7 +14,8 @@ standalone pages that share the same navigation:
   from `post_training.html` (see "Post-training blocks" below).
 - **Results** (`#results`): one block per result (benchmark, toy world model,
   post-training).
-- Standalone pages: `how-it-works.html`, `benchmark.html` (the full benchmark
+- Standalone pages: `dataset-v2.html` (Dataset V2: the 46-family round, its branch bundle, events,
+  questions, rooms and status, with the reasons behind each addition), `how-it-works.html`, `benchmark.html` (the full benchmark
   results, under the Results tab), `end-to-end.html`, `scaled-results.html` and
   `improved-results-v*.html` (co-author pages), `digital-twins.html`.
 
@@ -27,6 +28,15 @@ Every tab and page opens with a short intro box (`<div class="wm-intro">`: a
 question as its title, the idea and why it matters in plain words, optionally a
 row of `wm-facts` numbers), then the details. Keep intros about the idea, not
 about the page's own layout (no "this page has N sections" lines).
+
+## Dataset V2 page
+
+`dataset-v2.html` (tab key `dataset-v2`) describes the second dataset round of 29 October 2026: 46 mechanics families in
+whole ScanNet++ rooms, eight branches per root, timed events, measured questions and the acceptance checks, each with
+the reason it exists and what it should teach the world model. Images under `static/images/dataset_v2/` are contact
+sheets of the factual key frames and of the fourteen rooms, built from the mechanics review dashboard's media. Every
+number comes from the round-2 receipts in the simagent checkout (`docs/MECHANICS_FAMILIES_V2.md`); update the page by
+hand when the receipts change, and run `tools/check_page.py --page dataset-v2.html` and `tools/check_nav.py`.
 
 ## Visitor map
 

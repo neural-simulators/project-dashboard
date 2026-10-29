@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="description" content="Dataset V2: 46 indoor mechanics families in scanned rooms, each root simulated as eight branches (counterfactuals, a causal-link removal, timed interventions, a control) with timed events, measured questions and checks; why each addition exists and what it should teach the model.">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dataset V2 · Neural Simulators</title>
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
+  <link rel="stylesheet" href="./static/css/bulma.min.css?v=58b2865922">
+  <link rel="stylesheet" href="./static/css/index.css?v=747bae5899">
+  <link rel="stylesheet" href="./static/css/project.css?v=861b29d9d0">
+  <link rel="icon" href="./static/images/favicon.svg">
+  <script defer src="./static/js/fontawesome.all.min.js?v=20a3ef6979"></script>
+  <script defer src="./static/js/site_nav.js?v=fe837a0d3f"></script>
+<style>
+/* Dataset V2 page: every rule is scoped to #dv2 */
+#dv2 td.n, #dv2 th.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+#dv2 .wm-table td, #dv2 .wm-table th { vertical-align: top; }
+#dv2 .wm-table.compact td, #dv2 .wm-table.compact th { font-size: 0.88rem; padding: 0.35rem 0.5rem; }
+#dv2 details { margin: 0.6rem 0 0.9rem; border: 1px solid var(--wm-border); border-radius: 8px; background: #fff; }
+#dv2 details > summary { cursor: pointer; padding: 0.5rem 0.8rem; font-weight: 600; color: #222; list-style: none; }
+#dv2 details > summary::-webkit-details-marker { display: none; }
+#dv2 details > summary::before { content: '\25B8'; color: var(--wm-slate); display: inline-block; width: 0.9rem; transition: transform 0.15s; }
+#dv2 details[open] > summary::before { transform: rotate(90deg); }
+#dv2 details > summary:hover { background: #f5f7fa; border-radius: 8px; }
+#dv2 details > .inner { padding: 0.2rem 0.8rem 0.8rem; }
+#dv2 .why { margin: 0.35rem 0 0.8rem; padding: 0.45rem 0.8rem; border-left: 3px solid var(--wm-blue); background: #f4f7fb; border-radius: 4px; font-size: 0.93rem; }
+#dv2 .why b { color: var(--wm-blue); }
+#dv2 .branches { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 0.7rem; margin-top: 0.8rem; }
+#dv2 .branch { border: 1px solid var(--wm-border); border-radius: 6px; padding: 0.6rem 0.75rem; background: #fff; font-size: 0.92rem; }
+#dv2 .branch b { display: block; margin-bottom: 0.2rem; color: #222; }
+#dv2 .branch .gain { color: var(--wm-blue); display: block; margin-top: 0.3rem; font-size: 0.88rem; }
+#dv2 figure.sheet { margin: 0.8rem 0 0.3rem; }
+#dv2 figure.sheet img { width: 100%; border-radius: 6px; display: block; border: 1px solid var(--wm-border); }
+#dv2 figure.sheet figcaption { font-size: 0.85rem; color: var(--wm-muted); margin-top: 0.35rem; }
+#dv2 .diagram svg { width: 100%; height: auto; display: block; color: #333; }
+#dv2 .bx { fill: #fff; stroke: var(--wm-border); stroke-width: 1.5; }
+#dv2 .bx.acc { stroke: var(--wm-blue); stroke-width: 2; }
+#dv2 .bx.amber { stroke: var(--wm-amber); stroke-width: 2; }
+#dv2 .bx.grey { fill: #f4f6f9; }
+#dv2 svg text { fill: currentColor; font-size: 13px; }
+#dv2 svg text.h { font-weight: 700; font-size: 14px; }
+#dv2 svg text.m { fill: var(--wm-muted); font-size: 11.5px; }
+#dv2 .ln { stroke: currentColor; stroke-width: 1.5; fill: none; }
+#dv2 .ln.acc { stroke: var(--wm-blue); }
+#dv2 ul.take { margin: 0.5rem 0 0 1.25rem; list-style: disc; }
+#dv2 ul.take li { margin: 0.25rem 0; }
+#dv2 .pass { color: #2b7a3b; font-weight: 600; }
+#dv2 .open { color: var(--wm-amber); font-weight: 600; }
+</style>
+</head>
+<body>
+<section class="hero wm-hero"><div class="hero-body"><div class="container is-max-desktop"><div class="columns is-centered"><div class="column has-text-centered">
+<h1 class="title is-1 publication-title">Dataset V2</h1>
+<p class="subtitle is-4 wm-subtitle">Forty-six indoor mechanics families in scanned rooms, each simulated as a bundle of counterfactuals, interventions and a control, with timed events and measured questions.</p>
+</div></div></div></div></section>
+<div class="container is-max-desktop">
+  <nav class="tabs is-centered is-boxed wm-tabs" data-site-nav="dataset-v2" aria-label="Project pages"></nav>
+</div>
+
+<div class="wm-panel" id="dv2"><section class="section"><div class="container is-max-desktop">
+
+<div class="wm-intro">
+  <p class="wm-intro-title">What does a world model need in its training data to learn causes, and not only motion?</p>
+  <p>The first dataset (the <a href="./dataset.html">Dataset tab</a>) taught the model to continue motion: one action, one rollout, three seconds. It rarely showed the same world twice with one thing changed, and never showed an action arriving in the middle of a rollout. Dataset V2 is built around those two gaps. Every root scene is simulated as up to eight branches from one manifest: the factual run, three counterfactual worlds (a property, a material, a shape), the removal of a causal link, two timed interventions after an observed prefix, and an unchanged replay. Every branch carries contact events with their impulses, frame tags, physics screens and questions whose answers are measured from the saved states. The motion families were widened to cover the mechanisms published physics datasets list, placed in whole scanned rooms, and driven by a visible actuator wherever one is physically sensible.</p>
+  <ul class="wm-facts">
+    <li><b>46</b>motion families in 6 groups</li>
+    <li><b>8</b>branches per root scene</li>
+    <li><b>342</b>engine runs, 44 of 46 families pass every check</li>
+    <li><b>14</b>whole ScanNet++ rooms, 19 to 40 objects</li>
+    <li><b>2,401</b>questions with measured answers</li>
+  </ul>
+</div>
+
+<div class="wm-section" id="dv2-contents"><h3 class="title is-4">Contents</h3>
+<ul style="list-style:none;margin-left:0">
+<li><a href="#dv2-why"><b>1. Why a second dataset</b></a>: what the first one and the published sets leave out</li>
+<li><a href="#dv2-bundle"><b>2. One root, eight branches</b></a>: each branch, its reason and what it should teach the model</li>
+<li><a href="#dv2-families"><b>3. The 46 families</b></a>: groups, chains, merges, durations</li>
+<li><a href="#dv2-actuator"><b>4. The actuator</b></a>: a visible cause without modelling a robot</li>
+<li><a href="#dv2-events"><b>5. Events, frame tags and checks</b></a>: what every record carries and how it is accepted</li>
+<li><a href="#dv2-questions"><b>6. Questions</b></a>: measured answers, comparative questions, Qwen for wording only</li>
+<li><a href="#dv2-rooms"><b>7. Rooms, camera and renders</b></a></li>
+<li><a href="#dv2-sampling"><b>8. Durations and sampling rate</b></a></li>
+<li><a href="#dv2-status"><b>9. Status, scale and what comes next</b></a></li>
+</ul></div>
+
+<div class="wm-section" id="dv2-why"><h3 class="title is-4">1. Why a second dataset<a href="#dv2-contents" style="float:right;font-size:.75rem;font-weight:400">↑ contents</a></h3>
+<p>The audit of the first dataset (25 October) counted 1,367 paired scenes and 490,679 stored rollouts, all 3 s at 30 Hz, in procedural rooms. Only about 2.5 percent of its training action rows have a counterfactual sibling, and none has an intervention after an observed prefix. A model trained on it sees many motions but almost never the evidence that separates "what happens" from "what would have happened if". The published datasets have the same shape: breadth or scale on one axis, no branches from one world.</p>
+<div class="table-container"><table class="table is-striped is-fullwidth wm-table compact">
+<thead><tr><th>Set</th><th>What it gives</th><th>What it lacks for a causal world model</th></tr></thead>
+<tbody>
+<tr><td>Our first dataset (Dataset tab)</td><td>490,679 rollouts, Physion and MOVi conversions, procedural indoor rooms, one action token per clip</td><td>Branches from one world (2.5 percent), interventions mid-rollout, events with evidence, realistic rooms</td></tr>
+<tr><td><a href="https://vlar-group.github.io/PhysInOne.html">PhysInOne</a></td><td>153,810 dynamic scenes, 71 phenomena (also optics and magnetism), 528 backgrounds, 13 views each</td><td>No counterfactual pairs or timed interventions; videos, not replayable states; views are not new physics</td></tr>
+<tr><td><a href="https://sim2reason.github.io/">Sim2Reason</a></td><td>A simulator grades a reasoner's answers to physics questions (about 6,400 QA pairs per RL run)</td><td>QA only, no trajectory corpus; the simulator is a grader, not the thing being learned</td></tr>
+<tr><td><a href="https://huggingface.co/blog/Luo-Yihang/mundo-world-model">Mundo</a></td><td>Box proxies for every object, MuJoCo moves them, a learned renderer draws the result (about 40,000 pairs)</td><td>Physics stays in the engine; nothing about branches or explanations</td></tr>
+<tr><td><a href="https://cogtoolslab.github.io/pdf/BWMB_neurips_2021.pdf">Physion</a>, <a href="https://github.com/google-research/kubric/blob/main/challenges/movi/README.md">MOVi</a></td><td>8 scenario types at 5 to 10 s; random tosses at 2 s</td><td>No actions, no branches, no rooms</td></tr>
+<tr><td><a href="https://arxiv.org/abs/2609.30946">OneWorld</a> (method, not data)</td><td>Different actions in one world should share the same latent mass and friction</td><td>Needs data that shows one world under several actions, which is what the bundle supplies</td></tr>
+</tbody></table></div>
+<div class="why"><b>What this buys the model.</b> The world model is asked six questions on the World model tab (forward, backward, counterfactual, intervention, explanation, uncertainty). The first dataset only supervises the forward one. The bundle below gives every root the supervision for the other five from the same scene, so the model learns them as views of one physics rather than as separate tasks.</div>
+</div>
+
+<div class="wm-section" id="dv2-bundle"><h3 class="title is-4">2. One root, eight branches<a href="#dv2-contents" style="float:right;font-size:.75rem;font-weight:400">↑ contents</a></h3>
+<p>A root is one manifest: the room, the objects with mass, friction, restitution, colliders and materials, the joints and springs, the fields (gravity, drag, wind, buoyancy, thrust) and the actuator's force program. The eight branches are fresh PhysX runs from edited copies of that manifest; nothing is spliced, teleported or driven to a wanted outcome. Each branch exists for a reason and comes with the check that proves it did what it claims.</p>
+<div class="diagram wm-svg-scroll"><svg viewBox="0 0 960 300" role="img" aria-label="One root manifest feeds eight PhysX runs: three counterfactual worlds and a removal change the manifest before time zero; two interventions change the action at a time t after an observed prefix; the factual run and the unchanged control keep the manifest. Every run goes through the same screens, events, motion checks and questions.">
+  <rect class="bx acc" x="10" y="105" width="150" height="90" rx="8"/>
+  <text class="h" x="85" y="132" text-anchor="middle">Root manifest</text>
+  <text class="m" x="85" y="150" text-anchor="middle">room, bodies, joints,</text>
+  <text class="m" x="85" y="165" text-anchor="middle">fields, force program</text>
+  <text class="m" x="85" y="180" text-anchor="middle">of the actuator</text>
+  <rect class="bx grey" x="210" y="12" width="300" height="118" rx="8"/>
+  <text class="h" x="222" y="32">World changed before t = 0</text>
+  <rect class="bx" x="222" y="42" width="130" height="24" rx="4"/><text x="287" y="58" text-anchor="middle">property</text>
+  <rect class="bx" x="366" y="42" width="130" height="24" rx="4"/><text x="431" y="58" text-anchor="middle">material</text>
+  <rect class="bx" x="222" y="72" width="130" height="24" rx="4"/><text x="287" y="88" text-anchor="middle">shape (same mass)</text>
+  <rect class="bx amber" x="366" y="72" width="130" height="24" rx="4"/><text x="431" y="88" text-anchor="middle">removal of a link</text>
+  <text class="m" x="222" y="118">counterfactual worlds: same action, different physics</text>
+  <rect class="bx grey" x="210" y="142" width="300" height="76" rx="8"/>
+  <text class="h" x="222" y="162">Action changed at time t</text>
+  <rect class="bx amber" x="222" y="172" width="130" height="24" rx="4"/><text x="287" y="188" text-anchor="middle">tool force changes</text>
+  <rect class="bx amber" x="366" y="172" width="130" height="24" rx="4"/><text x="431" y="188" text-anchor="middle">late: impulse, fan</text>
+  <text class="m" x="222" y="212">identical prefix up to t, then a different future</text>
+  <rect class="bx grey" x="210" y="230" width="300" height="58" rx="8"/>
+  <text class="h" x="222" y="250">Unchanged</text>
+  <rect class="bx acc" x="222" y="258" width="130" height="24" rx="4"/><text x="287" y="274" text-anchor="middle">factual</text>
+  <rect class="bx" x="366" y="258" width="130" height="24" rx="4"/><text x="431" y="274" text-anchor="middle">replay control</text>
+  <path class="ln" d="M160 150 L185 150 L185 70 L210 70"/>
+  <path class="ln" d="M185 150 L185 180 L210 180"/>
+  <path class="ln" d="M185 180 L185 259 L210 259"/>
+  <rect class="bx" x="560" y="40" width="170" height="220" rx="8"/>
+  <text class="h" x="645" y="66" text-anchor="middle">PhysX, 1920 Hz</text>
+  <text class="m" x="645" y="86" text-anchor="middle">states saved at 120 Hz</text>
+  <text class="m" x="645" y="104" text-anchor="middle">contacts with impulses</text>
+  <text x="645" y="134" text-anchor="middle">screens: penetration,</text>
+  <text x="645" y="150" text-anchor="middle">energy, bounds</text>
+  <text x="645" y="174" text-anchor="middle">events and frame tags</text>
+  <text x="645" y="198" text-anchor="middle">motion checks, stages</text>
+  <text x="645" y="222" text-anchor="middle">measured questions</text>
+  <path class="ln" d="M510 70 L560 70"/><path class="ln" d="M510 180 L560 180"/><path class="ln" d="M510 259 L535 259 L535 240 L560 240"/>
+  <rect class="bx acc" x="780" y="80" width="170" height="140" rx="8"/>
+  <text class="h" x="865" y="106" text-anchor="middle">Branch checks</text>
+  <text class="m" x="865" y="128" text-anchor="middle">control replays exactly</text>
+  <text class="m" x="865" y="146" text-anchor="middle">prefix identical up to t</text>
+  <text class="m" x="865" y="164" text-anchor="middle">intervention visible after t</text>
+  <text class="m" x="865" y="182" text-anchor="middle">counterfactual differs (advisory)</text>
+  <text class="m" x="865" y="200" text-anchor="middle">removal kills the downstream event</text>
+  <path class="ln acc" d="M730 150 L780 150"/>
+</svg></div>
+<div class="branches">
+  <div class="branch"><b>Factual</b>The action program in the room: a piston pushes, a gripper releases, a trigger pin is pulled. The run the questions are asked about.<span class="gain">Trains: forward prediction with an explicit cause in the scene.</span></div>
+  <div class="branch"><b>Counterfactual property</b>Mass, friction, restitution or spring stiffness of the main object edited, everything else kept, same action.<span class="gain">Trains: the model must carry latent parameters it cannot see and use them, instead of guessing one average physics (the OneWorld consistency argument).</span></div>
+  <div class="branch"><b>Counterfactual material</b>Another material preset: friction, restitution and appearance change, mass kept.<span class="gain">Trains: appearance is a cue for contact behaviour, and a cue only; the same look can hide different dynamics.</span></div>
+  <div class="branch"><b>Counterfactual shape</b>Sphere to cube, box to sphere or cylinder, domino to peg, at equal volume and mass.<span class="gain">Trains: geometry decides rolling, tipping and contact normals; the model must read the collider, not the label.</span></div>
+  <div class="branch"><b>Removal of a causal link</b>The chain's link (a domino, a buffer, a support, a target) is removed before the run; joints and forces referencing it are dropped.<span class="gain">Trains: "what caused what". The downstream event should disappear; the pair is the ground truth for explanation questions and for the event head's missed-event comparison.</span></div>
+  <div class="branch"><b>Intervention while the tool acts</b>The actuator's force or torque changes while it is still in contact (39 families); for the 7 families without an actuator a declared impulse at the same point.<span class="gain">Trains: the action token matters at every step, not only at frame zero; a planner can only use a model that reacts to a changed command.</span></div>
+  <div class="branch"><b>Late intervention</b>After release, at a stated time: an impulse on a free body, a fan starting for the air families, a thrust cut for the rocket, a gravity change.<span class="gain">Trains: prediction from an observed prefix plus a new cause. The prefix check proves the branch shares the first t seconds exactly; the effect check proves the cause mattered.</span></div>
+  <div class="branch"><b>No-change control</b>An independent replay of the factual manifest.<span class="gain">Trains nothing; it proves the engine is deterministic to 1e-5 m, so every difference between branches is caused by the edit.</span></div>
+</div>
+<div class="why"><b>Why bundles and not more rollouts.</b> One root with eight branches costs about as much as eight unrelated rollouts, but the eight unrelated rollouts never let a loss compare two futures of the same world. The bundle makes the counterfactual, intervention and explanation questions trainable with paired targets, and gives the uncertainty question (World model tab, section 18) its spread: the same prefix can continue differently when a hidden property differs.</div>
+</div>
+
+<div class="wm-section" id="dv2-families"><h3 class="title is-4">3. The 46 families<a href="#dv2-contents" style="float:right;font-size:.75rem;font-weight:400">↑ contents</a></h3>
+<p>The registry has six groups. Collisions and motion (13 families) and mechanisms (13) cover the single-stage mechanics of Physion, MOVi and the mechanical half of PhysInOne's phenomenon list: drops that bounce, billiard breaks, bowling, ramps, slipping to rolling, spinning tops, pendulums (simple, double, rigid rod), springs, pulleys, levers, cranks, catapults, carts. Chain reactions (13) are the new emphasis: multi-stage causal chains such as ramp to spring bumper to dominoes, a spring launcher into a tower, a pendulum that fells a tower whose blocks push a ball into a box, a seesaw that launches a second ball, branching domino networks. Flexible solids (3: trampoline net, diving board on hinges with angular springs, flexible bridge) are coarse elastic assemblies that prepare the format for real deformables. Fields and air (5) add buoyant balloons, a falling sheet with drag and a fan, thrust, changed gravity and an orbit.</p>
+<figure class="sheet"><img src="./static/images/dataset_v2/families.jpg" alt="Sixteen of the 46 families mid-motion in scanned rooms: billiard break, bowling, domino toppling, branching dominoes, ramp with spring and dominoes, ramp with lever and second ball, pendulum with tower and box, spring launcher and tower, diving board, trampoline, flexible bridge, three balloons, catapult, cart and buffer, rubble on springs, sheet with ball and fan." loading="lazy"><figcaption>Sixteen families mid-motion, from the factual branch of each. The yellow arm is the visual of the actuator; only its tool is simulated (section 4).</figcaption></figure>
+<div class="why"><b>Why chains.</b> The main failure of the current predictor is errors compounding over chained blocks (K11 on the World model tab). A single collision does not expose that; a chain does, because a small error in stage one moves stage two by a lot. Nineteen families declare their stage list (ball to ramp, ball to bumper, bumper to first domino, ...), and acceptance requires every stage to touch in the declared order. That makes "did the chain happen" a measured label, usable both as a loss and as the answer to "what will happen next".</div>
+<details><summary>All 46 families by group, with horizon and actuator</summary><div class="inner">
+<div class="table-container"><table class="table is-striped is-fullwidth wm-table compact">
+<thead><tr><th>Group</th><th>Families (horizon in s; actuator: piston, grasp or declared)</th></tr></thead>
+<tbody>
+<tr><td>Collisions and motion (13)</td><td>drop, bouncing rubber ball (4, grasp); ball collisions (4, piston); billiard break (6, piston); bowling (5, piston); granular solids (6, grasp); rolling tires collide (5, declared); projectile (5, declared); ramp (5, grasp); pushed sliding block (4, piston); slipping to rolling (5, grasp); spinning blocks (4, grasp); spinning top (8, declared)</td></tr>
+<tr><td>Mechanisms (13)</td><td>cart into a spring buffer (6, piston); spring catapult with trigger pin (5, piston); coupled springs (8, grasp); crank (6, grasp); double pendulum (8, declared); guided slider (4, piston); lever flipping a ball (5, piston); simple pendulum (8, grasp); pendulum into a spring-mounted block (8, grasp); pulley (6, declared); hanging chain (8, grasp); rotating beam (6, grasp); hanging spring (8, grasp)</td></tr>
+<tr><td>Chain reactions (13)</td><td>ball and block fall into a box (5, piston); books knock a ball into a box (5, piston); collision chain (5, piston); chair topples and drops a ball (5, declared); ball to ball to box (5, grasp); branching dominoes (6, piston); spring launcher knocks a tower (6, grasp); pendulum strikes a stack (6, declared); pendulum, tower, ball, box (7, grasp); ramp, lever, second ball (6, grasp); ramp, spring bumper, dominoes (6, grasp); rubble onto a spring platform (4, grasp); domino toppling (5, piston)</td></tr>
+<tr><td>Flexible solids (3)</td><td>diving board flicks a ball into a box (6, grasp); ball strikes a flexible bridge (6, grasp); ball on a trampoline net (5, grasp)</td></tr>
+<tr><td>Fields and air (5)</td><td>three tethered balloons (6, grasp); sheet falls onto a ball, fan later (6, grasp); changing gravity (6, grasp); orbital motion (8, grasp); thrust-driven motion (6, grasp)</td></tr>
+</tbody></table></div>
+<p class="wm-note">Five earlier families were merged into these because they duplicated physics: a single rolling wheel into the tire collision, a dropped ball into a box into the table-edge chain, pendulum into dominoes into pendulum into a stack, ramp into dominoes into the ramp, spring and domino chain, and a piston poke into the pushed block. The dashboard credits the merged family in each case. Nine others were redefined so that something happens after the action (the cart now meets a buffer, the catapult is cocked and released by a pin, the lever is a real lever, the billiard break has a six-ball rack, the drop bounces, three balloons instead of one, the sheet lands on a ball, the rubble collapses onto springs, the bridge ball rolls off into a box).</p>
+</div></details>
+</div>
+
+<div class="wm-section" id="dv2-actuator"><h3 class="title is-4">4. The actuator<a href="#dv2-contents" style="float:right;font-size:.75rem;font-weight:400">↑ contents</a></h3>
+<p>Thirty-nine of the 46 families are set in motion by a visible tool: a piston that pushes, or a gripper that holds an object and releases it, with a force program (start, stop, release time, force or torque). What the engine simulates is the tool alone, a single rigid box with a known force schedule; the yellow arm in the renders is drawn, not simulated, and the tool is held kinematically after release. The seven remaining families (top, two tires, pulley loads, rigid-rod pendulum, double pendulum, projectile, scanned chair) start from a declared launch and say so on their card.</p>
+<div class="why"><b>Why a tool and not a robot.</b> The point is that the cause is visible and its program is known, so the intervention branch ("push harder from 0.5 s") is a physical change in the scene rather than a hidden velocity edit. The joints of an arm are not something the world model should learn: the tool enters the scene graph as a controlled object with its command, carries no loss of its own, and the arm's motion is never a prediction target. Mid-rollout force changes are exactly the commands a planner built on the model will issue.</div>
+</div>
+
+<div class="wm-section" id="dv2-events"><h3 class="title is-4">5. Events, frame tags and checks<a href="#dv2-contents" style="float:right;font-size:.75rem;font-weight:400">↑ contents</a></h3>
+<p>Every engine run stores, besides the 120 Hz states, the contact episodes with their impulses at solver resolution (which pair, first contact, peak impulse and where), and a timed event list: comes to rest, topples, container entry and exit, intervention and release markers, gravity and fan changes, rebound and spring compression peaks. The same run passes the physics screens (penetration at most 5 mm, energy gain bounded by the recorded external work, inside the room, unit quaternions) and the family's expectation: the actor moves, the declared pairs touch, the stated stages touch in order, the tower tips, the ball ends inside the box. The branch checks of section 2 run on top. A failed check stays in the record as a valid negative and is shown on the dashboard, never silently dropped.</p>
+<div class="why"><b>Why events with evidence.</b> The planned event head and verbalizer (D1 to D4 on the World model tab) need a fixed event extractor shared by predictions and PhysX, so that "the ball never reached the box" is a comparison of two event lists, not a free-text guess. Timed events are also what frame-level question answering is grounded on: every answer below cites the state indices it was measured from. Stage order gives chains a label that a loss can use directly.</div>
+</div>
+
+<div class="wm-section" id="dv2-questions"><h3 class="title is-4">6. Questions<a href="#dv2-contents" style="float:right;font-size:.75rem;font-weight:400">↑ contents</a></h3>
+<p>Each family declares which question kinds apply: count and order of toppled objects, first tip time, ends inside, rebound height, bounce count, travel distance, greatest height, time to rest, spring compression, oscillation count, maximum rotation, contact order, direction after impact, spread, plus mass, energy, speed and contact time. The answer to each is measured from the saved states and contact reports of that run and shown with its evidence frames. The factual record also carries comparative questions across the bundle ("if the material were rubber, does the ball travel more, less or about the same?"), answered from the two saved runs. Qwen (a 27B checkpoint, run locally) is used for wording only: it rewords measured questions in natural language and may propose a typed question whose answer the simulator then measures. On the round-2 scenes it returned 83 valid rewordings and 26 proposals, 25 of a valid type; nothing numerical ever comes from the language model.</p>
+<div class="why"><b>Why this split.</b> Sim2Reason shows a simulator can grade a reasoner's physics answers for reinforcement learning, and CLEVRER shows the four question types worth asking (descriptive, explanatory, predictive, counterfactual). Measured answers make every question gradeable without a human and without trusting the language model; the comparative questions are the training signal for the counterfactual question of the world model, and the typed proposals let the question set grow without letting the model invent events.</div>
+</div>
+
+<div class="wm-section" id="dv2-rooms"><h3 class="title is-4">7. Rooms, camera and renders<a href="#dv2-contents" style="float:right;font-size:.75rem;font-weight:400">↑ contents</a></h3>
+<p>Each family runs in one of fourteen whole ScanNet++ training rooms, two per type (office, apartment, bedroom, kitchen, living room, classroom, conference room). The scanned layout is transferred rigidly behind a reserved foreground zone; furniture is fitted with ReplicaCAD assets, small items are seated on the furniture below them, whiteboards and screens hang on the nearest wall, and anything that would enter the zone or leave the shell is dropped. The rooms keep 19 to 40 objects each, all with static colliders. The camera stays inside the room, below the ceiling, and walks forward to the closest distance that frames the recorded motion.</p>
+<figure class="sheet"><img src="./static/images/dataset_v2/rooms.jpg" alt="The fourteen scanned rooms used in round 2, two per type, each shown with the family that runs in it." loading="lazy"><figcaption>The fourteen rooms, each with one of the three families that run in it. Sizes and object counts from the layout receipts.</figcaption></figure>
+<div class="why"><b>Why real rooms, and why renders are optional.</b> The video models, the digital twins and the final use case all live in real rooms; training the state model in rooms with the same clutter, supports and wall items as the scans keeps the gap between training layouts and twins small, and the clutter is a genuine physical obstacle. The training payload remains the states and events: RGB, depth, flow and masks are rendered on demand from saved states (shown on the dashboard for four families) and are not part of the record count.</div>
+</div>
+
+<div class="wm-section" id="dv2-sampling"><h3 class="title is-4">8. Durations and sampling rate<a href="#dv2-contents" style="float:right;font-size:.75rem;font-weight:400">↑ contents</a></h3>
+<p>Horizons are set per family from measured time to rest and last task event over every branch: 4 s for drops, sliding and spinning, 5 to 6 s for most, 7 s for the pendulum, tower and box chain, 8 s for pendulums, springs, chains and orbits. Nothing runs longer than 8 s, and no branch has an event after its horizon. The solver steps at 1920 Hz and states are saved at 120 Hz: subsampling the same runs to 30 Hz moved the stored position up to 7.5 cm around impacts in 14 families, 60 Hz up to 3.1 cm.</p>
+<div class="why"><b>What this means for training.</b> The current predictor works on a 3 s window at 30 Hz (90 frames in 15 patches), with padding masks for shorter clips; a longer record is consumed as chained 3 s blocks, the way the step-wise V5 model already chains blocks, and 120 Hz states subsample to any of those rates without losing the impact frames.</div>
+</div>
+
+<div class="wm-section" id="dv2-status"><h3 class="title is-4">9. Status, scale and what comes next<a href="#dv2-contents" style="float:right;font-size:.75rem;font-weight:400">↑ contents</a></h3>
+<div class="wm-status">Status on 29 October 2026: all 46 families have been simulated with their 7 or 8 branches in Isaac Sim (342 engine runs, 296 rendered views, 2,401 measured questions). 44 families pass every screen and motion check; all 46 replay their control exactly and keep their intervention prefixes. Two are open: in the pendulum, tower, ball and box chain the ball is pushed off the table but misses the floor box (the last stage), and in the spring launcher one branch exceeds the energy tolerance by 7 mJ. Both are visible on the mechanics dashboard with a notice in place of the render.</div>
+<div class="table-container"><table class="table is-striped is-fullwidth wm-table compact">
+<thead><tr><th>Check</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>Physics screens (penetration, energy, bounds, quaternions)</td><td class="pass">341 of 342 runs</td></tr>
+<tr><td>Family expectation and motion checks</td><td class="pass">44 of 46 families</td></tr>
+<tr><td>Control replays exactly; intervention prefixes identical</td><td class="pass">46 of 46</td></tr>
+<tr><td>Chains with every stage touching in order</td><td class="pass">18 of 19</td></tr>
+<tr><td>Randomized variants, geometry pre-flight (room, materials, mass, force, pose, shape)</td><td class="pass">46 families x 20 seeds, all accepted</td></tr>
+<tr><td>Randomized variants, simulated and checked</td><td class="open">13 of 18 (6 families x 3 seeds); the failures are expectation misses, so the randomization ranges of four families need tightening before scale</td></tr>
+</tbody></table></div>
+<p>At the measured rate (median engine run 45 s, one process per L40S) a documented 25-record root costs about 0.23 GPU-hours. The capability pilot of 1,000 roots is about 230 GPU-hours; the 1,000,000-record learning-curve stage about 9,200; running four processes per GPU, which is not yet measured, would divide these by about four.</p>
+<ul class="take">
+<li><b>Scaled generation</b>: 2 to 4 action programs per root (push, throw, release at different forces and times) on top of the branch bundle, seeded variants through the same acceptance checks, states at 120 Hz, horizons as above, questions and events for every record, renders only for review subsets.</li>
+<li><b>Removing an object mid-rollout</b> as a third intervention class: the engine already removes a body (colliders off, parked, kinematic) for the removal branch at t = 0; doing the same at a stated time after an observed prefix is a do-operation on the state, and the prefix and effect checks apply unchanged. Its visible version is the gripper lifting the object out. Not part of the current samples.</li>
+<li><b>Cloth</b>: Isaac Sim 6.1 surface deformables drape and fold a sheet over a box or a sphere in a probe (about 52 GPU-seconds per case); a cloth family needs vertex-state records, drape checks and material counterfactuals. Leaves need an aerodynamic model on top of the solver.</li>
+<li><b>Excluded</b>: liquids, locomotion and outdoor scenes.</li>
+</ul>
+<p class="wm-note">Sources: the round-2 design and results in the simagent checkout (docs/MECHANICS_FAMILIES_V2.md, docs/COMPOSITE_DATA_PLAN.md, docs/PHYSICS_DATA_PLAN.md), the per-family receipts under the mechanics data root, and the mechanics review dashboard (cluster-internal). Every number above comes from a receipt; the scale figures are estimates by the unitary method from the measured pilot and exclude the long tail.</p>
+</div>
+
+</div></section></div>
+<footer class="footer"><div class="container"><div class="columns is-centered"><div class="column is-8"><div class="content"><p>Page layout adapted from the <a href="https://nerfies.github.io">Nerfies</a> project page.</p></div></div></div></div></footer>
+</body>
+</html>
