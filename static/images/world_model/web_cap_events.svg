@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 530" width="900" height="530" role="img" aria-label="What the generator records today, what the planned data round adds, and what is still missing, against what the heads need"><defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#767676"/></marker></defs><rect width="900" height="530" fill="#fff"/><text x="0" y="12" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11.5" font-weight="bold" fill="#767676" text-anchor="start" dominant-baseline="middle">what the heads need</text>
+<text x="250" y="12" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11.5" font-weight="bold" fill="#767676" text-anchor="start" dominant-baseline="middle">recorded today</text>
+<text x="510" y="12" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11.5" font-weight="bold" fill="#767676" text-anchor="start" dominant-baseline="middle">planned (dataset expansion plan)</text>
+<text x="750" y="12" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11.5" font-weight="bold" fill="#767676" text-anchor="start" dominant-baseline="middle">still missing</text>
+<line x1="0" y1="24" x2="900" y2="24" stroke="#d9dee5" stroke-width="1.5"/>
+<text x="0" y="46" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="bold" fill="#333" text-anchor="start" dominant-baseline="middle">contact start and end</text>
+<text x="0" y="59" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="bold" fill="#333" text-anchor="start" dominant-baseline="middle">between objects, exact time</text>
+<circle cx="256" cy="46" r="5" fill="#2f9e44"/>
+<text x="268" y="46" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">episodes at 1/1920 s</text>
+<circle cx="516" cy="46" r="5" fill="#2f9e44"/>
+<text x="528" y="46" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">kept, as versioned event sidecars</text>
+<text x="750" y="46" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#767676" text-anchor="start" dominant-baseline="middle">nothing</text>
+<line x1="0" y1="77" x2="900" y2="77" stroke="#d9dee5" stroke-width="0.7"/>
+<text x="0" y="92" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="bold" fill="#333" text-anchor="start" dominant-baseline="middle">contact with the floor</text>
+<circle cx="256" cy="92" r="5" fill="#f5a623"/>
+<path d="M256,87 a5,5 0 0,1 0,10 z" fill="#fff"/>
+<text x="268" y="92" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">in 513 of 768 sampled records;</text>
+<text x="268" y="104.5" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">README says none: audit per source</text>
+<circle cx="516" cy="92" r="5" fill="#2f9e44"/>
+<text x="528" y="92" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">verified floor and</text>
+<text x="528" y="104.5" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">environment contacts</text>
+<line x1="0" y1="123" x2="900" y2="123" stroke="#d9dee5" stroke-width="0.7"/>
+<text x="0" y="138" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="bold" fill="#333" text-anchor="start" dominant-baseline="middle">impact strength and direction</text>
+<circle cx="256" cy="138" r="5" fill="#d7263d"/>
+<text x="268" y="138" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">peak impulse zero in 79% of</text>
+<text x="268" y="150.5" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">episodes (read at the first report)</text>
+<circle cx="516" cy="138" r="5" fill="#2f9e44"/>
+<text x="528" y="138" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">impulses across the episode,</text>
+<text x="528" y="150.5" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">contact points and normals</text>
+<text x="750" y="138" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">fix the impulse read</text>
+<text x="750" y="150.5" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">in the generator now</text>
+<line x1="0" y1="169" x2="900" y2="169" stroke="#d9dee5" stroke-width="0.7"/>
+<text x="0" y="184" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="bold" fill="#333" text-anchor="start" dominant-baseline="middle">landing, lift-off, rest, topple,</text>
+<text x="0" y="197" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="bold" fill="#333" text-anchor="start" dominant-baseline="middle">container entry</text>
+<circle cx="256" cy="184" r="5" fill="#f5a623"/>
+<path d="M256,179 a5,5 0 0,1 0,10 z" fill="#fff"/>
+<text x="268" y="184" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">derived from states with thresholds</text>
+<text x="268" y="196.5" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">(topple 45°, fall 0.5 m/s, rest</text>
+<text x="268" y="209" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">0.05 m/s for 0.5 s)</text>
+<circle cx="516" cy="184" r="5" fill="#2f9e44"/>
+<text x="528" y="184" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">emitted by the generator with</text>
+<text x="528" y="196.5" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">an evidence contract</text>
+<line x1="0" y1="215" x2="900" y2="215" stroke="#d9dee5" stroke-width="0.7"/>
+<text x="0" y="230" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="bold" fill="#333" text-anchor="start" dominant-baseline="middle">slide or roll start and stop,</text>
+<text x="0" y="243" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="bold" fill="#333" text-anchor="start" dominant-baseline="middle">loss of support</text>
+<circle cx="256" cy="230" r="5" fill="#d7263d"/>
+<text x="268" y="230" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">needs contact points</text>
+<circle cx="516" cy="230" r="5" fill="#2f9e44"/>
+<text x="528" y="230" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">slipping, spinning, support</text>
+<text x="528" y="242.5" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">transitions</text>
+<line x1="0" y1="261" x2="900" y2="261" stroke="#d9dee5" stroke-width="0.7"/>
+<text x="0" y="276" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="bold" fill="#333" text-anchor="start" dominant-baseline="middle">actions that start at t &gt; 0</text>
+<circle cx="256" cy="276" r="5" fill="#d7263d"/>
+<text x="268" y="276" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">none; the engine applies pulls</text>
+<text x="268" y="288.5" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">substep by substep: mechanism exists</text>
+<circle cx="516" cy="276" r="5" fill="#f5a623"/>
+<path d="M516,271 a5,5 0 0,1 0,10 z" fill="#fff"/>
+<text x="528" y="276" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">motion pilot: factual against</text>
+<text x="528" y="288.5" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">timed-intervention branches</text>
+<text x="528" y="301" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">(authored previews)</text>
+<text x="750" y="276" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">a start time on the</text>
+<text x="750" y="288.5" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">action record and</text>
+<text x="750" y="301" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">token; volume</text>
+<line x1="0" y1="307" x2="900" y2="307" stroke="#d9dee5" stroke-width="0.7"/>
+<text x="0" y="322" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="bold" fill="#333" text-anchor="start" dominant-baseline="middle">many actions on one start,</text>
+<text x="0" y="335" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="bold" fill="#333" text-anchor="start" dominant-baseline="middle">and their end states</text>
+<circle cx="256" cy="322" r="5" fill="#2f9e44"/>
+<text x="268" y="322" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">about 580 simulations per scene</text>
+<circle cx="516" cy="322" r="5" fill="#2f9e44"/>
+<text x="528" y="322" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">more layouts, ten actions each</text>
+<text x="750" y="322" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#767676" text-anchor="start" dominant-baseline="middle">nothing</text>
+<line x1="0" y1="353" x2="900" y2="353" stroke="#d9dee5" stroke-width="0.7"/>
+<text x="0" y="368" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="bold" fill="#333" text-anchor="start" dominant-baseline="middle">object names, colours,</text>
+<text x="0" y="381" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="bold" fill="#333" text-anchor="start" dominant-baseline="middle">task sentences</text>
+<circle cx="256" cy="368" r="5" fill="#2f9e44"/>
+<text x="268" y="368" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">name, colour, category;</text>
+<text x="268" y="380.5" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">instructions by language models</text>
+<circle cx="516" cy="368" r="5" fill="#2f9e44"/>
+<text x="528" y="368" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">kept</text>
+<text x="750" y="368" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#767676" text-anchor="start" dominant-baseline="middle">nothing</text>
+<line x1="0" y1="399" x2="900" y2="399" stroke="#d9dee5" stroke-width="0.7"/>
+<text x="0" y="414" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="bold" fill="#333" text-anchor="start" dominant-baseline="middle">written descriptions</text>
+<circle cx="256" cy="414" r="5" fill="#d7263d"/>
+<text x="268" y="414" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">none</text>
+<circle cx="516" cy="414" r="5" fill="#f5a623"/>
+<path d="M516,409 a5,5 0 0,1 0,10 z" fill="#fff"/>
+<text x="528" y="414" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">templates that round-trip</text>
+<text x="528" y="426.5" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">to the event list</text>
+<text x="750" y="414" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">free text: paraphrases,</text>
+<text x="750" y="426.5" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">then human</text>
+<line x1="0" y1="445" x2="900" y2="445" stroke="#d9dee5" stroke-width="0.7"/>
+<text x="0" y="460" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="bold" fill="#333" text-anchor="start" dominant-baseline="middle">horizon, padding, actual end</text>
+<text x="0" y="473" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="bold" fill="#333" text-anchor="start" dominant-baseline="middle">of a clip</text>
+<circle cx="256" cy="460" r="5" fill="#f5a623"/>
+<path d="M256,455 a5,5 0 0,1 0,10 z" fill="#fff"/>
+<text x="268" y="460" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">n_valid for external clips only</text>
+<circle cx="516" cy="460" r="5" fill="#2f9e44"/>
+<text x="528" y="460" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">persisted with timestamps</text>
+<text x="528" y="472.5" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">and hashes</text>
+<line x1="0" y1="494" x2="900" y2="494" stroke="#d9dee5" stroke-width="0.8"/>
+<circle cx="6" cy="508" r="5" fill="#2f9e44"/>
+<text x="16" y="508" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#767676" text-anchor="start" dominant-baseline="middle">available</text>
+<circle cx="96" cy="508" r="5" fill="#f5a623"/>
+<path d="M96,503 a5,5 0 0,1 0,10 z" fill="#fff"/>
+<text x="106" y="508" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#767676" text-anchor="start" dominant-baseline="middle">partly, or derived with thresholds</text>
+<circle cx="316" cy="508" r="5" fill="#d7263d"/>
+<text x="326" y="508" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#767676" text-anchor="start" dominant-baseline="middle">absent</text></svg>

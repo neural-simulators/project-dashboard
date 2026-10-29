@@ -564,11 +564,11 @@ def figure_cap_model():
 
 
 def figure_cap_questions():
-    """The six questions as given / wanted tokens, how each is answered now and after the masked head."""
-    svg = Svg(900, 590)
+    """The six questions as given / wanted tokens, how each is answered, and its status."""
+    svg = Svg(900, 600)
     grey, blue, amber = C["muted"], C["blue"], C["amber"]
-    SX, NX, LX = 178, 478, 700
-    for x, t in ((0, "question"), (SX, "given (blue), wanted (amber)"), (NX, "now, with the regression model"), (LX, "later, with the masked head")):
+    SX, HX = 178, 482
+    for x, t in ((0, "question"), (SX, "given (blue), wanted (amber)"), (HX, "how the model answers it")):
         svg.text(x, 12, t, size=11.5, weight="bold", fill=grey)
     svg.line(0, 24, 900, 24, stroke=C["border"])
 
@@ -580,8 +580,8 @@ def figure_cap_questions():
             svg.rect(x, y, w, h, fill=fill, stroke=stroke, sw=1.4, rx=4)
         svg.text(x + w / 2, y + h / 2 + 1, label, size=11, anchor="middle", weight="bold", fill=AMBER_TEXT if state == "w" else C["text"])
 
-    def strip(x, y, states, mark=None):
-        labels = ("S", "P", "a", "s₀")
+    def strip(x, y, states, mark=None, plabel="P"):
+        labels = ("S", plabel, "a", "s₀")
         for k in range(4):
             tok(x + k * 28, y, labels[k], states[k])
         yx = x + 4 * 28 + 4
@@ -595,114 +595,160 @@ def figure_cap_questions():
             svg.text(mx, y - 12, "tₖ", size=10, anchor="middle", fill=C["text"])
 
     rows = [
-        (["Forward"], "now", "gggg" + "w" * 10 + "w", None,
-         ["one pass per block, 15 blocks;", "the model as it is"], ["the same"]),
-        (["Properties from", "a recording"], "now by search", "gwgg" + "g" * 10 + "g", None,
-         ["score each candidate (mass, friction,", "restitution) by the block errors from", "the true states; keep the best; grid", "or gradient; one value, no spread"],
-         ["sample P from noise with the", "recording clamped; a spread where", "the recording does not decide"]),
-        (["Action from", "start and end"], "now by search", "ggwg" + "h" * 10 + "g", None,
-         ["score candidate actions by how close", "their rollout ends to sᴛ; keep the", "best; several may fit equally"],
-         ["sample a with both ends clamped;", "the set of actions that fit"]),
-        (["Trajectory between", "start and end"], "masked head", "gwgg" + "w" * 10 + "g", None,
-         ["only indirectly: infer P from the end", "state (row 2 with one frame of", "evidence), then roll forward; the", "end is not enforced"],
-         ["sample the motion with both ends", "clamped (inpainting in time); P", "comes out with it"]),
-        (["Intervene", "mid-way"], "now by restart", "gggg" + "g" * 4 + "w" * 6 + "w", 4,
-         ["run to tₖ, apply the new action to the", "predicted state, restart with time 0", "(predict_jobs takes a start state)"],
-         ["the same; an action that starts", "at tₖ inside one rollout needs", "data with timed actions"]),
-        (["Counterfactual"], "now", "gggg" + "w" * 10 + "w", None,
-         ["edit the property numbers or drop", "an object, run again; trained on", "attribute sweeps and removals"],
-         ["the same, with a spread"]),
+        (["Forward"], "exists", "gggg" + "w" * 10 + "w", None, "P",
+         ["one pass per 0.2 s block, fifteen blocks: the model as it is (head 1)"], None),
+        (["Properties from", "a recording"], "to train", "gwgg" + "g" * 10 + "g", None, "P",
+         ["the property slots read the recording and the action through attention", "and are filled in: samples with flow matching (a spread where the recording",
+          "does not decide), or one value with a squared error; same slot, other loss"], "P is an output slot of the network, not a search"),
+        (["Cause from", "start and end"], "to train, priority", "ggwg" + "w" * 10 + "g", None, "P",
+         ["properties known; the action token and the fifteen chunks are generated", "together, so each sample is one story that starts at s₀ and ends at sᴛ;",
+          "forty samples are the set of causes the end allows; with the action given", "as well, only the motion between the ends comes out"],
+         "the collapsed bridge: what happened, and what did it"),
+        (["Forward with", "unknown properties"], "to train", "gwgg" + "w" * 10 + "w", None, "P?",
+         ["some or all property tokens hidden at random during training, so the", "motion is predicted from the properties seen for such objects, and the hidden",
+          "ones are narrowed as the motion unfolds; attribute dropout does this in head 1"], "today no property is ever hidden in training"),
+        (["Intervene", "mid-way"], "exists by restart", "gggg" + "g" * 4 + "w" * 6 + "w", 4, "P",
+         ["run to tₖ, apply the new action to the predicted state, restart with the", "clock at zero (predict_jobs takes a start state); an action starting at tₖ",
+          "inside one rollout needs the motion pilot's timed-intervention data"], "a₂ enters as a new action token at tₖ"),
+        (["Counterfactual"], "exists", "gggg" + "w" * 10 + "w", None, "P′",
+         ["edit the property numbers or drop an object, run again; attribute sweeps", "and removals are training inputs; with head 2 the answer gets a spread"],
+         "P edited, or an object dropped from S"),
     ]
-    chip = {"now": (blue, C["blue_fill"]), "now by search": (blue, C["blue_fill"]), "now by restart": (blue, C["blue_fill"]), "masked head": (AMBER_TEXT, C["amber_fill"])}
-    for r, (name, status, states, mark, now, later) in enumerate(rows):
-        y = 40 + r * 92
+    chip = {"exists": (blue, C["blue_fill"]), "exists by restart": (blue, C["blue_fill"]), "to train": (AMBER_TEXT, C["amber_fill"]), "to train, priority": (AMBER_TEXT, C["amber_fill"])}
+    for r, (name, status, states, mark, plabel, how, note) in enumerate(rows):
+        y = 40 + r * 94
         if r:
             svg.line(0, y - 10, 900, y - 10, stroke=C["border"], sw=0.8)
         for i, ln in enumerate(name):
             svg.text(0, y + 11 + i * 16, ln, size=12, weight="bold")
         _chip(svg, 0, y + 14 + 16 * len(name), status, *chip[status])
-        strip(SX, y + 4, [states[0], states[1], states[2], states[3], states[4:14], states[14]], mark)
-        note = {1: "the recording: every frame given", 4: "a₂ enters as a new action token at tₖ", 5: "P edited, or an object dropped from S"}.get(r)
+        strip(SX, y + 4, [states[0], states[1], states[2], states[3], states[4:14], states[14]], mark, plabel)
         if note:
             svg.text(SX, y + 56, note, size=9.5, fill=grey)
-        svg.lines(NX, y + 8, now, size=10.5, step=14)
-        svg.lines(LX, y + 8, later, size=10.5, step=14)
-    y = 40 + 6 * 92 - 4
+        svg.lines(HX, y + 8, how, size=10.5, step=14)
+    y = 40 + 6 * 94 - 4
     svg.line(0, y, 900, y, stroke=C["border"], sw=0.8)
-    svg.text(0, y + 14, "S scene table   P properties   a action   s₀ start state   sᴛ end state.   Dashed grey: not needed for the question.", size=10.5, fill=grey)
-    return svg.render("Six questions to one model: what is given, what is wanted, how each is answered now and with the masked head")
+    svg.text(0, y + 14, "S scene table   P properties   a action   s₀ start state   sᴛ end state.   Blue: given and clamped.   Amber: generated.", size=10.5, fill=grey)
+    return svg.render("Six questions to one model: what is given, what is wanted, how each is answered, and whether it exists or is to be trained")
 
 
 def figure_cap_build():
-    """What to build: shared encoder, the existing regression head with an event head, the masked flow head, the text head."""
-    svg = Svg(900, 500)
+    """What to build: shared encoder, the regression head with event head and attribute dropout, the masked flow head, the text head."""
+    svg = Svg(900, 584)
     grey, blue, amber = C["muted"], C["blue"], C["amber"]
-    _box(svg, 0, 30, 190, 250, "Same tokens, same encoder", ["object tokens (properties", "as input numbers), action,", "global and joint tokens;",
-                                                          "MLPs; transformer", "", "exists; head 2 starts", "from its weights"],
+    _box(svg, 0, 30, 190, 250, "Same tokens, same encoder", ["object tokens, action,", "global and joint tokens;", "MLPs; transformer", "",
+                                                          "exists; head 2 starts", "from its weights"],
          fill=C["blue_fill"], stroke=blue, tcolor=blue, bsize=10.5, step=15)
-    for y in (90, 250, 420):
+    for y in (100, 330, 516):
         svg.path("M194,%d L226,%d" % (160, y), grey, sw=1.4, arrow=True)
-    # head 1
-    _box(svg, 230, 10, 310, 160, "Head 1: step-wise regression (exists)", [
-        "block head + built-in motion + rules;", "5-block chains; one pass per block",
-        "answers: forward, interventions by restart,", "counterfactual edits, inverses by search"], fill="#fff", stroke=blue, tcolor=blue, bsize=10.5, step=14)
-    svg.rect(238, 106, 294, 56, fill=C["amber_fill"], stroke=amber, sw=1.2, rx=5)
-    svg.text(246, 120, "add: event head, per block", size=11, weight="bold", fill=AMBER_TEXT)
-    svg.lines(246, 136, ["which event starts (contact, landing, topple) and when", "inside the block; feeds the time input; splits the block"], size=10, step=13)
-    # head 2
-    _box(svg, 230, 182, 310, 190, "Head 2: masked flow matching (to train)", None, fill="#fff", stroke=amber, tcolor=AMBER_TEXT)
-    x0, y0 = 244, 212
-    for k, (lab, st) in enumerate((("P", "g"), ("P", "w"), ("P", "w"), ("a", "g"))):
+    _box(svg, 230, 10, 330, 190, "Head 1: step-wise regression (exists)", [
+        "block head + built-in motion + rules; 5-block chains;", "one pass per block",
+        "answers: forward, restarts, counterfactual edits"], fill="#fff", stroke=blue, tcolor=blue, bsize=10.5, step=14)
+    svg.rect(238, 92, 314, 98, fill=C["amber_fill"], stroke=amber, sw=1.2, rx=5)
+    svg.text(246, 106, "add: event head, attribute dropout", size=11, weight="bold", fill=AMBER_TEXT)
+    svg.lines(246, 123, ["per block: which event starts (contact, landing,", "topple) and when inside it; feeds the time input and",
+                         "splits the block at the impact; attribute dropout:", "a property channel replaced by 'unknown' + a flag"], size=10, step=13.5)
+    _box(svg, 230, 212, 330, 236, "Head 2: masked flow matching (to train)", None, fill="#fff", stroke=amber, tcolor=AMBER_TEXT)
+    x0, y0 = 244, 242
+    for k, (lab, st) in enumerate((("P", "w"), ("P", "g"), ("P", "w"), ("a", "w"))):
         fill, stroke = (C["blue_fill"], blue) if st == "g" else (C["amber_fill"], amber)
         svg.rect(x0 + k * 26, y0, 22, 22, fill=fill, stroke=stroke, sw=1.4, rx=4)
         svg.text(x0 + k * 26 + 11, y0 + 12, lab, size=11, anchor="middle", weight="bold", fill=C["text"] if st == "g" else AMBER_TEXT)
     for c in range(15):
-        st = "g" if c < 3 or c == 14 else "w"
+        st = "g" if c == 0 or c == 14 else "w"
         fill, stroke = (C["blue_fill"], blue) if st == "g" else (C["amber_fill"], amber)
         svg.rect(x0 + 112 + c * 12, y0, 11, 22, fill=fill, stroke=stroke, sw=1.2, rx=3)
-    svg.text(x0 + 112 + 90, y0 + 32, "Y: 15 chunks of 0.2 s", size=9.5, anchor="middle", fill=grey)
+    svg.text(x0 + 112 + 90, y0 + 32, "Y: 15 chunks of 0.2 s (the cause mask shown)", size=9.5, anchor="middle", fill=grey)
     svg.text(x0, y0 + 32, "per object", size=9.5, fill=grey)
-    svg.lines(244, 262, ["every token has its own noise level: given ones clean (0),",
-                         "hidden ones start as noise (1) and are denoised together",
-                         "training: random masks (motion 60%, properties 20%,",
-                         "action 10%, mixed 10%: both ends, end only, prefix)",
-                         "heads: properties (9 numbers per object), action (42),",
-                         "motion per chunk;  sampling: 32 to 50 Euler steps",
-                         "answers: property spread, action set, bridges, histories"], size=10, step=13.5)
-    # head 3
-    _box(svg, 230, 384, 310, 106, "Head 3: text (later)", [
+    svg.lines(244, 292, ["new output slots: a property token per movable object",
+                         "(9 numbers) and the action token (42), next to the",
+                         "motion chunks (90 numbers each)",
+                         "every token has its own noise level: given tokens are",
+                         "clean and clamped, hidden ones start as noise and are",
+                         "denoised together; loss: flow matching on hidden tokens",
+                         "masks per example: motion 40%, properties 15%, action",
+                         "+ motion with both ends given 15%, some properties +",
+                         "motion 15%, mixed 15%",
+                         "sampling: 32 to 50 Euler steps; a set = N runs"], size=10, step=13.5)
+    _box(svg, 230, 460, 330, 114, "Head 3: text (later)", [
         "projector: slot tokens -> prefix tokens -> small", "pretrained decoder (LoRA) -> one paragraph",
         "ground truth: event extractor + templates first,", "paraphrases and written descriptions later"],
         fill="#fff", stroke=amber, tcolor=AMBER_TEXT, bsize=10.5, step=14, dashed=True)
-    # right: how we check
-    _box(svg, 560, 10, 340, 300, "How we will know it works", [
+    _box(svg, 580, 10, 320, 330, "How we will know it works", [
         "forward: error, passing through, events (exists)",
         "",
         "properties: error and 90% coverage on the test",
-        "attribute sweeps; wide where unidentifiable",
-        "(an object that touches nothing)",
+        "attribute sweeps; wide where nothing in the",
+        "recording depends on the property",
         "",
-        "actions: re-run the inferred action in PhysX and",
-        "measure the end-state error",
+        "cause: re-run every sampled action in PhysX from",
+        "s₀ with the true properties and measure the end-",
+        "state error; is the true action inside the set;",
+        "how wide the set is",
         "",
-        "bridges: error between the given ends, and the",
-        "PhysX re-run of the sampled motion",
+        "unknown properties: error against the share of",
+        "properties hidden, compared with the engine run",
+        "with the true values",
         "",
         "interventions: 2,000 PhysX restarts from stored",
         "test states with a second action",
         "",
         "events: first-contact time error, precision and",
         "recall at +-2 frames;  text: precision of its claims"], bsize=10.5, step=14)
-    _box(svg, 560, 322, 340, 168, "What new data adds", [
+    _box(svg, 580, 352, 320, 178, "What new data adds", [
         "actions at t > 0: a start-time channel on the",
-        "action token, so an action inside one rollout",
-        "is learned rather than simulated by restarting",
+        "action token, learned from the motion pilot's",
+        "timed-intervention branches instead of restarts",
         "",
-        "event records: targets for the event head instead",
-        "of thresholds applied afterwards",
+        "event records with evidence: targets for the",
+        "event head instead of thresholds applied after",
         "",
         "written descriptions: training text for head 3"], fill=C["amber_fill"], stroke=amber, tcolor=AMBER_TEXT, bsize=10.5, step=14)
-    return svg.render("What to build: one encoder, the existing regression head with an event head, a masked flow-matching head, a text head")
+    return svg.render("What to build: one encoder, the existing regression head with an event head and attribute dropout, a masked flow-matching head, a text head")
+
+
+def figure_cap_events():
+    """What the generator records today, what the planned data round adds, and what is still missing, against what the heads need."""
+    svg = Svg(900, 530)
+    grey, blue, amber = C["muted"], C["blue"], C["amber"]
+    green, red = "#2f9e44", C["red"]
+    TX, PX, MX = 250, 510, 750
+    for x, t in ((0, "what the heads need"), (TX, "recorded today"), (PX, "planned (dataset expansion plan)"), (MX, "still missing")):
+        svg.text(x, 12, t, size=11.5, weight="bold", fill=grey)
+    svg.line(0, 24, 900, 24, stroke=C["border"])
+
+    def dot(x, y, state):
+        col = {"yes": green, "part": amber, "no": red}[state]
+        svg.circle(x, y, 5, col)
+        if state == "part":
+            svg.parts.append('<path d="M%g,%g a5,5 0 0,1 0,10 z" fill="#fff"/>' % (x, y - 5))
+
+    rows = [
+        (["contact start and end", "between objects, exact time"], ("yes", ["episodes at 1/1920 s"]), ("yes", ["kept, as versioned event sidecars"]), ["nothing"]),
+        (["contact with the floor"], ("part", ["in 513 of 768 sampled records;", "README says none: audit per source"]), ("yes", ["verified floor and", "environment contacts"]), []),
+        (["impact strength and direction"], ("no", ["peak impulse zero in 79% of", "episodes (read at the first report)"]), ("yes", ["impulses across the episode,", "contact points and normals"]), ["fix the impulse read", "in the generator now"]),
+        (["landing, lift-off, rest, topple,", "container entry"], ("part", ["derived from states with thresholds", "(topple 45°, fall 0.5 m/s, rest", "0.05 m/s for 0.5 s)"]), ("yes", ["emitted by the generator with", "an evidence contract"]), []),
+        (["slide or roll start and stop,", "loss of support"], ("no", ["needs contact points"]), ("yes", ["slipping, spinning, support", "transitions"]), []),
+        (["actions that start at t > 0"], ("no", ["none; the engine applies pulls", "substep by substep: mechanism exists"]), ("part", ["motion pilot: factual against", "timed-intervention branches", "(authored previews)"]), ["a start time on the", "action record and", "token; volume"]),
+        (["many actions on one start,", "and their end states"], ("yes", ["about 580 simulations per scene"]), ("yes", ["more layouts, ten actions each"]), ["nothing"]),
+        (["object names, colours,", "task sentences"], ("yes", ["name, colour, category;", "instructions by language models"]), ("yes", ["kept"]), ["nothing"]),
+        (["written descriptions"], ("no", ["none"]), ("part", ["templates that round-trip", "to the event list"]), ["free text: paraphrases,", "then human"]),
+        (["horizon, padding, actual end", "of a clip"], ("part", ["n_valid for external clips only"]), ("yes", ["persisted with timestamps", "and hashes"]), []),
+    ]
+    for r, (need, now, plan, miss) in enumerate(rows):
+        y = 40 + r * 46
+        if r:
+            svg.line(0, y - 9, 900, y - 9, stroke=C["border"], sw=0.7)
+        svg.lines(0, y + 6, need, size=10.5, step=13, weight="bold")
+        dot(TX + 6, y + 6, now[0]); svg.lines(TX + 18, y + 6, now[1], size=10, step=12.5)
+        dot(PX + 6, y + 6, plan[0]); svg.lines(PX + 18, y + 6, plan[1], size=10, step=12.5)
+        svg.lines(MX, y + 6, miss, size=10, step=12.5, fill=C["text"] if miss and miss[0] != "nothing" else grey)
+    y = 40 + 10 * 46 - 6
+    svg.line(0, y, 900, y, stroke=C["border"], sw=0.8)
+    dot(6, y + 14, "yes"); svg.text(16, y + 14, "available", size=10.5, fill=grey)
+    dot(96, y + 14, "part"); svg.text(106, y + 14, "partly, or derived with thresholds", size=10.5, fill=grey)
+    dot(316, y + 14, "no"); svg.text(326, y + 14, "absent", size=10.5, fill=grey)
+    return svg.render("What the generator records today, what the planned data round adds, and what is still missing, against what the heads need")
 
 
 def main():
@@ -711,7 +757,7 @@ def main():
     for name, text in (("web_io", figure_io(S)), ("web_training", figure_training(S)), ("web_step", figure_step(S)),
                        ("web_bidirectional", figure_bidirectional()), ("web_cap_data", figure_cap_data()),
                        ("web_cap_model", figure_cap_model()), ("web_cap_questions", figure_cap_questions()),
-                       ("web_cap_build", figure_cap_build())):
+                       ("web_cap_build", figure_cap_build()), ("web_cap_events", figure_cap_events())):
         (OUT / (name + ".svg")).write_text(text, encoding="utf-8")
         print("wrote %s (%d bytes)" % (OUT / (name + ".svg"), len(text.encode("utf-8"))))
     return 0
