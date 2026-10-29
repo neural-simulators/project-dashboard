@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 500" width="900" height="500" role="img" aria-label="What to build: one encoder, the existing regression head with an event head, a masked flow-matching head, a text head"><defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#767676"/></marker></defs><rect width="900" height="500" fill="#fff"/><rect x="0" y="30" width="190" height="250" rx="6" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="10" y="46" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="bold" fill="#1f6feb" text-anchor="start" dominant-baseline="middle">Same tokens, same encoder</text>
+<text x="10" y="66" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">object tokens (properties</text>
+<text x="10" y="81" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">as input numbers), action,</text>
+<text x="10" y="96" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">global and joint tokens;</text>
+<text x="10" y="111" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">MLPs; transformer</text>
+<text x="10" y="126" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle"></text>
+<text x="10" y="141" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">exists; head 2 starts</text>
+<text x="10" y="156" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">from its weights</text>
+<path d="M194,160 L226,90" fill="none" stroke="#767676" stroke-width="1.4" marker-end="url(#ah)"/>
+<path d="M194,160 L226,250" fill="none" stroke="#767676" stroke-width="1.4" marker-end="url(#ah)"/>
+<path d="M194,160 L226,420" fill="none" stroke="#767676" stroke-width="1.4" marker-end="url(#ah)"/>
+<rect x="230" y="10" width="310" height="160" rx="6" fill="#fff" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="240" y="26" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="bold" fill="#1f6feb" text-anchor="start" dominant-baseline="middle">Head 1: step-wise regression (exists)</text>
+<text x="240" y="46" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">block head + built-in motion + rules;</text>
+<text x="240" y="60" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">5-block chains; one pass per block</text>
+<text x="240" y="74" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">answers: forward, interventions by restart,</text>
+<text x="240" y="88" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">counterfactual edits, inverses by search</text>
+<rect x="238" y="106" width="294" height="56" rx="5" fill="#fff3d6" stroke="#f5a623" stroke-width="1.2"/>
+<text x="246" y="120" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="start" dominant-baseline="middle">add: event head, per block</text>
+<text x="246" y="136" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">which event starts (contact, landing, topple) and when</text>
+<text x="246" y="149" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">inside the block; feeds the time input; splits the block</text>
+<rect x="230" y="182" width="310" height="190" rx="6" fill="#fff" stroke="#f5a623" stroke-width="1.4"/>
+<text x="240" y="198" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="bold" fill="#8a5a00" text-anchor="start" dominant-baseline="middle">Head 2: masked flow matching (to train)</text>
+<rect x="244" y="212" width="22" height="22" rx="4" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="255" y="224" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle">P</text>
+<rect x="270" y="212" width="22" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="281" y="224" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle">P</text>
+<rect x="296" y="212" width="22" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="307" y="224" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle">P</text>
+<rect x="322" y="212" width="22" height="22" rx="4" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="333" y="224" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle">a</text>
+<rect x="356" y="212" width="11" height="22" rx="3" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.2"/>
+<rect x="368" y="212" width="11" height="22" rx="3" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.2"/>
+<rect x="380" y="212" width="11" height="22" rx="3" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.2"/>
+<rect x="392" y="212" width="11" height="22" rx="3" fill="#fff3d6" stroke="#f5a623" stroke-width="1.2"/>
+<rect x="404" y="212" width="11" height="22" rx="3" fill="#fff3d6" stroke="#f5a623" stroke-width="1.2"/>
+<rect x="416" y="212" width="11" height="22" rx="3" fill="#fff3d6" stroke="#f5a623" stroke-width="1.2"/>
+<rect x="428" y="212" width="11" height="22" rx="3" fill="#fff3d6" stroke="#f5a623" stroke-width="1.2"/>
+<rect x="440" y="212" width="11" height="22" rx="3" fill="#fff3d6" stroke="#f5a623" stroke-width="1.2"/>
+<rect x="452" y="212" width="11" height="22" rx="3" fill="#fff3d6" stroke="#f5a623" stroke-width="1.2"/>
+<rect x="464" y="212" width="11" height="22" rx="3" fill="#fff3d6" stroke="#f5a623" stroke-width="1.2"/>
+<rect x="476" y="212" width="11" height="22" rx="3" fill="#fff3d6" stroke="#f5a623" stroke-width="1.2"/>
+<rect x="488" y="212" width="11" height="22" rx="3" fill="#fff3d6" stroke="#f5a623" stroke-width="1.2"/>
+<rect x="500" y="212" width="11" height="22" rx="3" fill="#fff3d6" stroke="#f5a623" stroke-width="1.2"/>
+<rect x="512" y="212" width="11" height="22" rx="3" fill="#fff3d6" stroke="#f5a623" stroke-width="1.2"/>
+<rect x="524" y="212" width="11" height="22" rx="3" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.2"/>
+<text x="446" y="244" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="9.5" font-weight="normal" fill="#767676" text-anchor="middle" dominant-baseline="middle">Y: 15 chunks of 0.2 s</text>
+<text x="244" y="244" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="9.5" font-weight="normal" fill="#767676" text-anchor="start" dominant-baseline="middle">per object</text>
+<text x="244" y="262" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">every token has its own noise level: given ones clean (0),</text>
+<text x="244" y="275.5" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">hidden ones start as noise (1) and are denoised together</text>
+<text x="244" y="289" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">training: random masks (motion 60%, properties 20%,</text>
+<text x="244" y="302.5" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">action 10%, mixed 10%: both ends, end only, prefix)</text>
+<text x="244" y="316" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">heads: properties (9 numbers per object), action (42),</text>
+<text x="244" y="329.5" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">motion per chunk;  sampling: 32 to 50 Euler steps</text>
+<text x="244" y="343" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">answers: property spread, action set, bridges, histories</text>
+<rect x="230" y="384" width="310" height="106" rx="6" fill="#fff" stroke="#f5a623" stroke-width="1.4" stroke-dasharray="5 3"/>
+<text x="240" y="400" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="bold" fill="#8a5a00" text-anchor="start" dominant-baseline="middle">Head 3: text (later)</text>
+<text x="240" y="420" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">projector: slot tokens -&gt; prefix tokens -&gt; small</text>
+<text x="240" y="434" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">pretrained decoder (LoRA) -&gt; one paragraph</text>
+<text x="240" y="448" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">ground truth: event extractor + templates first,</text>
+<text x="240" y="462" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">paraphrases and written descriptions later</text>
+<rect x="560" y="10" width="340" height="300" rx="6" fill="#fff" stroke="#d9dee5" stroke-width="1.4"/>
+<text x="570" y="26" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="bold" fill="#333" text-anchor="start" dominant-baseline="middle">How we will know it works</text>
+<text x="570" y="46" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">forward: error, passing through, events (exists)</text>
+<text x="570" y="60" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle"></text>
+<text x="570" y="74" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">properties: error and 90% coverage on the test</text>
+<text x="570" y="88" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">attribute sweeps; wide where unidentifiable</text>
+<text x="570" y="102" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">(an object that touches nothing)</text>
+<text x="570" y="116" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle"></text>
+<text x="570" y="130" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">actions: re-run the inferred action in PhysX and</text>
+<text x="570" y="144" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">measure the end-state error</text>
+<text x="570" y="158" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle"></text>
+<text x="570" y="172" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">bridges: error between the given ends, and the</text>
+<text x="570" y="186" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">PhysX re-run of the sampled motion</text>
+<text x="570" y="200" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle"></text>
+<text x="570" y="214" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">interventions: 2,000 PhysX restarts from stored</text>
+<text x="570" y="228" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">test states with a second action</text>
+<text x="570" y="242" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle"></text>
+<text x="570" y="256" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">events: first-contact time error, precision and</text>
+<text x="570" y="270" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">recall at +-2 frames;  text: precision of its claims</text>
+<rect x="560" y="322" width="340" height="168" rx="6" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="570" y="338" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="bold" fill="#8a5a00" text-anchor="start" dominant-baseline="middle">What new data adds</text>
+<text x="570" y="358" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">actions at t &gt; 0: a start-time channel on the</text>
+<text x="570" y="372" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">action token, so an action inside one rollout</text>
+<text x="570" y="386" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">is learned rather than simulated by restarting</text>
+<text x="570" y="400" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle"></text>
+<text x="570" y="414" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">event records: targets for the event head instead</text>
+<text x="570" y="428" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">of thresholds applied afterwards</text>
+<text x="570" y="442" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle"></text>
+<text x="570" y="456" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">written descriptions: training text for head 3</text></svg>

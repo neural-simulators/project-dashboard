@@ -412,11 +412,306 @@ def figure_bidirectional():
     return svg.render("One model, both directions: the same tokens under five masks, the shared network, and how each family answers")
 
 
+# ---------- capability figures (section 18 of the World model tab): data, the model as it is, the questions, what to build ----------
+def _dashed_rect(svg, x, y, w, h, stroke, rx=6, sw=1.4, fill="none"):
+    svg.parts.append('<rect x="%g" y="%g" width="%g" height="%g" rx="%g" fill="%s" stroke="%s" stroke-width="%g" stroke-dasharray="5 3"/>'
+                     % (x, y, w, h, rx, fill, stroke, sw))
+
+
+def _box(svg, x, y, w, h, title, body, fill="#fff", stroke=None, tsize=12.5, bsize=11, step=15, tcolor=None, dashed=False):
+    if dashed:
+        _dashed_rect(svg, x, y, w, h, stroke or C["border"], fill=fill)
+    else:
+        svg.rect(x, y, w, h, fill=fill, stroke=stroke or C["border"], sw=1.4)
+    if title:
+        svg.text(x + 10, y + 16, title, size=tsize, weight="bold", fill=tcolor or C["text"])
+    if body:
+        svg.lines(x + 10, y + (36 if title else 16), body, size=bsize, step=step)
+
+
+def _chip(svg, x, y, text, color, fill):
+    w = int(6.3 * len(text)) + 14
+    svg.rect(x, y, w, 18, fill=fill, stroke=color, sw=1.2, rx=9)
+    svg.text(x + w / 2, y + 9, text, size=10.5, anchor="middle", weight="bold", fill=color)
+    return w
+
+
+AMBER_TEXT = "#8a5a00"
+
+
+def figure_cap_data():
+    """What one stored simulation contains, at what time resolution, and what the next data round adds."""
+    svg = Svg(900, 455)
+    grey, blue, amber = C["muted"], C["blue"], C["amber"]
+    _box(svg, 0, 0, 250, 112, "One scene (stored)", [
+        "objects: shape and parts, size, mass,", "friction, restitution, inertia, pose",
+        "joints: pendulum hinges, spring plungers", "floor friction and restitution", "12 tasks with success rules"])
+    _box(svg, 0, 124, 250, 104, "Actions (stored): all at t = 0", [
+        "place, drop, throw, push, spin, strike,", "swing, compress, poke, pull (force, duration)",
+        "up to two at once, on different objects"], stroke=C["red"])
+    svg.text(10, 212, "no action anywhere starts after t = 0", size=11, weight="bold", fill=C["red"])
+    X0, X1, Y = 290, 630, 34
+    svg.text(X0, 12, "One simulation (stored): 3 s, 91 frames", size=12.5, weight="bold")
+    svg.line(X0, Y, X1, Y, sw=1.5)
+    for k in range(4):
+        x = X0 + (X1 - X0) * k / 3
+        svg.line(x, Y - 4, x, Y + 4)
+        svg.text(x, Y + 15, "%d s" % k, size=10.5, anchor="middle", fill=grey)
+    for f in range(91):
+        x = X0 + (X1 - X0) * f / 90
+        svg.line(x, Y - 2, x, Y + 2, stroke=C["grid"], sw=0.8)
+
+    def t2x(t):
+        return X0 + (X1 - X0) * t / 3.
+
+    def row(y, label, desc, color=None):
+        svg.text(X0, y, label, size=11, weight="bold", fill=color or C["text"])
+        svg.text(X0, y + 29, desc, size=10, fill=grey)
+
+    y = 66
+    row(y, "states: position, rotation, velocity, spin", "every object, every frame")
+    svg.rect(X0, y + 8, X1 - X0, 10, fill=C["blue_fill"], stroke=blue, sw=1, rx=2)
+    y = 112
+    row(y, "touching pairs, per frame", "object with object; contact with the floor is not recorded")
+    for f in list(range(13, 31)) + list(range(41, 49)) + list(range(60, 91)):
+        x = X0 + (X1 - X0) * f / 90
+        svg.cell(x - 1.2, y + 8, 2.4, 10, blue)
+    y = 158
+    row(y, "contact episodes", "start and end at 1/1920 s, the pair's ids")
+    for t0, t1 in ((0.41, 0.98), (1.37, 1.61), (2.0, 3.0)):
+        svg.rect(t2x(t0), y + 8, t2x(t1) - t2x(t0), 10, fill=C["blue_fill"], stroke=blue, sw=1.2, rx=2)
+    svg.text(t2x(0.41) - 3, y + 13, "0.41 s", size=9.5, anchor="end", fill=blue)
+    y = 204
+    row(y, "task verdicts", "success or fail for each of the scene's tasks")
+    for k, (lab, col) in enumerate((("drop: yes", "#2f9e44"), ("topple: no", C["red"]), ("hit: yes", "#2f9e44"))):
+        svg.rect(X0 + k * 100, y + 7, 92, 14, fill="#fff", stroke=col, sw=1.2, rx=3)
+        svg.text(X0 + k * 100 + 46, y + 14, lab, size=9.5, anchor="middle", fill=col)
+    y = 250
+    row(y, "events: landing, topple, slide start or stop, at rest", "computed from the states afterwards, with thresholds; not stored", color=grey)
+    for t in (0.43, 1.37, 1.9, 2.6):
+        _dashed_rect(svg, t2x(t) - 5, y + 7, 10, 12, grey, rx=2)
+    svg.text(X0, y + 52, "contact timing between objects is exact in the data; every other event is derived", size=10.5, fill=C["text"])
+    RX = 660
+    svg.text(RX, 12, "Simulations per scene: about 580", size=12.5, weight="bold")
+    svg.text(RX, 28, "(40 training scenes sampled)", size=10.5, fill=grey)
+    rows = [("random actions", 41), ("refined by search", 31), ("action sweeps", 11), ("attribute sweeps", 7),
+            ("free actions", 6), ("aimed collisions", 3), ("object removed", 0.4)]
+    for k, (lab, pct) in enumerate(rows):
+        yy = 46 + k * 22
+        svg.text(RX, yy + 7, lab, size=10.5)
+        svg.rect(RX + 112, yy, max(2, pct * 2.4), 14, fill=C["blue_fill"], stroke=blue, sw=1, rx=2)
+        svg.text(RX + 116 + max(2, pct * 2.4), yy + 7, ("%g%%" % pct), size=10, fill=grey)
+    svg.lines(RX, 212, ["attribute sweeps: one object's mass,", "friction or restitution at 7 values",
+                        "(the counterfactual training signal)"], size=10.5, step=14, fill=C["text"])
+    svg.lines(RX, 262, ["restarts from a mid-motion state exist only", "in the rubble brace / let-go set and V7's",
+                        "engine continuations, with no new action"], size=10.5, step=14, fill=grey)
+    _box(svg, 0, 335, 900, 110, "What the next data round adds (not in any stored record today)", None,
+         fill=C["amber_fill"], stroke=C["amber"], tcolor=AMBER_TEXT)
+    cols = [["actions that start at t > 0", "a start time on the action token;", "the engine applies it mid-rollout"],
+            ["event records", "type, time, objects, evidence,", "written by the engine, not derived"],
+            ["written descriptions", "what happened, in words, per", "simulation (templates, then free text)"]]
+    for k, body in enumerate(cols):
+        x = 10 + k * 300
+        svg.text(x, 371, body[0], size=12, weight="bold", fill=AMBER_TEXT)
+        svg.lines(x, 391, body[1:], size=11, step=15)
+    return svg.render("What one stored simulation contains, how its timing is recorded, and what the next data round adds")
+
+
+def figure_cap_model():
+    """The model as it is: tokens, encoder, block head, built-in motion, rules, the loop over blocks."""
+    svg = Svg(900, 470)
+    grey, blue, amber = C["muted"], C["blue"], C["amber"]
+    svg.rect(0, 20, 215, 150, fill="#fff", stroke=C["border"], sw=1.4)
+    svg.text(10, 36, "object tokens, one per object", size=12.5, weight="bold")
+    svg.text(10, 56, "pose, velocity, spin", size=11)
+    svg.text(10, 72, "size, up to 16 convex parts, surface points", size=11)
+    svg.rect(8, 84, 199, 18, fill=C["amber_fill"], stroke=amber, sw=1.2, rx=3)
+    svg.text(12, 93, "mass, friction, restitution, inertia", size=11, weight="bold", fill=AMBER_TEXT)
+    svg.text(10, 116, "the properties, as plain input numbers", size=10, fill=AMBER_TEXT)
+    svg.text(10, 136, "flags: dynamic, jointed, pendulum, spring", size=11)
+    svg.text(10, 152, "static ones and the floor too", size=10, fill=grey)
+    _box(svg, 0, 182, 215, 48, "action token", ["type, pose, velocity, impulse, force"], bsize=10.5)
+    _box(svg, 0, 242, 215, 48, "global token", ["gravity, physics rate, floor material"], bsize=10.5)
+    _box(svg, 0, 302, 215, 48, "joint tokens", ["hinge or slider: anchor, axis, stiffness"], bsize=10.5)
+    _box(svg, 0, 362, 215, 62, "neighbour geometry, per object", ["gap, contact direction, approach speed,", "time to impact for the 8 nearest objects"], bsize=10.5)
+    svg.arrow(219, 149, 244, 149)
+    _box(svg, 248, 20, 170, 46, "MLP per token kind", None)
+    svg.text(258, 50, "no learned ids: identity is structural", size=10, fill=grey)
+    svg.arrow(333, 70, 333, 90)
+    _box(svg, 248, 94, 170, 110, "transformer", ["every token attends", "to every other", "(8 to 24 layers,", "23M to 50M parameters)"],
+         fill=C["blue_fill"], stroke=blue, tcolor=blue)
+    _box(svg, 248, 232, 170, 92, "slot tokens", ["one per movable object", "per 0.2 s block, carrying", "the block's start state", "and time (t, t²)"], bsize=10.5, step=14)
+    svg.arrow(333, 228, 333, 208)
+    svg.arrow(422, 150, 446, 150)
+    _box(svg, 450, 20, 200, 52, "block head", ["8 corners, velocity, spin", "for the 0.2 s block"], bsize=10.5, step=14)
+    svg.arrow(550, 76, 550, 96)
+    _box(svg, 450, 100, 200, 66, "+ built-in motion", ["free flight at the centre of mass,", "pendulum and spring equations;", "the head predicts the correction"], bsize=10.5, step=14)
+    svg.arrow(550, 170, 550, 190)
+    _box(svg, 450, 194, 200, 66, "rules (no training)", ["exact floor, no new overlap,", "objects at rest stay until", "something reaches them"], bsize=10.5, step=14)
+    svg.arrow(550, 264, 550, 284)
+    _box(svg, 450, 288, 200, 48, "state at the end of the block", ["position, rotation, velocity, spin"], fill=C["blue_fill"], stroke=blue, tcolor=blue, bsize=10.5)
+    svg.path("M550,340 L550,442 L110,442 L110,174", C["text"], sw=1.6, arrow=True)
+    svg.text(330, 456, "the end state is the next start: 15 blocks make 3 s", size=11.5, weight="bold", anchor="middle")
+    _box(svg, 680, 20, 220, 48, "hold-still head", ["which objects move at all; the rest are", "held exactly in place"], bsize=10.5, step=13)
+    _box(svg, 680, 80, 220, 48, "contact head", ["which pairs touch, frame by frame", "(the only event output today)"], bsize=10.5, step=13)
+    _box(svg, 680, 140, 220, 118, "training", ["regression: squared error on each", "block against the engine, moving", "objects weighted 10x; 5 blocks", "chained through its own output;",
+                                              "one pass per block, no noise, no", "sampling"], bsize=10.5, step=14)
+    _box(svg, 680, 270, 220, 72, "what this cannot do", ["return a set of answers (one pass,", "one answer), or take the end of", "the motion as an input"],
+         bsize=10.5, step=14, stroke=amber, tcolor=AMBER_TEXT, fill=C["amber_fill"])
+    svg.lines(680, 362, ["time enters only as the fraction of", "the 3 s; events enter only through the",
+                         "neighbour gaps and times to impact", "read at the start of each block"], size=10.5, step=14, fill=grey)
+    return svg.render("The model as it is: one transformer over object, action, global and joint tokens, predicting 0.2 s blocks in a loop")
+
+
+def figure_cap_questions():
+    """The six questions as given / wanted tokens, how each is answered now and after the masked head."""
+    svg = Svg(900, 590)
+    grey, blue, amber = C["muted"], C["blue"], C["amber"]
+    SX, NX, LX = 178, 478, 700
+    for x, t in ((0, "question"), (SX, "given (blue), wanted (amber)"), (NX, "now, with the regression model"), (LX, "later, with the masked head")):
+        svg.text(x, 12, t, size=11.5, weight="bold", fill=grey)
+    svg.line(0, 24, 900, 24, stroke=C["border"])
+
+    def tok(x, y, label, state, w=22, h=22):
+        fill, stroke = {"g": (C["blue_fill"], blue), "w": (C["amber_fill"], amber), "h": ("#f4f5f7", grey)}[state]
+        if state == "h":
+            _dashed_rect(svg, x, y, w, h, stroke, rx=4, fill=fill)
+        else:
+            svg.rect(x, y, w, h, fill=fill, stroke=stroke, sw=1.4, rx=4)
+        svg.text(x + w / 2, y + h / 2 + 1, label, size=11, anchor="middle", weight="bold", fill=AMBER_TEXT if state == "w" else C["text"])
+
+    def strip(x, y, states, mark=None):
+        labels = ("S", "P", "a", "s₀")
+        for k in range(4):
+            tok(x + k * 28, y, labels[k], states[k])
+        yx = x + 4 * 28 + 4
+        for c in range(10):
+            tok(yx + c * 12, y, "", states[4][c], w=11)
+        svg.text(yx + 60, y + 32, "motion, 0 to 3 s", size=9.5, anchor="middle", fill=grey)
+        tok(yx + 124, y, "sᴛ", states[5])
+        if mark is not None:
+            mx = yx + mark * 12
+            svg.line(mx, y - 6, mx, y + 28, stroke=C["text"], sw=1.2, dash="3 2")
+            svg.text(mx, y - 12, "tₖ", size=10, anchor="middle", fill=C["text"])
+
+    rows = [
+        (["Forward"], "now", "gggg" + "w" * 10 + "w", None,
+         ["one pass per block, 15 blocks;", "the model as it is"], ["the same"]),
+        (["Properties from", "a recording"], "now by search", "gwgg" + "g" * 10 + "g", None,
+         ["score each candidate (mass, friction,", "restitution) by the block errors from", "the true states; keep the best; grid", "or gradient; one value, no spread"],
+         ["sample P from noise with the", "recording clamped; a spread where", "the recording does not decide"]),
+        (["Action from", "start and end"], "now by search", "ggwg" + "h" * 10 + "g", None,
+         ["score candidate actions by how close", "their rollout ends to sᴛ; keep the", "best; several may fit equally"],
+         ["sample a with both ends clamped;", "the set of actions that fit"]),
+        (["Trajectory between", "start and end"], "masked head", "gwgg" + "w" * 10 + "g", None,
+         ["only indirectly: infer P from the end", "state (row 2 with one frame of", "evidence), then roll forward; the", "end is not enforced"],
+         ["sample the motion with both ends", "clamped (inpainting in time); P", "comes out with it"]),
+        (["Intervene", "mid-way"], "now by restart", "gggg" + "g" * 4 + "w" * 6 + "w", 4,
+         ["run to tₖ, apply the new action to the", "predicted state, restart with time 0", "(predict_jobs takes a start state)"],
+         ["the same; an action that starts", "at tₖ inside one rollout needs", "data with timed actions"]),
+        (["Counterfactual"], "now", "gggg" + "w" * 10 + "w", None,
+         ["edit the property numbers or drop", "an object, run again; trained on", "attribute sweeps and removals"],
+         ["the same, with a spread"]),
+    ]
+    chip = {"now": (blue, C["blue_fill"]), "now by search": (blue, C["blue_fill"]), "now by restart": (blue, C["blue_fill"]), "masked head": (AMBER_TEXT, C["amber_fill"])}
+    for r, (name, status, states, mark, now, later) in enumerate(rows):
+        y = 40 + r * 92
+        if r:
+            svg.line(0, y - 10, 900, y - 10, stroke=C["border"], sw=0.8)
+        for i, ln in enumerate(name):
+            svg.text(0, y + 11 + i * 16, ln, size=12, weight="bold")
+        _chip(svg, 0, y + 14 + 16 * len(name), status, *chip[status])
+        strip(SX, y + 4, [states[0], states[1], states[2], states[3], states[4:14], states[14]], mark)
+        note = {1: "the recording: every frame given", 4: "a₂ enters as a new action token at tₖ", 5: "P edited, or an object dropped from S"}.get(r)
+        if note:
+            svg.text(SX, y + 56, note, size=9.5, fill=grey)
+        svg.lines(NX, y + 8, now, size=10.5, step=14)
+        svg.lines(LX, y + 8, later, size=10.5, step=14)
+    y = 40 + 6 * 92 - 4
+    svg.line(0, y, 900, y, stroke=C["border"], sw=0.8)
+    svg.text(0, y + 14, "S scene table   P properties   a action   s₀ start state   sᴛ end state.   Dashed grey: not needed for the question.", size=10.5, fill=grey)
+    return svg.render("Six questions to one model: what is given, what is wanted, how each is answered now and with the masked head")
+
+
+def figure_cap_build():
+    """What to build: shared encoder, the existing regression head with an event head, the masked flow head, the text head."""
+    svg = Svg(900, 500)
+    grey, blue, amber = C["muted"], C["blue"], C["amber"]
+    _box(svg, 0, 30, 190, 250, "Same tokens, same encoder", ["object tokens (properties", "as input numbers), action,", "global and joint tokens;",
+                                                          "MLPs; transformer", "", "exists; head 2 starts", "from its weights"],
+         fill=C["blue_fill"], stroke=blue, tcolor=blue, bsize=10.5, step=15)
+    for y in (90, 250, 420):
+        svg.path("M194,%d L226,%d" % (160, y), grey, sw=1.4, arrow=True)
+    # head 1
+    _box(svg, 230, 10, 310, 160, "Head 1: step-wise regression (exists)", [
+        "block head + built-in motion + rules;", "5-block chains; one pass per block",
+        "answers: forward, interventions by restart,", "counterfactual edits, inverses by search"], fill="#fff", stroke=blue, tcolor=blue, bsize=10.5, step=14)
+    svg.rect(238, 106, 294, 56, fill=C["amber_fill"], stroke=amber, sw=1.2, rx=5)
+    svg.text(246, 120, "add: event head, per block", size=11, weight="bold", fill=AMBER_TEXT)
+    svg.lines(246, 136, ["which event starts (contact, landing, topple) and when", "inside the block; feeds the time input; splits the block"], size=10, step=13)
+    # head 2
+    _box(svg, 230, 182, 310, 190, "Head 2: masked flow matching (to train)", None, fill="#fff", stroke=amber, tcolor=AMBER_TEXT)
+    x0, y0 = 244, 212
+    for k, (lab, st) in enumerate((("P", "g"), ("P", "w"), ("P", "w"), ("a", "g"))):
+        fill, stroke = (C["blue_fill"], blue) if st == "g" else (C["amber_fill"], amber)
+        svg.rect(x0 + k * 26, y0, 22, 22, fill=fill, stroke=stroke, sw=1.4, rx=4)
+        svg.text(x0 + k * 26 + 11, y0 + 12, lab, size=11, anchor="middle", weight="bold", fill=C["text"] if st == "g" else AMBER_TEXT)
+    for c in range(15):
+        st = "g" if c < 3 or c == 14 else "w"
+        fill, stroke = (C["blue_fill"], blue) if st == "g" else (C["amber_fill"], amber)
+        svg.rect(x0 + 112 + c * 12, y0, 11, 22, fill=fill, stroke=stroke, sw=1.2, rx=3)
+    svg.text(x0 + 112 + 90, y0 + 32, "Y: 15 chunks of 0.2 s", size=9.5, anchor="middle", fill=grey)
+    svg.text(x0, y0 + 32, "per object", size=9.5, fill=grey)
+    svg.lines(244, 262, ["every token has its own noise level: given ones clean (0),",
+                         "hidden ones start as noise (1) and are denoised together",
+                         "training: random masks (motion 60%, properties 20%,",
+                         "action 10%, mixed 10%: both ends, end only, prefix)",
+                         "heads: properties (9 numbers per object), action (42),",
+                         "motion per chunk;  sampling: 32 to 50 Euler steps",
+                         "answers: property spread, action set, bridges, histories"], size=10, step=13.5)
+    # head 3
+    _box(svg, 230, 384, 310, 106, "Head 3: text (later)", [
+        "projector: slot tokens -> prefix tokens -> small", "pretrained decoder (LoRA) -> one paragraph",
+        "ground truth: event extractor + templates first,", "paraphrases and written descriptions later"],
+        fill="#fff", stroke=amber, tcolor=AMBER_TEXT, bsize=10.5, step=14, dashed=True)
+    # right: how we check
+    _box(svg, 560, 10, 340, 300, "How we will know it works", [
+        "forward: error, passing through, events (exists)",
+        "",
+        "properties: error and 90% coverage on the test",
+        "attribute sweeps; wide where unidentifiable",
+        "(an object that touches nothing)",
+        "",
+        "actions: re-run the inferred action in PhysX and",
+        "measure the end-state error",
+        "",
+        "bridges: error between the given ends, and the",
+        "PhysX re-run of the sampled motion",
+        "",
+        "interventions: 2,000 PhysX restarts from stored",
+        "test states with a second action",
+        "",
+        "events: first-contact time error, precision and",
+        "recall at +-2 frames;  text: precision of its claims"], bsize=10.5, step=14)
+    _box(svg, 560, 322, 340, 168, "What new data adds", [
+        "actions at t > 0: a start-time channel on the",
+        "action token, so an action inside one rollout",
+        "is learned rather than simulated by restarting",
+        "",
+        "event records: targets for the event head instead",
+        "of thresholds applied afterwards",
+        "",
+        "written descriptions: training text for head 3"], fill=C["amber_fill"], stroke=amber, tcolor=AMBER_TEXT, bsize=10.5, step=14)
+    return svg.render("What to build: one encoder, the existing regression head with an event head, a masked flow-matching head, a text head")
+
+
 def main():
     S = load_sample()
     OUT.mkdir(parents=True, exist_ok=True)
     for name, text in (("web_io", figure_io(S)), ("web_training", figure_training(S)), ("web_step", figure_step(S)),
-                       ("web_bidirectional", figure_bidirectional())):
+                       ("web_bidirectional", figure_bidirectional()), ("web_cap_data", figure_cap_data()),
+                       ("web_cap_model", figure_cap_model()), ("web_cap_questions", figure_cap_questions()),
+                       ("web_cap_build", figure_cap_build())):
         (OUT / (name + ".svg")).write_text(text, encoding="utf-8")
         print("wrote %s (%d bytes)" % (OUT / (name + ".svg"), len(text.encode("utf-8"))))
     return 0

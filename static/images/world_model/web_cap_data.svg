@@ -1,0 +1,237 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 455" width="900" height="455" role="img" aria-label="What one stored simulation contains, how its timing is recorded, and what the next data round adds"><defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#767676"/></marker></defs><rect width="900" height="455" fill="#fff"/><rect x="0" y="0" width="250" height="112" rx="6" fill="#fff" stroke="#d9dee5" stroke-width="1.4"/>
+<text x="10" y="16" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="bold" fill="#333" text-anchor="start" dominant-baseline="middle">One scene (stored)</text>
+<text x="10" y="36" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">objects: shape and parts, size, mass,</text>
+<text x="10" y="51" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">friction, restitution, inertia, pose</text>
+<text x="10" y="66" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">joints: pendulum hinges, spring plungers</text>
+<text x="10" y="81" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">floor friction and restitution</text>
+<text x="10" y="96" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">12 tasks with success rules</text>
+<rect x="0" y="124" width="250" height="104" rx="6" fill="#fff" stroke="#d7263d" stroke-width="1.4"/>
+<text x="10" y="140" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="bold" fill="#333" text-anchor="start" dominant-baseline="middle">Actions (stored): all at t = 0</text>
+<text x="10" y="160" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">place, drop, throw, push, spin, strike,</text>
+<text x="10" y="175" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">swing, compress, poke, pull (force, duration)</text>
+<text x="10" y="190" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">up to two at once, on different objects</text>
+<text x="10" y="212" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#d7263d" text-anchor="start" dominant-baseline="middle">no action anywhere starts after t = 0</text>
+<text x="290" y="12" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="bold" fill="#333" text-anchor="start" dominant-baseline="middle">One simulation (stored): 3 s, 91 frames</text>
+<line x1="290" y1="34" x2="630" y2="34" stroke="#767676" stroke-width="1.5"/>
+<line x1="290" y1="30" x2="290" y2="38" stroke="#767676" stroke-width="1.5"/>
+<text x="290" y="49" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#767676" text-anchor="middle" dominant-baseline="middle">0 s</text>
+<line x1="403.333" y1="30" x2="403.333" y2="38" stroke="#767676" stroke-width="1.5"/>
+<text x="403.333" y="49" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#767676" text-anchor="middle" dominant-baseline="middle">1 s</text>
+<line x1="516.667" y1="30" x2="516.667" y2="38" stroke="#767676" stroke-width="1.5"/>
+<text x="516.667" y="49" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#767676" text-anchor="middle" dominant-baseline="middle">2 s</text>
+<line x1="630" y1="30" x2="630" y2="38" stroke="#767676" stroke-width="1.5"/>
+<text x="630" y="49" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#767676" text-anchor="middle" dominant-baseline="middle">3 s</text>
+<line x1="290" y1="32" x2="290" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="293.778" y1="32" x2="293.778" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="297.556" y1="32" x2="297.556" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="301.333" y1="32" x2="301.333" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="305.111" y1="32" x2="305.111" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="308.889" y1="32" x2="308.889" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="312.667" y1="32" x2="312.667" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="316.444" y1="32" x2="316.444" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="320.222" y1="32" x2="320.222" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="324" y1="32" x2="324" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="327.778" y1="32" x2="327.778" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="331.556" y1="32" x2="331.556" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="335.333" y1="32" x2="335.333" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="339.111" y1="32" x2="339.111" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="342.889" y1="32" x2="342.889" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="346.667" y1="32" x2="346.667" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="350.444" y1="32" x2="350.444" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="354.222" y1="32" x2="354.222" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="358" y1="32" x2="358" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="361.778" y1="32" x2="361.778" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="365.556" y1="32" x2="365.556" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="369.333" y1="32" x2="369.333" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="373.111" y1="32" x2="373.111" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="376.889" y1="32" x2="376.889" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="380.667" y1="32" x2="380.667" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="384.444" y1="32" x2="384.444" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="388.222" y1="32" x2="388.222" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="392" y1="32" x2="392" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="395.778" y1="32" x2="395.778" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="399.556" y1="32" x2="399.556" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="403.333" y1="32" x2="403.333" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="407.111" y1="32" x2="407.111" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="410.889" y1="32" x2="410.889" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="414.667" y1="32" x2="414.667" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="418.444" y1="32" x2="418.444" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="422.222" y1="32" x2="422.222" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="426" y1="32" x2="426" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="429.778" y1="32" x2="429.778" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="433.556" y1="32" x2="433.556" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="437.333" y1="32" x2="437.333" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="441.111" y1="32" x2="441.111" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="444.889" y1="32" x2="444.889" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="448.667" y1="32" x2="448.667" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="452.444" y1="32" x2="452.444" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="456.222" y1="32" x2="456.222" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="460" y1="32" x2="460" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="463.778" y1="32" x2="463.778" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="467.556" y1="32" x2="467.556" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="471.333" y1="32" x2="471.333" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="475.111" y1="32" x2="475.111" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="478.889" y1="32" x2="478.889" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="482.667" y1="32" x2="482.667" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="486.444" y1="32" x2="486.444" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="490.222" y1="32" x2="490.222" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="494" y1="32" x2="494" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="497.778" y1="32" x2="497.778" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="501.556" y1="32" x2="501.556" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="505.333" y1="32" x2="505.333" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="509.111" y1="32" x2="509.111" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="512.889" y1="32" x2="512.889" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="516.667" y1="32" x2="516.667" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="520.444" y1="32" x2="520.444" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="524.222" y1="32" x2="524.222" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="528" y1="32" x2="528" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="531.778" y1="32" x2="531.778" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="535.556" y1="32" x2="535.556" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="539.333" y1="32" x2="539.333" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="543.111" y1="32" x2="543.111" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="546.889" y1="32" x2="546.889" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="550.667" y1="32" x2="550.667" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="554.444" y1="32" x2="554.444" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="558.222" y1="32" x2="558.222" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="562" y1="32" x2="562" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="565.778" y1="32" x2="565.778" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="569.556" y1="32" x2="569.556" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="573.333" y1="32" x2="573.333" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="577.111" y1="32" x2="577.111" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="580.889" y1="32" x2="580.889" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="584.667" y1="32" x2="584.667" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="588.444" y1="32" x2="588.444" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="592.222" y1="32" x2="592.222" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="596" y1="32" x2="596" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="599.778" y1="32" x2="599.778" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="603.556" y1="32" x2="603.556" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="607.333" y1="32" x2="607.333" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="611.111" y1="32" x2="611.111" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="614.889" y1="32" x2="614.889" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="618.667" y1="32" x2="618.667" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="622.444" y1="32" x2="622.444" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="626.222" y1="32" x2="626.222" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<line x1="630" y1="32" x2="630" y2="36" stroke="#c9d1dc" stroke-width="0.8"/>
+<text x="290" y="66" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="start" dominant-baseline="middle">states: position, rotation, velocity, spin</text>
+<text x="290" y="95" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#767676" text-anchor="start" dominant-baseline="middle">every object, every frame</text>
+<rect x="290" y="74" width="340" height="10" rx="2" fill="#e8eef9" stroke="#1f6feb" stroke-width="1"/>
+<text x="290" y="112" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="start" dominant-baseline="middle">touching pairs, per frame</text>
+<text x="290" y="141" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#767676" text-anchor="start" dominant-baseline="middle">object with object; contact with the floor is not recorded</text>
+<rect x="337.91" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="341.69" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="345.47" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="349.24" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="353.02" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="356.80" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="360.58" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="364.36" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="368.13" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="371.91" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="375.69" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="379.47" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="383.24" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="387.02" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="390.80" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="394.58" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="398.36" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="402.13" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="443.69" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="447.47" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="451.24" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="455.02" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="458.80" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="462.58" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="466.36" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="470.13" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="515.47" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="519.24" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="523.02" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="526.80" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="530.58" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="534.36" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="538.13" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="541.91" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="545.69" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="549.47" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="553.24" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="557.02" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="560.80" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="564.58" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="568.36" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="572.13" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="575.91" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="579.69" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="583.47" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="587.24" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="591.02" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="594.80" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="598.58" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="602.36" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="606.13" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="609.91" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="613.69" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="617.47" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="621.24" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="625.02" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<rect x="628.80" y="120.00" width="2.40" height="10.00" fill="#1f6feb"/>
+<text x="290" y="158" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="start" dominant-baseline="middle">contact episodes</text>
+<text x="290" y="187" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#767676" text-anchor="start" dominant-baseline="middle">start and end at 1/1920 s, the pair's ids</text>
+<rect x="336.467" y="166" width="64.6" height="10" rx="2" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.2"/>
+<rect x="445.267" y="166" width="27.2" height="10" rx="2" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.2"/>
+<rect x="516.667" y="166" width="113.333" height="10" rx="2" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.2"/>
+<text x="333.467" y="171" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="9.5" font-weight="normal" fill="#1f6feb" text-anchor="end" dominant-baseline="middle">0.41 s</text>
+<text x="290" y="204" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="start" dominant-baseline="middle">task verdicts</text>
+<text x="290" y="233" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#767676" text-anchor="start" dominant-baseline="middle">success or fail for each of the scene's tasks</text>
+<rect x="290" y="211" width="92" height="14" rx="3" fill="#fff" stroke="#2f9e44" stroke-width="1.2"/>
+<text x="336" y="218" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="9.5" font-weight="normal" fill="#2f9e44" text-anchor="middle" dominant-baseline="middle">drop: yes</text>
+<rect x="390" y="211" width="92" height="14" rx="3" fill="#fff" stroke="#d7263d" stroke-width="1.2"/>
+<text x="436" y="218" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="9.5" font-weight="normal" fill="#d7263d" text-anchor="middle" dominant-baseline="middle">topple: no</text>
+<rect x="490" y="211" width="92" height="14" rx="3" fill="#fff" stroke="#2f9e44" stroke-width="1.2"/>
+<text x="536" y="218" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="9.5" font-weight="normal" fill="#2f9e44" text-anchor="middle" dominant-baseline="middle">hit: yes</text>
+<text x="290" y="250" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#767676" text-anchor="start" dominant-baseline="middle">events: landing, topple, slide start or stop, at rest</text>
+<text x="290" y="279" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#767676" text-anchor="start" dominant-baseline="middle">computed from the states afterwards, with thresholds; not stored</text>
+<rect x="333.733" y="257" width="10" height="12" rx="2" fill="none" stroke="#767676" stroke-width="1.4" stroke-dasharray="5 3"/>
+<rect x="440.267" y="257" width="10" height="12" rx="2" fill="none" stroke="#767676" stroke-width="1.4" stroke-dasharray="5 3"/>
+<rect x="500.333" y="257" width="10" height="12" rx="2" fill="none" stroke="#767676" stroke-width="1.4" stroke-dasharray="5 3"/>
+<rect x="579.667" y="257" width="10" height="12" rx="2" fill="none" stroke="#767676" stroke-width="1.4" stroke-dasharray="5 3"/>
+<text x="290" y="302" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">contact timing between objects is exact in the data; every other event is derived</text>
+<text x="660" y="12" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="bold" fill="#333" text-anchor="start" dominant-baseline="middle">Simulations per scene: about 580</text>
+<text x="660" y="28" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#767676" text-anchor="start" dominant-baseline="middle">(40 training scenes sampled)</text>
+<text x="660" y="53" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">random actions</text>
+<rect x="772" y="46" width="98.4" height="14" rx="2" fill="#e8eef9" stroke="#1f6feb" stroke-width="1"/>
+<text x="874.4" y="53" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#767676" text-anchor="start" dominant-baseline="middle">41%</text>
+<text x="660" y="75" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">refined by search</text>
+<rect x="772" y="68" width="74.4" height="14" rx="2" fill="#e8eef9" stroke="#1f6feb" stroke-width="1"/>
+<text x="850.4" y="75" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#767676" text-anchor="start" dominant-baseline="middle">31%</text>
+<text x="660" y="97" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">action sweeps</text>
+<rect x="772" y="90" width="26.4" height="14" rx="2" fill="#e8eef9" stroke="#1f6feb" stroke-width="1"/>
+<text x="802.4" y="97" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#767676" text-anchor="start" dominant-baseline="middle">11%</text>
+<text x="660" y="119" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">attribute sweeps</text>
+<rect x="772" y="112" width="16.8" height="14" rx="2" fill="#e8eef9" stroke="#1f6feb" stroke-width="1"/>
+<text x="792.8" y="119" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#767676" text-anchor="start" dominant-baseline="middle">7%</text>
+<text x="660" y="141" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">free actions</text>
+<rect x="772" y="134" width="14.4" height="14" rx="2" fill="#e8eef9" stroke="#1f6feb" stroke-width="1"/>
+<text x="790.4" y="141" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#767676" text-anchor="start" dominant-baseline="middle">6%</text>
+<text x="660" y="163" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">aimed collisions</text>
+<rect x="772" y="156" width="7.2" height="14" rx="2" fill="#e8eef9" stroke="#1f6feb" stroke-width="1"/>
+<text x="783.2" y="163" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#767676" text-anchor="start" dominant-baseline="middle">3%</text>
+<text x="660" y="185" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">object removed</text>
+<rect x="772" y="178" width="2" height="14" rx="2" fill="#e8eef9" stroke="#1f6feb" stroke-width="1"/>
+<text x="778" y="185" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#767676" text-anchor="start" dominant-baseline="middle">0.4%</text>
+<text x="660" y="212" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">attribute sweeps: one object's mass,</text>
+<text x="660" y="226" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">friction or restitution at 7 values</text>
+<text x="660" y="240" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">(the counterfactual training signal)</text>
+<text x="660" y="262" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#767676" text-anchor="start" dominant-baseline="middle">restarts from a mid-motion state exist only</text>
+<text x="660" y="276" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#767676" text-anchor="start" dominant-baseline="middle">in the rubble brace / let-go set and V7's</text>
+<text x="660" y="290" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#767676" text-anchor="start" dominant-baseline="middle">engine continuations, with no new action</text>
+<rect x="0" y="335" width="900" height="110" rx="6" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="10" y="351" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="bold" fill="#8a5a00" text-anchor="start" dominant-baseline="middle">What the next data round adds (not in any stored record today)</text>
+<text x="10" y="371" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#8a5a00" text-anchor="start" dominant-baseline="middle">actions that start at t &gt; 0</text>
+<text x="10" y="391" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">a start time on the action token;</text>
+<text x="10" y="406" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">the engine applies it mid-rollout</text>
+<text x="310" y="371" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#8a5a00" text-anchor="start" dominant-baseline="middle">event records</text>
+<text x="310" y="391" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">type, time, objects, evidence,</text>
+<text x="310" y="406" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">written by the engine, not derived</text>
+<text x="610" y="371" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#8a5a00" text-anchor="start" dominant-baseline="middle">written descriptions</text>
+<text x="610" y="391" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">what happened, in words, per</text>
+<text x="610" y="406" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">simulation (templates, then free text)</text></svg>

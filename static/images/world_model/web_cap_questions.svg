@@ -1,0 +1,257 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 590" width="900" height="590" role="img" aria-label="Six questions to one model: what is given, what is wanted, how each is answered now and with the masked head"><defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#767676"/></marker></defs><rect width="900" height="590" fill="#fff"/><text x="0" y="12" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11.5" font-weight="bold" fill="#767676" text-anchor="start" dominant-baseline="middle">question</text>
+<text x="178" y="12" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11.5" font-weight="bold" fill="#767676" text-anchor="start" dominant-baseline="middle">given (blue), wanted (amber)</text>
+<text x="478" y="12" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11.5" font-weight="bold" fill="#767676" text-anchor="start" dominant-baseline="middle">now, with the regression model</text>
+<text x="700" y="12" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11.5" font-weight="bold" fill="#767676" text-anchor="start" dominant-baseline="middle">later, with the masked head</text>
+<line x1="0" y1="24" x2="900" y2="24" stroke="#d9dee5" stroke-width="1.5"/>
+<text x="0" y="51" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#333" text-anchor="start" dominant-baseline="middle">Forward</text>
+<rect x="0" y="70" width="32" height="18" rx="9" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.2"/>
+<text x="16" y="79" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="bold" fill="#1f6feb" text-anchor="middle" dominant-baseline="middle">now</text>
+<rect x="178" y="44" width="22" height="22" rx="4" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="189" y="56" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle">S</text>
+<rect x="206" y="44" width="22" height="22" rx="4" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="217" y="56" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle">P</text>
+<rect x="234" y="44" width="22" height="22" rx="4" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="245" y="56" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle">a</text>
+<rect x="262" y="44" width="22" height="22" rx="4" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="273" y="56" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle">s₀</text>
+<rect x="294" y="44" width="11" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="299.5" y="56" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="306" y="44" width="11" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="311.5" y="56" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="318" y="44" width="11" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="323.5" y="56" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="330" y="44" width="11" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="335.5" y="56" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="342" y="44" width="11" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="347.5" y="56" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="354" y="44" width="11" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="359.5" y="56" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="366" y="44" width="11" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="371.5" y="56" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="378" y="44" width="11" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="383.5" y="56" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="390" y="44" width="11" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="395.5" y="56" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="402" y="44" width="11" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="407.5" y="56" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle"></text>
+<text x="354" y="76" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="9.5" font-weight="normal" fill="#767676" text-anchor="middle" dominant-baseline="middle">motion, 0 to 3 s</text>
+<rect x="418" y="44" width="22" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="429" y="56" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle">sᴛ</text>
+<text x="478" y="48" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">one pass per block, 15 blocks;</text>
+<text x="478" y="62" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">the model as it is</text>
+<text x="700" y="48" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">the same</text>
+<line x1="0" y1="122" x2="900" y2="122" stroke="#d9dee5" stroke-width="0.8"/>
+<text x="0" y="143" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#333" text-anchor="start" dominant-baseline="middle">Properties from</text>
+<text x="0" y="159" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#333" text-anchor="start" dominant-baseline="middle">a recording</text>
+<rect x="0" y="178" width="95" height="18" rx="9" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.2"/>
+<text x="47.5" y="187" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="bold" fill="#1f6feb" text-anchor="middle" dominant-baseline="middle">now by search</text>
+<rect x="178" y="136" width="22" height="22" rx="4" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="189" y="148" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle">S</text>
+<rect x="206" y="136" width="22" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="217" y="148" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle">P</text>
+<rect x="234" y="136" width="22" height="22" rx="4" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="245" y="148" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle">a</text>
+<rect x="262" y="136" width="22" height="22" rx="4" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="273" y="148" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle">s₀</text>
+<rect x="294" y="136" width="11" height="22" rx="4" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="299.5" y="148" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="306" y="136" width="11" height="22" rx="4" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="311.5" y="148" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="318" y="136" width="11" height="22" rx="4" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="323.5" y="148" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="330" y="136" width="11" height="22" rx="4" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="335.5" y="148" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="342" y="136" width="11" height="22" rx="4" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="347.5" y="148" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="354" y="136" width="11" height="22" rx="4" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="359.5" y="148" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="366" y="136" width="11" height="22" rx="4" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="371.5" y="148" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="378" y="136" width="11" height="22" rx="4" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="383.5" y="148" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="390" y="136" width="11" height="22" rx="4" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="395.5" y="148" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="402" y="136" width="11" height="22" rx="4" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="407.5" y="148" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle"></text>
+<text x="354" y="168" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="9.5" font-weight="normal" fill="#767676" text-anchor="middle" dominant-baseline="middle">motion, 0 to 3 s</text>
+<rect x="418" y="136" width="22" height="22" rx="4" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="429" y="148" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle">sᴛ</text>
+<text x="178" y="188" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="9.5" font-weight="normal" fill="#767676" text-anchor="start" dominant-baseline="middle">the recording: every frame given</text>
+<text x="478" y="140" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">score each candidate (mass, friction,</text>
+<text x="478" y="154" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">restitution) by the block errors from</text>
+<text x="478" y="168" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">the true states; keep the best; grid</text>
+<text x="478" y="182" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">or gradient; one value, no spread</text>
+<text x="700" y="140" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">sample P from noise with the</text>
+<text x="700" y="154" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">recording clamped; a spread where</text>
+<text x="700" y="168" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">the recording does not decide</text>
+<line x1="0" y1="214" x2="900" y2="214" stroke="#d9dee5" stroke-width="0.8"/>
+<text x="0" y="235" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#333" text-anchor="start" dominant-baseline="middle">Action from</text>
+<text x="0" y="251" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#333" text-anchor="start" dominant-baseline="middle">start and end</text>
+<rect x="0" y="270" width="95" height="18" rx="9" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.2"/>
+<text x="47.5" y="279" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="bold" fill="#1f6feb" text-anchor="middle" dominant-baseline="middle">now by search</text>
+<rect x="178" y="228" width="22" height="22" rx="4" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="189" y="240" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle">S</text>
+<rect x="206" y="228" width="22" height="22" rx="4" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="217" y="240" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle">P</text>
+<rect x="234" y="228" width="22" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="245" y="240" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle">a</text>
+<rect x="262" y="228" width="22" height="22" rx="4" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="273" y="240" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle">s₀</text>
+<rect x="294" y="228" width="11" height="22" rx="4" fill="#f4f5f7" stroke="#767676" stroke-width="1.4" stroke-dasharray="5 3"/>
+<text x="299.5" y="240" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="306" y="228" width="11" height="22" rx="4" fill="#f4f5f7" stroke="#767676" stroke-width="1.4" stroke-dasharray="5 3"/>
+<text x="311.5" y="240" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="318" y="228" width="11" height="22" rx="4" fill="#f4f5f7" stroke="#767676" stroke-width="1.4" stroke-dasharray="5 3"/>
+<text x="323.5" y="240" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="330" y="228" width="11" height="22" rx="4" fill="#f4f5f7" stroke="#767676" stroke-width="1.4" stroke-dasharray="5 3"/>
+<text x="335.5" y="240" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="342" y="228" width="11" height="22" rx="4" fill="#f4f5f7" stroke="#767676" stroke-width="1.4" stroke-dasharray="5 3"/>
+<text x="347.5" y="240" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="354" y="228" width="11" height="22" rx="4" fill="#f4f5f7" stroke="#767676" stroke-width="1.4" stroke-dasharray="5 3"/>
+<text x="359.5" y="240" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="366" y="228" width="11" height="22" rx="4" fill="#f4f5f7" stroke="#767676" stroke-width="1.4" stroke-dasharray="5 3"/>
+<text x="371.5" y="240" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="378" y="228" width="11" height="22" rx="4" fill="#f4f5f7" stroke="#767676" stroke-width="1.4" stroke-dasharray="5 3"/>
+<text x="383.5" y="240" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="390" y="228" width="11" height="22" rx="4" fill="#f4f5f7" stroke="#767676" stroke-width="1.4" stroke-dasharray="5 3"/>
+<text x="395.5" y="240" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="402" y="228" width="11" height="22" rx="4" fill="#f4f5f7" stroke="#767676" stroke-width="1.4" stroke-dasharray="5 3"/>
+<text x="407.5" y="240" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle"></text>
+<text x="354" y="260" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="9.5" font-weight="normal" fill="#767676" text-anchor="middle" dominant-baseline="middle">motion, 0 to 3 s</text>
+<rect x="418" y="228" width="22" height="22" rx="4" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="429" y="240" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle">sᴛ</text>
+<text x="478" y="232" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">score candidate actions by how close</text>
+<text x="478" y="246" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">their rollout ends to sᴛ; keep the</text>
+<text x="478" y="260" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">best; several may fit equally</text>
+<text x="700" y="232" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">sample a with both ends clamped;</text>
+<text x="700" y="246" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">the set of actions that fit</text>
+<line x1="0" y1="306" x2="900" y2="306" stroke="#d9dee5" stroke-width="0.8"/>
+<text x="0" y="327" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#333" text-anchor="start" dominant-baseline="middle">Trajectory between</text>
+<text x="0" y="343" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#333" text-anchor="start" dominant-baseline="middle">start and end</text>
+<rect x="0" y="362" width="83" height="18" rx="9" fill="#fff3d6" stroke="#8a5a00" stroke-width="1.2"/>
+<text x="41.5" y="371" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle">masked head</text>
+<rect x="178" y="320" width="22" height="22" rx="4" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="189" y="332" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle">S</text>
+<rect x="206" y="320" width="22" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="217" y="332" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle">P</text>
+<rect x="234" y="320" width="22" height="22" rx="4" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="245" y="332" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle">a</text>
+<rect x="262" y="320" width="22" height="22" rx="4" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="273" y="332" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle">s₀</text>
+<rect x="294" y="320" width="11" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="299.5" y="332" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="306" y="320" width="11" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="311.5" y="332" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="318" y="320" width="11" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="323.5" y="332" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="330" y="320" width="11" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="335.5" y="332" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="342" y="320" width="11" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="347.5" y="332" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="354" y="320" width="11" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="359.5" y="332" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="366" y="320" width="11" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="371.5" y="332" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="378" y="320" width="11" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="383.5" y="332" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="390" y="320" width="11" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="395.5" y="332" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="402" y="320" width="11" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="407.5" y="332" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle"></text>
+<text x="354" y="352" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="9.5" font-weight="normal" fill="#767676" text-anchor="middle" dominant-baseline="middle">motion, 0 to 3 s</text>
+<rect x="418" y="320" width="22" height="22" rx="4" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="429" y="332" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle">sᴛ</text>
+<text x="478" y="324" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">only indirectly: infer P from the end</text>
+<text x="478" y="338" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">state (row 2 with one frame of</text>
+<text x="478" y="352" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">evidence), then roll forward; the</text>
+<text x="478" y="366" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">end is not enforced</text>
+<text x="700" y="324" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">sample the motion with both ends</text>
+<text x="700" y="338" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">clamped (inpainting in time); P</text>
+<text x="700" y="352" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">comes out with it</text>
+<line x1="0" y1="398" x2="900" y2="398" stroke="#d9dee5" stroke-width="0.8"/>
+<text x="0" y="419" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#333" text-anchor="start" dominant-baseline="middle">Intervene</text>
+<text x="0" y="435" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#333" text-anchor="start" dominant-baseline="middle">mid-way</text>
+<rect x="0" y="454" width="102" height="18" rx="9" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.2"/>
+<text x="51" y="463" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="bold" fill="#1f6feb" text-anchor="middle" dominant-baseline="middle">now by restart</text>
+<rect x="178" y="412" width="22" height="22" rx="4" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="189" y="424" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle">S</text>
+<rect x="206" y="412" width="22" height="22" rx="4" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="217" y="424" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle">P</text>
+<rect x="234" y="412" width="22" height="22" rx="4" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="245" y="424" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle">a</text>
+<rect x="262" y="412" width="22" height="22" rx="4" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="273" y="424" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle">s₀</text>
+<rect x="294" y="412" width="11" height="22" rx="4" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="299.5" y="424" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="306" y="412" width="11" height="22" rx="4" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="311.5" y="424" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="318" y="412" width="11" height="22" rx="4" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="323.5" y="424" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="330" y="412" width="11" height="22" rx="4" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="335.5" y="424" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="342" y="412" width="11" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="347.5" y="424" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="354" y="412" width="11" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="359.5" y="424" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="366" y="412" width="11" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="371.5" y="424" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="378" y="412" width="11" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="383.5" y="424" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="390" y="412" width="11" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="395.5" y="424" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="402" y="412" width="11" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="407.5" y="424" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle"></text>
+<text x="354" y="444" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="9.5" font-weight="normal" fill="#767676" text-anchor="middle" dominant-baseline="middle">motion, 0 to 3 s</text>
+<rect x="418" y="412" width="22" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="429" y="424" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle">sᴛ</text>
+<line x1="342" y1="406" x2="342" y2="440" stroke="#333" stroke-width="1.2" stroke-dasharray="3 2"/>
+<text x="342" y="400" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="normal" fill="#333" text-anchor="middle" dominant-baseline="middle">tₖ</text>
+<text x="178" y="464" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="9.5" font-weight="normal" fill="#767676" text-anchor="start" dominant-baseline="middle">a₂ enters as a new action token at tₖ</text>
+<text x="478" y="416" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">run to tₖ, apply the new action to the</text>
+<text x="478" y="430" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">predicted state, restart with time 0</text>
+<text x="478" y="444" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">(predict_jobs takes a start state)</text>
+<text x="700" y="416" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">the same; an action that starts</text>
+<text x="700" y="430" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">at tₖ inside one rollout needs</text>
+<text x="700" y="444" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">data with timed actions</text>
+<line x1="0" y1="490" x2="900" y2="490" stroke="#d9dee5" stroke-width="0.8"/>
+<text x="0" y="511" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#333" text-anchor="start" dominant-baseline="middle">Counterfactual</text>
+<rect x="0" y="530" width="32" height="18" rx="9" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.2"/>
+<text x="16" y="539" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="bold" fill="#1f6feb" text-anchor="middle" dominant-baseline="middle">now</text>
+<rect x="178" y="504" width="22" height="22" rx="4" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="189" y="516" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle">S</text>
+<rect x="206" y="504" width="22" height="22" rx="4" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="217" y="516" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle">P</text>
+<rect x="234" y="504" width="22" height="22" rx="4" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="245" y="516" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle">a</text>
+<rect x="262" y="504" width="22" height="22" rx="4" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.4"/>
+<text x="273" y="516" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle" dominant-baseline="middle">s₀</text>
+<rect x="294" y="504" width="11" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="299.5" y="516" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="306" y="504" width="11" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="311.5" y="516" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="318" y="504" width="11" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="323.5" y="516" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="330" y="504" width="11" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="335.5" y="516" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="342" y="504" width="11" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="347.5" y="516" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="354" y="504" width="11" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="359.5" y="516" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="366" y="504" width="11" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="371.5" y="516" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="378" y="504" width="11" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="383.5" y="516" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="390" y="504" width="11" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="395.5" y="516" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle"></text>
+<rect x="402" y="504" width="11" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="407.5" y="516" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle"></text>
+<text x="354" y="536" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="9.5" font-weight="normal" fill="#767676" text-anchor="middle" dominant-baseline="middle">motion, 0 to 3 s</text>
+<rect x="418" y="504" width="22" height="22" rx="4" fill="#fff3d6" stroke="#f5a623" stroke-width="1.4"/>
+<text x="429" y="516" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#8a5a00" text-anchor="middle" dominant-baseline="middle">sᴛ</text>
+<text x="178" y="556" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="9.5" font-weight="normal" fill="#767676" text-anchor="start" dominant-baseline="middle">P edited, or an object dropped from S</text>
+<text x="478" y="508" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">edit the property numbers or drop</text>
+<text x="478" y="522" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">an object, run again; trained on</text>
+<text x="478" y="536" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">attribute sweeps and removals</text>
+<text x="700" y="508" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle">the same, with a spread</text>
+<line x1="0" y1="588" x2="900" y2="588" stroke="#d9dee5" stroke-width="0.8"/>
+<text x="0" y="602" font-family="'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" fill="#767676" text-anchor="start" dominant-baseline="middle">S scene table   P properties   a action   s₀ start state   sᴛ end state.   Dashed grey: not needed for the question.</text></svg>

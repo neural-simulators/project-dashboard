@@ -1711,6 +1711,160 @@
           held-out test tasks).</p>
       </div>
 
+      <div class="wm-section wm-math" id="world_model-capabilities">
+        <h3 class="title is-4">18. Six questions to one model: what is possible now, what needs training, what needs new data</h3>
+        <div class="content">
+          <p>The simulator so far answers one question: given the scene, every object's properties and the action at \(t = 0\), what
+            happens over the next 3 s. The questions below ask the same model for more: the properties from a recording, the action
+            or the motion from a start and an end, a change of plan half-way, a what-if, and a description in words. For each one
+            this section says what the stored data allows today, which answers come from the model as it is (run several times, or
+            restarted), which need one new head trained on the existing simulations, and which need the next data round. Four
+            figures, no animation.</p>
+        </div>
+
+        <h4 class="title is-6 wm-subhead" id="world_model-capabilities-data">18.1 What the data contains</h4>
+        <div class="content">
+          <p>Every stored simulation is a scene (objects with shape, size, mass, friction, restitution and inertia; joints; the floor),
+            one or two actions, all applied at \(t = 0\), and the result: position, rotation, velocity and spin of every object at 30
+            frames per second for 3 s, the pairs of objects touching in each frame, every contact episode between two objects with
+            its start and end at the engine's 1/1920 s resolution, an energy audit and the verdict of each of the scene's tasks. So
+            the timing of contacts between objects is in the data exactly. Contact with the floor is not recorded, and landings,
+            topples, slides and coming to rest are not events in the data: they are computed from the states afterwards with
+            thresholds (the Ablations tab's event tags are made this way). Per scene there are about 580 simulations: random actions
+            and actions refined by search make three quarters, one in nine is an action sweep, one in fourteen is an attribute sweep
+            (one object's mass, friction or restitution set to each of seven values: the counterfactual training signal), about one
+            in 250 removes an object. No stored action starts after \(t = 0\), and the only simulations that begin from a mid-motion
+            state are the rubble demo's brace / let-go set and the V7 engine continuations, both without a new action.</p>
+        </div>
+        <figure class="wm-figure">
+          <div class="wm-svg-scroll">
+            <img class="wm-web-figure" src="./static/images/world_model/web_cap_data.svg" width="900" height="455"
+                 alt="One stored simulation: the scene and its actions at t = 0 on the left; a 3 s timeline with the stored states, touching pairs, contact episodes and task verdicts, and the derived events; the mix of simulations per scene on the right; and the three things the next data round adds.">
+          </div>
+          <figcaption>18.1 What one stored simulation contains: recorded exactly (blue), derived afterwards (dashed grey), and what the
+            next data round adds (amber).</figcaption>
+        </figure>
+
+        <h4 class="title is-6 wm-subhead" id="world_model-capabilities-model">18.2 The model as it is</h4>
+        <div class="content">
+          <p>One transformer reads one token per object (pose, velocity, size and parts, and the mass, friction, restitution and inertia
+            as plain numbers), one token per action, one global token and one per joint, plus for every movable object the gaps,
+            contact directions and times to impact of its eight nearest neighbours. It predicts 0.2 s at a time: for each movable
+            object a block of motion (eight box corners, velocity, spin), added to the built-in motion for free flight, pendulums and
+            springs, then corrected by the rules (exact floor, no new overlap, objects at rest stay until something reaches them).
+            The end of the block is the start of the next; fifteen blocks make 3 s. It is trained by regression: one pass per block,
+            squared error against the engine, five blocks chained through its own output. Two consequences matter below: the
+            properties are inputs, not outputs, and the model gives one answer per pass, never a set.</p>
+        </div>
+        <figure class="wm-figure">
+          <div class="wm-svg-scroll">
+            <img class="wm-web-figure" src="./static/images/world_model/web_cap_model.svg" width="900" height="470"
+                 alt="The tokens on the left, the encoder and transformer in the middle, the block head, built-in motion, rules and end state on the right, with the loop back to the tokens; side boxes for the hold-still head, the contact head, the training and what the model cannot do.">
+          </div>
+          <figcaption>18.2 The model as it is (iteration 6): one pass per 0.2 s block, chained; properties enter as input numbers.</figcaption>
+        </figure>
+
+        <h4 class="title is-6 wm-subhead" id="world_model-capabilities-questions">18.3 Each question in terms of the model</h4>
+        <div class="content">
+          <p>A question for this model is a choice of what is given and what is wanted (figure 18.3). Some are answered by the model
+            as it is, run several times or restarted; the rest need a second head that treats properties, action and motion as tokens
+            that can each be hidden and generated.</p>
+          <p><strong>Properties from a recording.</strong> The regression model cannot output a mass, but it can score one. With the
+            recording's true state at the start of every block (the <code>teacher</code> argument of <code>predict_jobs</code>), the
+            block error says how well a candidate mass, friction or restitution explains the next 0.2 s; candidates are laid on a
+            grid or moved by gradient descent on the input channels. This is what the rubble demo does for heavy and pinned pieces.
+            It returns the best value and the shape of the error around it, which shows which properties the recording does not
+            determine (a mass shows only in a collision, a friction only in a slide), but never samples. The masked head does
+            return samples: the property tokens start as noise, the recording's chunks stay clamped, and 50 Euler steps carry the
+            properties to values consistent with the recording; a property the recording settles comes back as a tight cluster,
+            one it does not as a spread.</p>
+          \[ \hat P = \arg\min_{P \in \mathcal{C}} \sum_{k} \big\lVert f_\theta(s_{k}, P, a) - s_{k+1} \big\rVert^2 \quad
+             \text{(blocks } k \text{ started from the recording's true states)}, \qquad
+             P \sim p_\theta(P \mid Y_{\text{obs}}, a, G_{\setminus P}) \ \text{(masked head, G2)} \]
+          <p><strong>Action from a start and an end.</strong> By search today: candidate actions from the action sampler, each rolled
+            out, kept by how close the end comes to the given end state and, when a task is attached, by its checks; this is the
+            existing planning protocol with a different score. Several actions can fit the same end equally well, so the answer is
+            a set, which the masked head returns directly by sampling the action token with both ends clamped.</p>
+          <p><strong>The trajectory between a start and an end, with the action known.</strong> With the action and all properties
+            given, the engine is deterministic and the trajectory is just the forward prediction; the end state adds information
+            only about what is hidden, usually the properties. So this question is the two above combined: today, infer the hidden
+            properties from the end state (one frame of evidence, so a wide answer) and roll forward, with no guarantee of reaching
+            the end. The masked head answers it properly: first and last chunk given, the chunks between generated with per-chunk
+            noise levels (the Diffusion Forcing sampler in the code, with a clamped suffix next to its clamped prefix), the
+            properties generated alongside.</p>
+          <p><strong>Intervene mid-way.</strong> Possible now by restarting. The model is Markov in the block state, so stopping at
+            block \(k\), applying a second action to the predicted state (velocities set or an impulse added, as the engine does at
+            \(t = 0\)) and restarting with the clock at zero is the operation the rubble demo already uses to continue from an
+            observed mid-slide state. Removing an object mid-way is the same restart with the object dropped from the scene
+            tokens; the training data has removals at \(t = 0\), so a cup left in the air by a removed table is a start the model
+            has seen. What is not possible is an action that starts at \(t_k\) inside one rollout, because no stored action carries a
+            start time; that needs the next data round. The restart can be checked today: PhysX restarts from stored states too
+            (the brace / let-go code), so an evaluation set of a few thousand second actions on test rollouts costs a few GPU hours.</p>
+          <p><strong>Counterfactuals.</strong> Already in the model: attribute sweeps and removals are training inputs, and
+            <code>eval_wm.py</code> measures whether the predicted change under an edit goes the engine's way (76 percent for the
+            old one-pass model; not yet measured for the 50M model). The masked head adds a spread to the answer, nothing else.</p>
+          <p><strong>Events in time.</strong> Today the only event output is the contact head (which pairs touch, frame by frame),
+            and time enters the model only as the fraction of the 3 s. The event head of figure 18.4 adds, per block and object,
+            whether a contact, landing or topple starts in the block and when within it. Its targets come from the stored contacts
+            and the derived events; its prediction feeds the block's time input (time since and until an event) and lets the block
+            be split at the impact, which is where most of the error growth happens (event blocks add 2.5 times the error of quiet
+            blocks on the Ablations tab).</p>
+          <p><strong>Text.</strong> First with no training: an event extractor applied to any trajectory (engine or predicted) and a
+            verbalizer that turns the event list into sentences with times and objects, with a round-trip check (parse the sentence
+            back, compare the events), so faithfulness is event accuracy (<a href="#WM-D1">D1</a>, <a href="#WM-D3">D3</a>). Then a
+            learned head: the slot tokens projected into a small pretrained decoder as prefix tokens, trained on those templated
+            sentences plus a few thousand paraphrases written by the reviewer model, scored by the precision of the claims in the
+            text rather than by word overlap. BERT is not a candidate (an encoder cannot write); a Qwen-class decoder with LoRA is.</p>
+        </div>
+        <figure class="wm-figure">
+          <div class="wm-svg-scroll">
+            <img class="wm-web-figure" src="./static/images/world_model/web_cap_questions.svg" width="900" height="590"
+                 alt="Six rows, one per question: forward, properties from a recording, action from start and end, trajectory between start and end, intervene mid-way, counterfactual; for each the given and wanted tokens, how it is answered now with the regression model, and how with the masked head.">
+          </div>
+          <figcaption>18.3 Six questions as given (blue) and wanted (amber) tokens, with the answer available now and the answer the masked
+            head adds.</figcaption>
+        </figure>
+
+        <h4 class="title is-6 wm-subhead" id="world_model-capabilities-build">18.4 What to build, in order</h4>
+        <div class="content">
+          <p>Everything shares the tokens and the encoder of the current model. Head 1 is the regression simulator as it is, plus the
+            event head. Head 2 is the masked flow-matching model over property tokens (one per movable object, nine numbers: log
+            mass, friction, restitution, six inertia terms), the action token and the fifteen motion chunks: every token has its own
+            noise level, given tokens are clean and clamped, hidden tokens start as noise and are denoised together, and the loss is
+            flow matching on the hidden tokens only (objective 2 of section 3 under the mask of <a href="#WM-G2">G2</a>). It is the
+            one-shot configuration of the same class (the trajectory as chunk tokens), initialised from head 1's encoder and trained
+            on the existing simulations with random masks. It does not replace head 1 for forward prediction, where regression wins
+            (V7); it answers the questions whose answer is a set. Head 3 is the text decoder. The order: the search tools and the
+            intervention evaluation set first (no training), then head 2 (the two priorities: properties from a recording, and the
+            motion between a start and an end), then the event head, then head 3.</p>
+        </div>
+        <figure class="wm-figure">
+          <div class="wm-svg-scroll">
+            <img class="wm-web-figure" src="./static/images/world_model/web_cap_build.svg" width="900" height="500"
+                 alt="One shared encoder feeding three heads: the existing step-wise regression head with an added event head, a masked flow-matching head over property, action and motion-chunk tokens, and a text head; on the right how each is checked and what new data adds.">
+          </div>
+          <figcaption>18.4 What to build: one encoder, three heads; blue exists, amber is trained on the existing simulations, dashed
+            amber comes later.</figcaption>
+        </figure>
+
+        <h4 class="title is-6 wm-subhead">At a glance</h4>
+        <div class="table-container">
+          <table class="table is-narrow is-fullwidth wm-table">
+            <thead><tr><th>Question</th><th>Now, no training</th><th>After training on the existing simulations</th><th>Needs the next data round</th></tr></thead>
+            <tbody>
+              <tr><td>Forward</td><td>yes (the model as it is)</td><td></td><td></td></tr>
+              <tr><td>Properties from a recording</td><td>by search: one value and its error profile</td><td>masked head: samples with a spread</td><td></td></tr>
+              <tr><td>Action from a start and an end</td><td>by search: the best-fitting action</td><td>masked head: the set of fitting actions</td><td></td></tr>
+              <tr><td>Trajectory between a start and an end</td><td>indirectly (infer, then roll forward)</td><td>masked head: both ends clamped</td><td></td></tr>
+              <tr><td>Intervene mid-way</td><td>by restart from the predicted state</td><td></td><td>an action starting inside one rollout (timed actions)</td></tr>
+              <tr><td>Counterfactual</td><td>yes (edits are training inputs; measure on the 50M model)</td><td>a spread</td><td></td></tr>
+              <tr><td>Events in time</td><td>contact head only</td><td>event head: type and time within the block</td><td>engine-written event records as targets</td></tr>
+              <tr><td>Text</td><td>extractor + templates, round-trip checked</td><td>decoder on the slot tokens</td><td>written descriptions</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <!-- this block's data and scripts (deferred: they run after the page is parsed, in this order) -->
       <script defer src="./static/data/world_model.js?v=dcbe32604e"></script>
       <script defer src="./static/js/world_model/anim_pipeline.js?v=e82422477f"></script>
