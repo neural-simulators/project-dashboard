@@ -460,5 +460,60 @@
   "mp4_bytes": 55901,
   "jpg_bytes": 25073,
   "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/pendulum_spring__factual"
+ },
+ {
+  "family": "chair_throw_table",
+  "title": "Chair thrown onto a table",
+  "group": "Heavy furniture",
+  "horizon_s": 5.0,
+  "duration": "00:00:05.00",
+  "mp4_bytes": 57495,
+  "jpg_bytes": 24054,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/videos_r2c_heavy3/chair_throw_table/factual",
+  "note": "heavy furniture pilot (videos_r2c_heavy3)"
+ },
+ {
+  "family": "crate_drop_table",
+  "title": "Heavy crate dropped onto a table",
+  "group": "Heavy furniture",
+  "horizon_s": 5.0,
+  "duration": "00:00:05.00",
+  "mp4_bytes": 37826,
+  "jpg_bytes": 21625,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/videos_r2c_heavy3/crate_drop_table/factual",
+  "note": "heavy furniture pilot (videos_r2c_heavy3)"
+ },
+ {
+  "family": "table_topple_items",
+  "title": "Table tipped over, items slide off",
+  "group": "Heavy furniture",
+  "horizon_s": 5.0,
+  "duration": "00:00:05.00",
+  "mp4_bytes": 61238,
+  "jpg_bytes": 25695,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/videos_r2c_heavy4/table_topple_items/factual",
+  "note": "heavy furniture pilot (videos_r2c_heavy4)"
+ },
+ {
+  "family": "chair_push_table",
+  "title": "Chair pushed into a table",
+  "group": "Heavy furniture",
+  "horizon_s": 5.0,
+  "duration": "00:00:05.00",
+  "mp4_bytes": 50478,
+  "jpg_bytes": 25201,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/videos_r2c_heavy4/chair_push_table/factual",
+  "note": "heavy furniture pilot (videos_r2c_heavy4)"
+ },
+ {
+  "family": "cabinet_tip_shed",
+  "title": "Cabinet tips and sheds what it carries",
+  "group": "Heavy furniture",
+  "horizon_s": 5.0,
+  "duration": "00:00:05.00",
+  "mp4_bytes": 57569,
+  "jpg_bytes": 26536,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/videos_r2c_heavy4/cabinet_tip_shed/factual",
+  "note": "heavy furniture pilot (videos_r2c_heavy4)"
  }
 ]
