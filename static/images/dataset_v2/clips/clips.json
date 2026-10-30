@@ -1,0 +1,462 @@
+[
+ {
+  "family": "drop",
+  "title": "Falling and bouncing",
+  "group": "Collisions and motion",
+  "horizon_s": 4.0,
+  "duration": "00:00:04.00",
+  "mp4_bytes": 36859,
+  "jpg_bytes": 24741,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/drop__factual"
+ },
+ {
+  "family": "collision",
+  "title": "Ball collisions",
+  "group": "Collisions and motion",
+  "horizon_s": 4.0,
+  "duration": "00:00:04.00",
+  "mp4_bytes": 42416,
+  "jpg_bytes": 24597,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/collision__factual"
+ },
+ {
+  "family": "cascade",
+  "title": "Collision chains",
+  "group": "Chain reactions",
+  "horizon_s": 5.0,
+  "duration": "00:00:05.00",
+  "mp4_bytes": 49967,
+  "jpg_bytes": 24837,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/cascade__factual"
+ },
+ {
+  "family": "bowling",
+  "title": "Bowling",
+  "group": "Collisions and motion",
+  "horizon_s": 5.0,
+  "duration": "00:00:05.00",
+  "mp4_bytes": 47698,
+  "jpg_bytes": 26676,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/bowling__factual"
+ },
+ {
+  "family": "billiards",
+  "title": "Billiard break",
+  "group": "Collisions and motion",
+  "horizon_s": 6.0,
+  "duration": "00:00:06.00",
+  "mp4_bytes": 62672,
+  "jpg_bytes": 27573,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/billiards__factual"
+ },
+ {
+  "family": "topple",
+  "title": "Domino toppling",
+  "group": "Chain reactions",
+  "horizon_s": 5.0,
+  "duration": "00:00:05.00",
+  "mp4_bytes": 66861,
+  "jpg_bytes": 25981,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/topple__factual"
+ },
+ {
+  "family": "sliding",
+  "title": "Pushed sliding block",
+  "group": "Collisions and motion",
+  "horizon_s": 4.0,
+  "duration": "00:00:04.00",
+  "mp4_bytes": 37668,
+  "jpg_bytes": 24946,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/sliding__factual"
+ },
+ {
+  "family": "ramp",
+  "title": "Rolling down a ramp",
+  "group": "Collisions and motion",
+  "horizon_s": 5.0,
+  "duration": "00:00:05.00",
+  "mp4_bytes": 42279,
+  "jpg_bytes": 24655,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/ramp__factual"
+ },
+ {
+  "family": "composite",
+  "title": "Ball-to-ball-to-box interactions",
+  "group": "Chain reactions",
+  "horizon_s": 5.0,
+  "duration": "00:00:05.00",
+  "mp4_bytes": 38942,
+  "jpg_bytes": 23734,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/composite__factual"
+ },
+ {
+  "family": "spin",
+  "title": "Spinning blocks",
+  "group": "Collisions and motion",
+  "horizon_s": 4.0,
+  "duration": "00:00:04.00",
+  "mp4_bytes": 37918,
+  "jpg_bytes": 23520,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/spin__factual"
+ },
+ {
+  "family": "slip_roll",
+  "title": "Slipping to rolling",
+  "group": "Collisions and motion",
+  "horizon_s": 5.0,
+  "duration": "00:00:05.00",
+  "mp4_bytes": 44325,
+  "jpg_bytes": 24064,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/slip_roll__factual"
+ },
+ {
+  "family": "top",
+  "title": "Spinning tops",
+  "group": "Collisions and motion",
+  "horizon_s": 8.0,
+  "duration": "00:00:08.00",
+  "mp4_bytes": 62611,
+  "jpg_bytes": 28654,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/top__factual"
+ },
+ {
+  "family": "opposing_wheels",
+  "title": "Rolling wheels and tires collide",
+  "group": "Collisions and motion",
+  "horizon_s": 5.0,
+  "duration": "00:00:05.00",
+  "mp4_bytes": 54954,
+  "jpg_bytes": 26504,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/opposing_wheels__factual"
+ },
+ {
+  "family": "pendulum",
+  "title": "Simple pendulums",
+  "group": "Mechanisms",
+  "horizon_s": 8.0,
+  "duration": "00:00:08.00",
+  "mp4_bytes": 67781,
+  "jpg_bytes": 24685,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/pendulum__factual"
+ },
+ {
+  "family": "double_pendulum",
+  "title": "Double pendulums",
+  "group": "Mechanisms",
+  "horizon_s": 8.0,
+  "duration": "00:00:08.00",
+  "mp4_bytes": 68823,
+  "jpg_bytes": 25974,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/double_pendulum__factual"
+ },
+ {
+  "family": "spring",
+  "title": "Hanging springs",
+  "group": "Mechanisms",
+  "horizon_s": 8.0,
+  "duration": "00:00:08.00",
+  "mp4_bytes": 66383,
+  "jpg_bytes": 23086,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/spring__factual"
+ },
+ {
+  "family": "coupled_springs",
+  "title": "Coupled springs",
+  "group": "Mechanisms",
+  "horizon_s": 8.0,
+  "duration": "00:00:10.00",
+  "mp4_bytes": 122306,
+  "jpg_bytes": 24535,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/coupled_springs__factual"
+ },
+ {
+  "family": "pulley",
+  "title": "Pulleys",
+  "group": "Mechanisms",
+  "horizon_s": 6.0,
+  "duration": "00:00:06.00",
+  "mp4_bytes": 46034,
+  "jpg_bytes": 25700,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/pulley__factual"
+ },
+ {
+  "family": "lever",
+  "title": "Levers",
+  "group": "Mechanisms",
+  "horizon_s": 5.0,
+  "duration": "00:00:05.00",
+  "mp4_bytes": 52691,
+  "jpg_bytes": 23617,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/lever__factual"
+ },
+ {
+  "family": "hinge_slider",
+  "title": "Guided sliders",
+  "group": "Mechanisms",
+  "horizon_s": 4.0,
+  "duration": "00:00:04.00",
+  "mp4_bytes": 39101,
+  "jpg_bytes": 25945,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/hinge_slider__factual"
+ },
+ {
+  "family": "rotating_apparatus",
+  "title": "Rotating beams",
+  "group": "Mechanisms",
+  "horizon_s": 6.0,
+  "duration": "00:00:06.00",
+  "mp4_bytes": 65914,
+  "jpg_bytes": 25696,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/rotating_apparatus__factual"
+ },
+ {
+  "family": "carrying_cart",
+  "title": "Carts carrying objects",
+  "group": "Mechanisms",
+  "horizon_s": 6.0,
+  "duration": "00:00:06.00",
+  "mp4_bytes": 57442,
+  "jpg_bytes": 25072,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/carrying_cart__factual"
+ },
+ {
+  "family": "catapult",
+  "title": "Catapults",
+  "group": "Mechanisms",
+  "horizon_s": 5.0,
+  "duration": "00:00:05.00",
+  "mp4_bytes": 51511,
+  "jpg_bytes": 23792,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/catapult__factual"
+ },
+ {
+  "family": "crank",
+  "title": "Crank mechanisms",
+  "group": "Mechanisms",
+  "horizon_s": 6.0,
+  "duration": "00:00:06.00",
+  "mp4_bytes": 59291,
+  "jpg_bytes": 23960,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/crank__factual"
+ },
+ {
+  "family": "gravity_change",
+  "title": "Changing gravity",
+  "group": "Fields and air resistance",
+  "horizon_s": 6.0,
+  "duration": "00:00:06.00",
+  "mp4_bytes": 40648,
+  "jpg_bytes": 21542,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/gravity_change__factual"
+ },
+ {
+  "family": "orbital",
+  "title": "Orbital motion",
+  "group": "Fields and air resistance",
+  "horizon_s": 8.0,
+  "duration": "00:00:08.00",
+  "mp4_bytes": 67333,
+  "jpg_bytes": 25183,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/orbital__factual"
+ },
+ {
+  "family": "rocket",
+  "title": "Thrust-driven motion",
+  "group": "Fields and air resistance",
+  "horizon_s": 6.0,
+  "duration": "00:00:06.00",
+  "mp4_bytes": 53536,
+  "jpg_bytes": 23316,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/rocket__factual"
+ },
+ {
+  "family": "drag_wind",
+  "title": "Air drag: a sheet falls onto a ball",
+  "group": "Fields and air resistance",
+  "horizon_s": 6.0,
+  "duration": "00:00:06.00",
+  "mp4_bytes": 45618,
+  "jpg_bytes": 23608,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/drag_wind__factual"
+ },
+ {
+  "family": "balloon",
+  "title": "Buoyancy: three balloons",
+  "group": "Fields and air resistance",
+  "horizon_s": 6.0,
+  "duration": "00:00:08.00",
+  "mp4_bytes": 56030,
+  "jpg_bytes": 23822,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/balloon__factual"
+ },
+ {
+  "family": "rope_chain",
+  "title": "Hanging chains",
+  "group": "Mechanisms",
+  "horizon_s": 8.0,
+  "duration": "00:00:08.00",
+  "mp4_bytes": 70369,
+  "jpg_bytes": 23843,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/rope_chain__factual"
+ },
+ {
+  "family": "granular",
+  "title": "Granular solids",
+  "group": "Collisions and motion",
+  "horizon_s": 6.0,
+  "duration": "00:00:06.00",
+  "mp4_bytes": 92525,
+  "jpg_bytes": 26279,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/granular__factual"
+ },
+ {
+  "family": "rubble",
+  "title": "Rubble on a spring platform",
+  "group": "Chain reactions",
+  "horizon_s": 4.0,
+  "duration": "00:00:06.00",
+  "mp4_bytes": 69311,
+  "jpg_bytes": 27536,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/rubble__factual"
+ },
+ {
+  "family": "pendulum_jenga",
+  "title": "Pendulum strikes a stack",
+  "group": "Chain reactions",
+  "horizon_s": 6.0,
+  "duration": "00:00:06.00",
+  "mp4_bytes": 50988,
+  "jpg_bytes": 25377,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/pendulum_jenga__factual"
+ },
+ {
+  "family": "projectile",
+  "title": "Projectile flight",
+  "group": "Collisions and motion",
+  "horizon_s": 5.0,
+  "duration": "00:00:05.00",
+  "mp4_bytes": 67766,
+  "jpg_bytes": 26891,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/projectile__factual"
+ },
+ {
+  "family": "elastic_bridge",
+  "title": "Ball strikes a flexible bridge",
+  "group": "Flexible solids",
+  "horizon_s": 6.0,
+  "duration": "00:00:06.00",
+  "mp4_bytes": 62520,
+  "jpg_bytes": 24727,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/elastic_bridge__factual"
+ },
+ {
+  "family": "trampoline",
+  "title": "Ball on a trampoline net",
+  "group": "Flexible solids",
+  "horizon_s": 5.0,
+  "duration": "00:00:05.00",
+  "mp4_bytes": 51759,
+  "jpg_bytes": 27591,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/trampoline__factual"
+ },
+ {
+  "family": "books_ball_catch",
+  "title": "Books knock a ball into a floor box",
+  "group": "Chain reactions",
+  "horizon_s": 5.0,
+  "duration": "00:00:05.00",
+  "mp4_bytes": 45520,
+  "jpg_bytes": 24748,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/books_ball_catch__factual"
+ },
+ {
+  "family": "ball_block_catch",
+  "title": "Falling into a container: ball and block fall from a table",
+  "group": "Chain reactions",
+  "horizon_s": 5.0,
+  "duration": "00:00:05.00",
+  "mp4_bytes": 44607,
+  "jpg_bytes": 22944,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/ball_block_catch__factual"
+ },
+ {
+  "family": "chair_spill",
+  "title": "Chair topples and drops a ball",
+  "group": "Chain reactions",
+  "horizon_s": 5.0,
+  "duration": "00:00:05.00",
+  "mp4_bytes": 49725,
+  "jpg_bytes": 24317,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/chair_spill__factual"
+ },
+ {
+  "family": "ramp_spring_domino",
+  "title": "Ramp, spring bumper and dominoes",
+  "group": "Chain reactions",
+  "horizon_s": 6.0,
+  "duration": "00:00:06.00",
+  "mp4_bytes": 49959,
+  "jpg_bytes": 25041,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/ramp_spring_domino__factual"
+ },
+ {
+  "family": "launcher_tower",
+  "title": "Spring launcher knocks a tower down",
+  "group": "Chain reactions",
+  "horizon_s": 6.0,
+  "duration": "00:00:06.00",
+  "mp4_bytes": 48611,
+  "jpg_bytes": 24714,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/launcher_tower__factual"
+ },
+ {
+  "family": "pendulum_tower_box",
+  "title": "Pendulum, tower, ball and box",
+  "group": "Chain reactions",
+  "horizon_s": 7.0,
+  "duration": "00:00:07.00",
+  "mp4_bytes": 64856,
+  "jpg_bytes": 23785,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/pendulum_tower_box__factual"
+ },
+ {
+  "family": "ramp_lever_projectile",
+  "title": "Ramp ball flips a lever that launches a second ball",
+  "group": "Chain reactions",
+  "horizon_s": 6.0,
+  "duration": "00:00:06.00",
+  "mp4_bytes": 46002,
+  "jpg_bytes": 25452,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/ramp_lever_projectile__factual"
+ },
+ {
+  "family": "domino_branch",
+  "title": "Branching domino network",
+  "group": "Chain reactions",
+  "horizon_s": 6.0,
+  "duration": "00:00:06.00",
+  "mp4_bytes": 67789,
+  "jpg_bytes": 27280,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/domino_branch__factual"
+ },
+ {
+  "family": "diving_board",
+  "title": "Flexible diving board flicks a ball into a box",
+  "group": "Flexible solids",
+  "horizon_s": 6.0,
+  "duration": "00:00:06.00",
+  "mp4_bytes": 42912,
+  "jpg_bytes": 23608,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/diving_board__factual"
+ },
+ {
+  "family": "pendulum_spring",
+  "title": "Pendulum strikes a spring-mounted block",
+  "group": "Mechanisms",
+  "horizon_s": 8.0,
+  "duration": "00:00:08.00",
+  "mp4_bytes": 55901,
+  "jpg_bytes": 25073,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/pendulum_spring__factual"
+ }
+]
