@@ -405,9 +405,10 @@
   "group": "Chain reactions",
   "horizon_s": 6.0,
   "duration": "00:00:06.00",
-  "mp4_bytes": 48611,
-  "jpg_bytes": 24714,
-  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/launcher_tower__factual"
+  "mp4_bytes": 47307,
+  "jpg_bytes": 24650,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v26/media/launcher_tower__factual",
+  "note": "fix8 render (dashboard_review_v26)"
  },
  {
   "family": "pendulum_tower_box",
@@ -415,9 +416,10 @@
   "group": "Chain reactions",
   "horizon_s": 7.0,
   "duration": "00:00:07.00",
-  "mp4_bytes": 64856,
-  "jpg_bytes": 23785,
-  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v25/media/pendulum_tower_box__factual"
+  "mp4_bytes": 62219,
+  "jpg_bytes": 22963,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/dashboard_review_v26/media/pendulum_tower_box__factual",
+  "note": "fix8 render (dashboard_review_v26)"
  },
  {
   "family": "ramp_lever_projectile",
