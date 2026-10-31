@@ -515,5 +515,16 @@
   "jpg_bytes": 26536,
   "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/videos_r2c_heavy4/cabinet_tip_shed/factual",
   "note": "heavy furniture pilot (videos_r2c_heavy4)"
+ },
+ {
+  "family": "chair_row_domino",
+  "title": "Heavy chair knocks a row of light chairs over",
+  "group": "Heavy furniture",
+  "horizon_s": 6.0,
+  "duration": "00:00:06.00",
+  "mp4_bytes": 79101,
+  "jpg_bytes": 27711,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/videos_r2c_heavy5/chair_row_domino/factual",
+  "note": "heavy furniture pilot (videos_r2c_heavy5)"
  }
 ]
