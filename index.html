@@ -551,7 +551,7 @@
         <h3 class="title is-4">3. The world-model family in symbols</h3>
         <div class="content">
           <p>One notation covers every world model trained so far: the toy runs of this proposal, the end-to-end and scaled studies, and
-            the two networks now in their first training runs for the backward questions. It follows the usual world-model convention:
+            the two networks that had their first training runs for the backward questions in October. It follows the usual world-model convention:
             a state, an action, a true transition given by the simulator, and a learned model of that transition.</p>
         </div>
         <dl class="wm-defs">
@@ -594,7 +594,7 @@
             movable object and patch or block of frames. The number of objects is not fixed. Two networks of this family are in use
             today, and the rest of this page calls them by these names: the <strong>step-wise regressor</strong>, the co-author's V5 to V7
             models, one answer per block, the most accurate forward simulator; and the <strong>masked flow model</strong>, one-shot and
-            generative, with property and action tokens that can be hidden, built for the backward questions of section 12. Earlier
+            generative, with property and action tokens that can be hidden, built for the backward questions of section 13. Earlier
             versions of this page called them head 1 and head 2.</p>
         </div>
         <h4 class="title is-6 wm-subhead">Identity comes from the structure, not from learned ids</h4>
@@ -710,11 +710,11 @@
               <tr><td>Flow matching</td><td>(2)</td><td>trained (B)</td><td>trained</td><td>trained, uniform and logit-normal \(\sigma\)</td></tr>
               <tr><td>Diffusion (DDPM)</td><td>(3)</td><td>no</td><td>trained</td><td>one pass: did not converge (sampler bug, K1); per block: trains when it predicts the clean block or v</td></tr>
               <tr><td>Diffusion Forcing</td><td>(4)</td><td>trained</td><td>no</td><td>trained one-shot; far behind the others (section 7)</td></tr>
-              <tr><td>JEPA with a state decoder</td><td>(5)</td><td>trained (C, C2)</td><td>no</td><td>trained one-shot; as accurate as regression (section 9)</td></tr>
+              <tr><td>JEPA with a state decoder</td><td>(5)</td><td>trained (C, C2)</td><td>no</td><td>trained one-shot; as accurate as regression (section 10)</td></tr>
               <tr><td>Step-wise block model</td><td>(6)</td><td>designed (D)</td><td>no</td><td>trained in 0.2 s blocks since V2: the basis of the best model (section 4); regression per block beats flow matching and block diffusion</td></tr>
               <tr><td>Contact head</td><td>(7)</td><td>no</td><td>contacts as output channels</td><td>on every member</td></tr>
-              <tr><td>Masked flow model</td><td>(8)</td><td>no</td><td>no</td><td>first run training since 29 October on the subset of section 13, with and without the cycle term</td></tr>
-              <tr><td>Regressor with attribute dropout and property head</td><td>(9)</td><td>no</td><td>no</td><td>first run training since 30 October, the V5 configuration with exact geometry, then five-block chains</td></tr>
+              <tr><td>Masked flow model</td><td>(8)</td><td>no</td><td>no</td><td>first run completed on 30 October on the subset of section 14 (the arm without the cycle term; the arm with it was stopped after a code review and waits for a rerun); evaluation on the test families pending</td></tr>
+              <tr><td>Regressor with attribute dropout and property head</td><td>(9)</td><td>no</td><td>no</td><td>first run completed on 31 October, the V5 configuration with exact geometry; the five-block chain stage ran out of memory and waits for a rerun at a smaller batch</td></tr>
             </tbody>
           </table>
         </div>
@@ -722,8 +722,8 @@
           <li><strong>Data.</strong> Toy runs: 96 PhysX rollouts of the benchmark's rooms, 2 s at 30 frames per second. End-to-end study:
             generated table-top and room scenes, 11 s at 10 frames per second, positions, rotations and contacts. Scaled study: 134,000
             training rollouts from 357 scenes of twelve families, 3 s at 30 frames per second, with object parts, joints and several
-            actions at once. The two first runs of (8) and (9) use a subset of those rollouts chosen for the backward questions
-            (section 13).</li>
+            actions at once. The first runs of (8) and (9) use a subset of those rollouts chosen for the backward questions
+            (section 14).</li>
           <li><strong>Reference points, not members:</strong> "nothing moves", a network without attention (MLP), and a language model
             prompted to write the future as text.</li>
           <li><strong>Best so far.</strong> In the scaled study the one-pass members reach an ADE of 0.55 to 0.57 m over 3 s on unseen
@@ -884,101 +884,6 @@
             (x and z components; y is constant at -2.20 m); the change shown each tick is the quantity one network
             pass of the step model has to predict.</p>
         </div>
-        <div class="wm-math">
-        <h4 class="title is-6 wm-subhead" id="world_model-coarse-fine">Key events first, then the motion between them (proposal, 31 October)</h4>
-        <div class="content">
-          <p>The step-wise loop has no view of the whole motion: a block knows the state it starts from and nothing about where the
-            motion is headed, so a small speed error in one block becomes a wrong position in every block after it
-            (<a href="#WM-K11">K11</a>). A result on language models suggests the opposite order. Next-Concept Modeling (Kumbong, Khare
-            and colleagues, Stanford, <a href="https://arxiv.org/abs/2610.14162">arXiv 2610.14162</a>, October 2026) writes text coarse
-            to fine: a learned tokenizer turns a passage into a hierarchy of discrete codes, and a transformer predicts every code of
-            one level in parallel from the levels before it, one pass per level, 10 to 31 times faster than a diffusion language model
-            at comparable quality. Text has no natural coarse level, so they learn one. A trajectory has one: its <strong>key
-            events</strong>. Over three seconds a thrown crate leaves the hand, lands, slides into a second crate and comes to rest;
-            between those moments it is in free flight, sliding or at rest. Flight and rest the built-in motion and the generation
-            rules above give exactly, and a slide is a steady deceleration. The hard, discrete part of a motion is which events happen,
-            between which objects and when. The proposal is to predict that part first.</p>
-          <p><strong>Two levels.</strong> The coarse level is the schedule of key events: for each movable object the frames at which
-            its regime changes (a contact begins or ends, it leaves its support, it topples, it comes to rest), the partner of each
-            contact, and the object's state at those frames, its <strong>key frames</strong>, plus its state at 3 s. The fine level is
-            the motion between consecutive key frames. The coarse level is small (a few events per object, none for most) and discrete
-            in its structure, so it is generated: flow matching over the key-frame states with a head for the kind of event and its
-            partner. A grazing contact that may or may not happen is then a fork in the schedule, two samples, not a blur in the
-            motion. The fine level is nearly deterministic once its key frames are fixed, so it stays with the step-wise regressor,
-            with two inputs added to every block: the key frame its segment must reach and the event there. One segment is the question
-            "the motion between a known start and a known end", one of the mixed masks the masked flow model already draws in training
-            (section 12). Key frames sit on block boundaries (0.2 s); events closer together than that are merged.</p>
-        </div>
-        \[ \text{coarse:}\quad \mathcal{K} = \big\{(t_k,\ i_k,\ j_k,\ e_k,\ s^{i_k}_{t_k})\big\}_{k \le K},\ \ s_T \ \sim\ p_\theta\big(\cdot \mid G, a\big) \]
-        \[ \text{fine, for the blocks } b \text{ of segment } k:\quad \hat Y_b = \bar y\big(\hat s_{6b}\big) + f_\theta\big(\hat s_{6b},\ s_{t_{k+1}},\ e_k,\ G,\ a_b\big) \]
-        <div class="content">
-          <p><strong>What changes in the network.</strong> Nothing in the tokens of this section; two things in the attention and the
-            heads. The coarse tokens (one per key frame) and the fine slots (one per block) sit in one sequence under a
-            <strong>block-causal mask across levels</strong>, the paper's second ingredient: a coarse token attends to the scene, the
-            action and the other coarse tokens; a fine slot attends to the scene, the action, the coarse tokens and the fine slots of
-            its own segment; nothing attends from the fine level back to the coarse one, and nothing from one segment to another. One
-            forward pass therefore trains both levels at once, with the key frames teacher-forced from the recorded motion, and
-            generation runs the coarse level first and every segment after it, in parallel, since each starts and ends at a known key
-            frame. A speed error no longer travels past the next key frame. The paper's third ingredient matters most here: during
-            training a share of the key frames the fine level reads are <strong>corrupted</strong> (shifted by a block, moved, dropped
-            or invented), so the fine pass learns to reach an imperfect key frame gracefully instead of trusting it. It is the same
-            medicine as the chained-block training of section 6, one level up.</p>
-        </div>
-        \[ \text{attention } u \to v \text{ allowed iff}\quad v \in \{G, a\}\ \ \text{or}\ \ u, v \in \mathcal{K}\ \ \text{or}\ \ \big(u \in \text{seg}_k,\ v \in \mathcal{K}\big)\ \ \text{or}\ \ u, v \in \text{seg}_k \]
-        <div class="content">
-          <p><strong>Where the key frames come from.</strong> The event extractor of section 8 (<a href="#WM-D1">D1</a>), run on the
-            recorded motion with the engine's contact episodes: contact start and end per pair, loss of support, topple and rest, at
-            the frame they occur. The coarse targets are measured, not annotated by hand, and the Dataset V2 records already carry them
-            as timed events. The coarse pass itself reads only the scene and the action; recorded events are training targets for it
-            and conditioning for the fine pass, never an input at generation time.</p>
-          <p><strong>The risk, stated plainly.</strong> A wrong coarse pass cannot be repaired below it. If the schedule misses the
-            collision, the fine pass fits a smooth motion in which nothing collides, and it looks plausible; if a key frame is 20 cm
-            off, the fine pass reaches it exactly. The errors change character, from drift to confident mistakes, and whether they also
-            shrink is what the experiment has to show. Three safeguards: the fine pass is scored with the recorded key frames (the
-            ceiling: what a perfect schedule buys) and with the predicted ones, separately; the coarse pass is scored as an event
-            detector (precision and recall of events with a tolerance of one block, the error of the key-frame states and of the end
-            state), not only through the final motion; and the fine pass keeps its dense loss on every frame, so the motion between
-            events is not free to drift. Where the coarse pass is unsure, the schedule carries a spread and the motion inherits it,
-            which is the right behaviour in contact physics: a crate that barely reaches the edge of the table either falls or does
-            not, and both futures belong in the sample set.</p>
-          <p><strong>What it costs, and what to measure first.</strong> A regression rollout is fifteen passes already; this design adds
-            one coarse pass and makes nothing faster. The gain, if it comes, is accuracy and consistency. Two measurements need no
-            training and come first: inside the step-wise loop, restore the recorded state at a few key frames only (the sampler's
-            teacher input takes a mask per block and channel) and read off how much of the 1.5 m of drift a perfect schedule would
-            remove; and on the masked flow model, clean the patches at the event times first and the others after, a change of the
-            noise schedule alone, against the ordinary sampler on the same test rollouts.</p>
-        </div>
-        <figure class="wm-figure">
-          <div class="wm-svg-scroll">
-            <img class="wm-web-figure" src="./static/images/world_model/web_coarse_fine.svg" width="900" height="556"
-                 alt="Four bands: the height and speed of a thrown crate over three seconds with its key events marked (lands, hits the blue crate, comes to rest, end state); one amber token per key event in the coarse pass; fifteen blue blocks of the fine pass grouped into four segments between the key frames; and a text panel on training, generation and the risk next to a six by six grid showing which tokens may attend to which.">
-          </div>
-          <figcaption>Key events first. The coarse pass writes one token per key event with the object's state there; the fine pass fills
-            each segment between two key frames with the step-wise regressor, segments independently. The grid is the block-causal mask
-            across levels: a row reads its filled columns. The motion is a sketch in closed form, not data.</figcaption>
-        </figure>
-        <ul class="wm-todo">
-          <li id="WM-L1" data-todo="WM-L1"><span class="wm-todo-id">WM-L1</span><span class="wm-badge-todo">to do</span>
-            <strong>The ceiling, without training.</strong> In the step-wise loop, restore the recorded state at the key frames only
-            (the extractor's events, snapped to block boundaries), first the velocity channels, then the pose, and measure the position
-            error at 3 s against the free-running 1.5 m and the 18 cm of K11's every-block control. The gap is what a perfect coarse
-            pass could buy; if it is small, the proposal stops here.</li>
-          <li id="WM-L2" data-todo="WM-L2"><span class="wm-todo-id">WM-L2</span><span class="wm-badge-todo">to do</span>
-            <strong>The coarse model.</strong> Key-frame states and the end state as flow-matching targets, an event head (kind,
-            partner, block) trained by cross-entropy, on the masked flow model's tokens with the recorded events as targets. Scored as
-            an event detector against the extractor's events on held-out rollouts (precision, recall, onset error) and by the error of
-            the key-frame and end states; the spread over samples reported next to the forks in the data.</li>
-          <li id="WM-L3" data-todo="WM-L3"><span class="wm-todo-id">WM-L3</span><span class="wm-badge-todo">to do</span>
-            <strong>The fine model.</strong> The step-wise regressor with a target key frame and an event token per block, trained
-            segment by segment with the recorded key frames, a share of them corrupted; then on the coarse model's own schedules.
-            Reported with recorded and with predicted key frames separately, in event and in quiet windows, next to the chained
-            5-block model of iteration 6.</li>
-          <li id="WM-L4" data-todo="WM-L4"><span class="wm-todo-id">WM-L4</span><span class="wm-badge-todo">to do</span>
-            <strong>Both levels in one network.</strong> Coarse tokens as a first block and the fine slots as segment blocks of one
-            sequence under the block-causal mask, trained in one pass, so the fine level's use of the coarse tokens is learned through
-            attention rather than through an added input; compared with L2 plus L3 as separate networks.</li>
-        </ul>
-        </div>
       </div>
       <div class="wm-section" id="world_model-training">
         <h3 class="title is-4">6. Training objectives, as the two networks are trained</h3>
@@ -1039,7 +944,7 @@
             by a wide margin (acted-object error 1.42 m against 0.45 m for regression, measured even on training scenes), and it was
             not taken further as a simulator. Its idea survives: the masked flow model gives every token its own noise level, which is
             exactly what lets a given token stay clean while hidden ones are generated, and what a schedule that cleans the key events
-            first needs (<a href="#world_model-coarse-fine">section 5</a>).</p>
+            first needs (<a href="#world_model-coarse-fine">section 8</a>).</p>
         </div>
         <div class="wm-anim" id="anim-forcing">
           <svg class="wm-diagram" viewBox="0 0 910 86" role="img"
@@ -1050,8 +955,103 @@
           </div>
         </div>
       </div>
+      <div class="wm-section wm-math" id="world_model-coarse-fine">
+        <h3 class="title is-4">8. Key events first, then the motion between them (proposal, 31 October)</h3>
+        <div class="content">
+          <p>The step-wise loop has no view of the whole motion: a block knows the state it starts from and nothing about where the
+            motion is headed, so a small speed error in one block becomes a wrong position in every block after it
+            (<a href="#WM-K11">K11</a>). A result on language models suggests the opposite order. Next-Concept Modeling (Kumbong, Khare
+            and colleagues, Stanford, <a href="https://arxiv.org/abs/2610.14162">arXiv 2610.14162</a>, October 2026) writes text coarse
+            to fine: a learned tokenizer turns a passage into a hierarchy of discrete codes, and a transformer predicts every code of
+            one level in parallel from the levels before it, one pass per level, 10 to 31 times faster than a diffusion language model
+            at comparable quality. Text has no natural coarse level, so they learn one. A trajectory has one: its <strong>key
+            events</strong>. Over three seconds a thrown crate leaves the hand, lands, slides into a second crate and comes to rest;
+            between those moments it is in free flight, sliding or at rest. Flight and rest the built-in motion and the generation
+            rules above give exactly, and a slide is a steady deceleration. The hard, discrete part of a motion is which events happen,
+            between which objects and when. The proposal is to predict that part first.</p>
+          <p><strong>Two levels.</strong> The coarse level is the schedule of key events: for each movable object the frames at which
+            its regime changes (a contact begins or ends, it leaves its support, it topples, it comes to rest), the partner of each
+            contact, and the object's state at those frames, its <strong>key frames</strong>, plus its state at 3 s. The fine level is
+            the motion between consecutive key frames. The coarse level is small (a few events per object, none for most) and discrete
+            in its structure, so it is generated: flow matching over the key-frame states with a head for the kind of event and its
+            partner. A grazing contact that may or may not happen is then a fork in the schedule, two samples, not a blur in the
+            motion. The fine level is nearly deterministic once its key frames are fixed, so it stays with the step-wise regressor,
+            with two inputs added to every block: the key frame its segment must reach and the event there. One segment is the question
+            "the motion between a known start and a known end", one of the mixed masks the masked flow model already draws in training
+            (section 13). Key frames sit on block boundaries (0.2 s); events closer together than that are merged.</p>
+        </div>
+        \[ \text{coarse:}\quad \mathcal{K} = \big\{(t_k,\ i_k,\ j_k,\ e_k,\ s^{i_k}_{t_k})\big\}_{k \le K},\ \ s_T \ \sim\ p_\theta\big(\cdot \mid G, a\big) \]
+        \[ \text{fine, for the blocks } b \text{ of segment } k:\quad \hat Y_b = \bar y\big(\hat s_{6b}\big) + f_\theta\big(\hat s_{6b},\ s_{t_{k+1}},\ e_k,\ G,\ a_b\big) \]
+        <div class="content">
+          <p><strong>What changes in the network.</strong> Nothing in the tokens of this section; two things in the attention and the
+            heads. The coarse tokens (one per key frame) and the fine slots (one per block) sit in one sequence under a
+            <strong>block-causal mask across levels</strong>, the paper's second ingredient: a coarse token attends to the scene, the
+            action and the other coarse tokens; a fine slot attends to the scene, the action, the coarse tokens and the fine slots of
+            its own segment; nothing attends from the fine level back to the coarse one, and nothing from one segment to another. One
+            forward pass therefore trains both levels at once, with the key frames teacher-forced from the recorded motion, and
+            generation runs the coarse level first and every segment after it, in parallel, since each starts and ends at a known key
+            frame. A speed error no longer travels past the next key frame. The paper's third ingredient matters most here: during
+            training a share of the key frames the fine level reads are <strong>corrupted</strong> (shifted by a block, moved, dropped
+            or invented), so the fine pass learns to reach an imperfect key frame gracefully instead of trusting it. It is the same
+            medicine as the chained-block training of section 6, one level up.</p>
+        </div>
+        \[ \text{attention } u \to v \text{ allowed iff}\quad v \in \{G, a\}\ \ \text{or}\ \ u, v \in \mathcal{K}\ \ \text{or}\ \ \big(u \in \text{seg}_k,\ v \in \mathcal{K}\big)\ \ \text{or}\ \ u, v \in \text{seg}_k \]
+        <div class="content">
+          <p><strong>Where the key frames come from.</strong> The event extractor of section 9 (<a href="#WM-D1">D1</a>), run on the
+            recorded motion with the engine's contact episodes: contact start and end per pair, loss of support, topple and rest, at
+            the frame they occur. The coarse targets are measured, not annotated by hand, and the Dataset V2 records already carry them
+            as timed events. The coarse pass itself reads only the scene and the action; recorded events are training targets for it
+            and conditioning for the fine pass, never an input at generation time.</p>
+          <p><strong>The risk, stated plainly.</strong> A wrong coarse pass cannot be repaired below it. If the schedule misses the
+            collision, the fine pass fits a smooth motion in which nothing collides, and it looks plausible; if a key frame is 20 cm
+            off, the fine pass reaches it exactly. The errors change character, from drift to confident mistakes, and whether they also
+            shrink is what the experiment has to show. Three safeguards: the fine pass is scored with the recorded key frames (the
+            ceiling: what a perfect schedule buys) and with the predicted ones, separately; the coarse pass is scored as an event
+            detector (precision and recall of events with a tolerance of one block, the error of the key-frame states and of the end
+            state), not only through the final motion; and the fine pass keeps its dense loss on every frame, so the motion between
+            events is not free to drift. Where the coarse pass is unsure, the schedule carries a spread and the motion inherits it,
+            which is the right behaviour in contact physics: a crate that barely reaches the edge of the table either falls or does
+            not, and both futures belong in the sample set.</p>
+          <p><strong>What it costs, and what to measure first.</strong> A regression rollout is fifteen passes already; this design adds
+            one coarse pass and makes nothing faster. The gain, if it comes, is accuracy and consistency. Two measurements need no
+            training and come first: inside the step-wise loop, restore the recorded state at a few key frames only (the sampler's
+            teacher input takes a mask per block and channel) and read off how much of the 1.5 m of drift a perfect schedule would
+            remove; and on the masked flow model, clean the patches at the event times first and the others after, a change of the
+            noise schedule alone, against the ordinary sampler on the same test rollouts.</p>
+        </div>
+        <figure class="wm-figure">
+          <div class="wm-svg-scroll">
+            <img class="wm-web-figure" src="./static/images/world_model/web_coarse_fine.svg" width="900" height="556"
+                 alt="Four bands: the height and speed of a thrown crate over three seconds with its key events marked (lands, hits the blue crate, comes to rest, end state); one amber token per key event in the coarse pass; fifteen blue blocks of the fine pass grouped into four segments between the key frames; and a text panel on training, generation and the risk next to a six by six grid showing which tokens may attend to which.">
+          </div>
+          <figcaption>Key events first. The coarse pass writes one token per key event with the object's state there; the fine pass fills
+            each segment between two key frames with the step-wise regressor, segments independently. The grid is the block-causal mask
+            across levels: a row reads its filled columns. The motion is a sketch in closed form, not data.</figcaption>
+        </figure>
+        <ul class="wm-todo">
+          <li id="WM-L1" data-todo="WM-L1"><span class="wm-todo-id">WM-L1</span><span class="wm-badge-todo">to do</span>
+            <strong>The ceiling, without training.</strong> In the step-wise loop, restore the recorded state at the key frames only
+            (the extractor's events, snapped to block boundaries), first the velocity channels, then the pose, and measure the position
+            error at 3 s against the free-running 1.5 m and the 18 cm of K11's every-block control. The gap is what a perfect coarse
+            pass could buy; if it is small, the proposal stops here.</li>
+          <li id="WM-L2" data-todo="WM-L2"><span class="wm-todo-id">WM-L2</span><span class="wm-badge-todo">to do</span>
+            <strong>The coarse model.</strong> Key-frame states and the end state as flow-matching targets, an event head (kind,
+            partner, block) trained by cross-entropy, on the masked flow model's tokens with the recorded events as targets. Scored as
+            an event detector against the extractor's events on held-out rollouts (precision, recall, onset error) and by the error of
+            the key-frame and end states; the spread over samples reported next to the forks in the data.</li>
+          <li id="WM-L3" data-todo="WM-L3"><span class="wm-todo-id">WM-L3</span><span class="wm-badge-todo">to do</span>
+            <strong>The fine model.</strong> The step-wise regressor with a target key frame and an event token per block, trained
+            segment by segment with the recorded key frames, a share of them corrupted; then on the coarse model's own schedules.
+            Reported with recorded and with predicted key frames separately, in event and in quiet windows, next to the chained
+            5-block model of iteration 6.</li>
+          <li id="WM-L4" data-todo="WM-L4"><span class="wm-todo-id">WM-L4</span><span class="wm-badge-todo">to do</span>
+            <strong>Both levels in one network.</strong> Coarse tokens as a first block and the fine slots as segment blocks of one
+            sequence under the block-causal mask, trained in one pass, so the fine level's use of the coarse tokens is learned through
+            attention rather than through an added input; compared with L2 plus L3 as separate networks.</li>
+        </ul>
+      </div>
       <div class="wm-section wm-math" id="world_model-counterfactuals">
-        <h3 class="title is-4">8. Counterfactuals, events in words, and error bands</h3>
+        <h3 class="title is-4">9. Counterfactuals, events in words, and error bands</h3>
         <div class="content">
           <p>Three things that make the model usable beyond a position error. <strong>Counterfactuals are input edits</strong> (built in,
             and measured): the inputs are the explicit scene graph and the explicit action, so a counterfactual is an edited input
@@ -1121,7 +1121,7 @@
         <div class="content">
           <p><strong>Counterfactuals about what was only observed.</strong> The edit above assumes every property of the scene is known.
             For a scene that was only observed, a counterfactual takes the three steps of causal inference (abduction, action,
-            prediction): infer what is hidden from what was seen (the backward questions of section 12), change one thing, and predict
+            prediction): infer what is hidden from what was seen (the backward questions of section 13), change one thing, and predict
             forward with what was inferred. The spread of \(\hat P\) carries into the spread of \(Y'\) (<a href="#WM-E1">E1</a>); PhysX
             checks the answer by simulating the edited scene with the true properties, as in the benchmark's twin pairs.</p>
         </div>
@@ -1309,7 +1309,7 @@
         </ul>
       </div>
       <div class="wm-section" id="world_model-jepa">
-        <h3 class="title is-4">9. JEPA variant (C)</h3>
+        <h3 class="title is-4">10. JEPA variant (C)</h3>
         <div class="content">
           <p>
             An encoder maps a scene-graph state to one embedding per object; a slowly updated copy of the encoder
@@ -1389,7 +1389,7 @@
         </div>
       </div>
       <div class="wm-section wm-math" id="world_model-todo">
-        <h3 class="title is-4">10. Failure modes, physics-grounded fixes and shape descriptors</h3>
+        <h3 class="title is-4">11. Failure modes, physics-grounded fixes and shape descriptors</h3>
         <div class="content">
           <p>Two failures show up in every member trained so far. <strong>Ghost motion:</strong> objects that stand still from the
             start, and that nothing in the action touches, are predicted to drift (in the toy runs 84 to 100 percent of still objects
@@ -1404,15 +1404,15 @@
             from 3.8 to 0.5 J per simulation, at an average position error about 11 percent higher. Step-wise prediction
             (<a href="#WM-F1">F1</a>), corners as outputs, built-in gravity (B2) and built-in joint equations followed in iterations 2 to
             5 (<a href="#world_model-status">section 4</a>). Objects still pass through each other at speed
-            (<a href="#world_model-collisions">section 11</a>), and errors compound over chained blocks (<a href="#WM-K11">K11</a>).
+            (<a href="#world_model-collisions">section 12</a>), and errors compound over chained blocks (<a href="#WM-K11">K11</a>).
             Each item's badge gives its state; items that came from the scaled study say so.</p>
           <p class="wm-todo-groups">All groups: <a href="#world_model-todo">A ghost motion, B kinematics, C shape and identity</a>
-            (this section) &middot; <a href="#world_model-language-uncertainty">D words, E error bands</a> (8) &middot;
-            <a href="#world_model-collisions">F collisions</a> (11) &middot; <a href="#world_model-backward">G backward questions</a>
-            (12) &middot; <a href="#world_model-data-real">H training data, pretraining and speed, I real scenes</a> (13) &middot;
-            <a href="#world_model-issues">K known issues</a> (14) &middot;
-            <a href="#world_model-tracking">J ideas from tracking and forecasting</a> (15) &middot;
-            <a href="#world_model-coarse-fine">L key events first</a> (5)</p>
+            (this section) &middot; <a href="#world_model-language-uncertainty">D words, E error bands</a> (9) &middot;
+            <a href="#world_model-collisions">F collisions</a> (12) &middot; <a href="#world_model-backward">G backward questions</a>
+            (13) &middot; <a href="#world_model-data-real">H training data, pretraining and speed, I real scenes</a> (14) &middot;
+            <a href="#world_model-issues">K known issues</a> (15) &middot;
+            <a href="#world_model-tracking">J ideas from tracking and forecasting</a> (16) &middot;
+            <a href="#world_model-coarse-fine">L key events first</a> (8)</p>
         </div>
 
         <h4 class="title is-6 wm-subhead">A. Ghost motion: motion needs a cause</h4>
@@ -1531,7 +1531,7 @@
       </div>
 
       <div class="wm-section wm-math" id="world_model-collisions">
-        <h3 class="title is-4">11. Collisions: objects that pass through each other</h3>
+        <h3 class="title is-4">12. Collisions: objects that pass through each other</h3>
         <div class="content">
           <p>In every model trained so far, with or without the fixes of A and B, a pushed traffic cone ends 8 to 24 cm inside a wall
             instead of bouncing off a pole, and a dropped basketball sinks into a bucket. The geometry is in the inputs, but a model
@@ -1612,13 +1612,13 @@
         </div>
       </div>
       <div class="wm-section wm-math" id="world_model-backward">
-        <h3 class="title is-4">12. Answering backwards: properties from a recording, the cause of an end state</h3>
+        <h3 class="title is-4">13. Answering backwards: properties from a recording, the cause of an end state</h3>
         <div class="content">
           <p>A physics engine runs only forward. To find which mass or friction explains an observed bounce, or which push produced a
             motion, it has to be run many times inside a search (simulation-based inference). A learned simulator can answer such
             questions in one pass, with a spread when the motion does not settle the answer. Since October this is no longer only a
-            plan: the masked flow model (objective 8) and the regressor's property head (objective 9) are in their first training runs
-            on the subset of section 13, and the checks below are in the code. Write \(P = \{m_i, \mu_i, e_i, I_i\}\) for the properties
+            plan: the masked flow model (objective 8) and the regressor's property head (objective 9) had their first training runs
+            on the subset of section 14, and the checks below are in the code. Write \(P = \{m_i, \mu_i, e_i, I_i\}\) for the properties
             that are hidden, \(G_{\setminus P}\) for the rest of the scene graph and \(Y_{\text{obs}}\) for an observed motion.</p>
           <p><strong>Why ask backwards at all.</strong> A picture from outside the laboratory. An aircraft drops off radar, and
             minutes later it is found crashed. Its last tracked state is known (position, heading, speed, altitude), the wreckage
@@ -1681,7 +1681,7 @@
             generated from the distribution of properties the model has seen for such objects, and the hidden tokens are narrowed as
             the motion unfolds; in the regressor, attribute dropout does the same with one answer. <strong>Intervening mid-way</strong>
             and <strong>counterfactuals</strong> need no new training: stop at a block, apply the second action to the predicted state
-            and restart; edit a property or drop an object and predict again (section 8).</p>
+            and restart; edit a property or drop an object and predict again (section 9).</p>
         </div>
         \[ P \sim p_\theta\big(P \mid Y_{\text{obs}}, a, G_{\setminus P}\big)\ \text{(properties)}, \qquad
            (a, Y) \sim p_\theta\big(a, Y \mid s_0, s_T, P, G_{\setminus P}\big)\ \text{(cause)}, \qquad
@@ -1701,7 +1701,7 @@
             (six numbers: log mass, friction, restitution, the three diagonal inertia terms, standardised), the action token (42 numbers
             and a pointer to the acted object) and the fifteen motion patches. The end state enters the object tokens as a condition
             through its own input layer. The <strong>step-wise regressor</strong> keeps its design and gains attribute dropout, a
-            property head on the object tokens and an input for a block of observed motion. Both train on the subset of section 13.
+            property head on the object tokens and an input for a block of observed motion. Both train on the subset of section 14.
             A review of the code on 29 and 30 October by a second model found and we fixed five problems, each now covered by a
             test: hidden properties were still reaching the built-in motion and the generation rules (they are now replaced in the one
             table every part reads); the action token carried the impulse per unit mass, so the mass was inside the action; the
@@ -1728,8 +1728,8 @@
             the generated action ends, for the first sample and for the candidate kept among several. The independent check is PhysX:
             a script re-runs the decoded action from the same rest start, with the rollout's recorded property change or removed object
             restored, next to the true action (the ceiling) and no action (the floor), and asks whether the recorded end is reproduced
-            within 5 cm, 15 degrees, 0.1 m/s and 0.5 rad/s. It runs after the first checkpoints exist, on one family of test scenes with
-            qualitative cases (the decoded action next to the true one, the replayed motion next to the recording).</p>
+            within 5 cm, 15 degrees, 0.1 m/s and 0.5 rad/s. It runs on the first checkpoints, on the dominoes and toss scenes and the topple, hit and slide tasks of
+            the test split, with qualitative cases (the decoded action next to the true one, the replayed motion next to the recording).</p>
           <p><strong>What this does not do yet.</strong> The start is always the rest state (the stored rollouts start settled), only the
             first of up to two actions is inferred, a removed object is not a cause the model can name, and the kept candidate is the
             most consistent of the samples, not the most likely history; an exact likelihood under the flow is possible but costs
@@ -1745,7 +1745,7 @@
             motion:
             \[ \hat P = \arg\min_{P \in \mathcal{C}} \big\lVert f_\theta(G_{\setminus P}, P, a) - Y_{\text{obs}} \big\rVert_w^2, \qquad
                P \leftarrow P - \eta\, \nabla_P \big\lVert f_\theta(G_{\setminus P}, P, a) - Y_{\text{obs}} \big\rVert_w^2 \]</li>
-          <li id="WM-G2" data-todo="WM-G2" class="is-run"><span class="wm-todo-id">WM-G2</span><span class="wm-badge-run">first run training</span>
+          <li id="WM-G2" data-todo="WM-G2" class="is-run"><span class="wm-todo-id">WM-G2</span><span class="wm-badge-run">first run done</span>
             <strong>One model for forward and backward questions.</strong> One generative model on properties, action and motion
             together, \(X = (P, a, Y)\), hiding a random part \(m\) in each step: objective (8) of section 3. As built, the mixture is
             the motion in 40 percent of the examples, the properties in 15, the action and motion with the end given in 15, motion and
@@ -1753,11 +1753,13 @@
             \(P \sim p_\theta(P \mid Y_{\text{obs}}, a, G_{\setminus P})\), with a spread where the motion does not determine them.
             With the motion hidden it is the forward model of section 3; hiding only the later frames conditions on a known beginning,
             as Diffusion Forcing does.
-            <span class="wm-todo-note">First run since 29 October (two arms, with and without the cycle term), 40,000 steps on the subset
-            of section 13; the regressor's property head (objective 9) runs alongside as the one-answer version. Mid-run, the property
-            error from a recording had fallen well below the mean baseline on validation rollouts; the numbers go on a results page when
-            the runs finish.</span></li>
-          <li id="WM-G3" data-todo="WM-G3" class="is-run"><span class="wm-todo-id">WM-G3</span><span class="wm-badge-run">first run training</span>
+            <span class="wm-todo-note">First run on 29 and 30 October: 40,000 steps on the subset of section 14, the arm without the cycle term
+            (the arm with it was stopped after a code review found its replay started from the wrong state, fixed since, and waits for a
+            rerun); the regressor's property head (objective 9) ran alongside as the one-answer version. On validation rollouts the
+            property error from a recording ended well below the mean baseline for both networks, and hiding every property cost the
+            forward prediction almost nothing; the action type of the cause question is not yet above the majority rate. The evaluation
+            on the test families and a results page follow.</span></li>
+          <li id="WM-G3" data-todo="WM-G3" class="is-run"><span class="wm-todo-id">WM-G3</span><span class="wm-badge-run">first run done</span>
             <strong>Backwards in time: from the end of a motion to the histories that led to it.</strong> The question a collapsed
             structure asks of its rubble, or an aircraft lost from radar of its wreckage (the opening of this section), and the
             action item of the 20 October meeting (<a href="./scaled-results.html#mp-todo">scaled
@@ -1778,7 +1780,7 @@
         <h4 class="title is-6 wm-subhead">At a glance</h4>
         <div class="table-container">
           <table class="table is-narrow is-fullwidth wm-table">
-            <thead><tr><th>Question</th><th>Now, no training</th><th>In the first training runs (October 2026)</th><th>Needs the next data round</th></tr></thead>
+            <thead><tr><th>Question</th><th>Now, no training</th><th>After the first training runs (October 2026)</th><th>Needs the next data round</th></tr></thead>
             <tbody>
               <tr><td>Forward</td><td>yes (the step-wise regressor as it is)</td><td>the masked flow model's forward question, for comparison</td><td></td></tr>
               <tr><td>Properties from a recording</td><td></td><td>masked flow model: property tokens, samples; regressor: property head, one value</td><td></td></tr>
@@ -1787,13 +1789,13 @@
               <tr><td>Intervene mid-way</td><td>by restart from the predicted state</td><td></td><td>an action starting inside one rollout (timed actions, from the motion pilot)</td></tr>
               <tr><td>Counterfactual</td><td>yes (edits are training inputs; measure on the 50M model)</td><td>a spread</td><td></td></tr>
               <tr><td>Events in time</td><td>contact head only</td><td></td><td>event head: type and time within the block; engine-written event records as targets</td></tr>
-              <tr><td>Text</td><td>extractor and templates, round-trip checked (section 8, to do)</td><td></td><td>decoder on the slot tokens; written descriptions</td></tr>
+              <tr><td>Text</td><td>extractor and templates, round-trip checked (section 9, to do)</td><td></td><td>decoder on the slot tokens; written descriptions</td></tr>
             </tbody>
           </table>
         </div>
       </div>
       <div class="wm-section wm-math" id="world_model-data-real">
-        <h3 class="title is-4">13. Training data, pretraining, speed and real scenes</h3>
+        <h3 class="title is-4">14. Training data, pretraining, speed and real scenes</h3>
         <h4 class="title is-6 wm-subhead">H. What the model learns from, and how fast it runs</h4>
         <ul class="wm-todo">
           <li id="WM-H1" data-todo="WM-H1"><span class="wm-todo-id">WM-H1</span><span class="wm-badge-todo">to do</span>
@@ -1934,7 +1936,7 @@
         </figure>
       </div>
       <div class="wm-section wm-math" id="world_model-issues">
-        <h3 class="title is-4">14. Known issues</h3>
+        <h3 class="title is-4">15. Known issues</h3>
         <div class="content">
           <p>Bugs and blind spots found while reading the code and the results, with their state. Numbers affected by an open issue
             should be checked before they are compared.</p>
@@ -1971,7 +1973,7 @@
             <strong>A bounce cannot happen inside a frame.</strong> The model outputs a smooth acceleration per frame, but a bounce is a
             velocity jump within one; at 30 frames per second a cone at 4.5 m/s moves 15 cm between frames, more than a wall's thickness,
             so a smooth path passes through or averages the two outcomes. F1 to F6 address parts of it
-            (<a href="#world_model-collisions">section 11</a>); ending a block at the predicted time of impact is a further option to
+            (<a href="#world_model-collisions">section 12</a>); ending a block at the predicted time of impact is a further option to
             discuss.
             <span class="wm-todo-note">Still so in V5: every model pushes the traffic cone into the wall in the clips. The <a href="./failure-analysis.html">Failure analysis</a> shows that with about 1,900 pushes of that one scene a plain model stops the cone at the wall, so the moment of contact can be learned from data.</span></li>
           <li id="WM-K6" data-todo="WM-K6" class="is-done"><span class="wm-todo-id">WM-K6</span><span class="wm-badge-done">fixed</span>
@@ -2010,7 +2012,7 @@
                e^p_B = \sum_{b \lt B} \delta^p_b + \tau \sum_{b \lt B} (B - 1 - b)\, \delta^v_b \]
             <span class="wm-todo-note">From the <a href="./failure-analysis.html">Failure analysis</a>: chained-block training and DAgger did not help; weighting speed errors ten times
             more, and training eight times longer on one scene, are being tested. A design that stops the drift at the next key event,
-            the coarse pass first, is proposed in <a href="#world_model-coarse-fine">section 5</a> (L1 to L4).</span></li>
+            the coarse pass first, is proposed in <a href="#world_model-coarse-fine">section 8</a> (L1 to L4).</span></li>
         </ul>
         <p class="wm-note">Resolved since first noted: the Scaled results planning tables showed 0 percent in every cell before their
           runs finished (now filled in), and models were chosen and reported on the same validation scenes (test results are now on
@@ -2018,7 +2020,7 @@
       </div>
 
       <div class="wm-section wm-math" id="world_model-tracking">
-        <h3 class="title is-4">15. Borrowed from tracking, detection and forecasting (ideas to discuss)</h3>
+        <h3 class="title is-4">16. Borrowed from tracking, detection and forecasting (ideas to discuss)</h3>
         <div class="content">
           <p>Predicting a trajectory is regression of 3D positions, orientations and velocities over time, close to what point
             tracking, object detection and trajectory forecasting optimise in pixels or on maps. Three of their tools are already in
