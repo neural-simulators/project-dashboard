@@ -550,17 +550,22 @@
       <div class="wm-section wm-math" id="world_model-symbols">
         <h3 class="title is-4">3. The world-model family in symbols</h3>
         <div class="content">
-          <p>One notation covers every world model trained so far, in this proposal's toy runs and in the end-to-end and scaled
-            studies. It follows the usual world-model convention: a state, an action, a true transition given by the simulator,
-            and a learned model of that transition.</p>
+          <p>One notation covers every world model trained so far: the toy runs of this proposal, the end-to-end and scaled studies, and
+            the two networks now in their first training runs for the backward questions. It follows the usual world-model convention:
+            a state, an action, a true transition given by the simulator, and a learned model of that transition.</p>
         </div>
         <dl class="wm-defs">
           <dt>\(i = 1,\dots,N\)</dt><dd>objects in the scene; the first \(M\) of them can move</dd>
-          <dt>\(c_i\)</dt><dd>fixed attributes of object \(i\): shape and parts, size, mass \(m_i\), friction \(\mu_i\), restitution \(e_i\), inertia</dd>
+          <dt>\(c_i\)</dt><dd>fixed attributes of object \(i\): shape and parts, size, and its physical properties \(P_i = (m_i, \mu_i, e_i, I_i)\), mass,
+            friction, restitution, inertia; \(P = \{P_i\}\) is the set that can be hidden</dd>
           <dt>\(s^i_t = (p^i_t, R^i_t, v^i_t, \omega^i_t)\)</dt><dd>its state at frame \(t\): position, orientation (a rotation matrix), linear and angular velocity</dd>
-          <dt>\(G = \big(\{c_i, s^i_0\}_{i=1}^{N},\, E\big)\)</dt><dd>the scene graph at the start; the edges \(E\) are joints such as hinges and springs</dd>
-          <dt>\(a\)</dt><dd>the action: one or more interventions at \(t = 0\), such as a velocity change \((\Delta v, \Delta\omega)\) of an object, an impulse or a placement</dd>
-          <dt>\(t = 1,\dots,T\)</dt><dd>frames of \(\Delta t = 1/30\) s: \(T = 60\) (2 s, the benchmark) or \(T = 90\) (3 s, the scaled study)</dd>
+          <dt>\(G = \big(\{c_i, s^i_0\}_{i=1}^{N},\, E\big)\)</dt><dd>the scene graph at the start; the edges \(E\) are joints such as hinges and springs; \(G_{\setminus P}\) is the
+            same graph with the properties taken out</dd>
+          <dt>\(a\)</dt><dd>the action at \(t = 0\): its type, the acted object, a pose, a velocity and spin, an impulse \(J\) in N&nbsp;s or a force \(F\) in N
+            with its duration. Impulse and force are stored in physical units, not per unit mass, so the token holds no mass; \(a = \varnothing\),
+            the zero token, is "no action"</dd>
+          <dt>\(t = 1,\dots,T\)</dt><dd>frames of \(\Delta t = 1/30\) s: \(T = 60\) (2 s, the benchmark) or \(T = 90\) (3 s, the scaled study); \(b = 0, \dots, B - 1\)
+            are blocks of \(\tau = 0.2\) s, six frames each, \(B = 15\)</dd>
           <dt>\(\kappa^{ij}_t \in \{0,1\}\)</dt><dd>whether objects \(i\) and \(j\) touched during frame \(t\)</dd>
           <dt>\(\Phi\)</dt><dd>the simulator, PhysX at 1,920 steps per second: \(\big(s_{1:T}, \kappa\big) = \Phi(G, a)\), deterministic</dd>
         </dl>
@@ -568,18 +573,29 @@
         <h4 class="title is-6 wm-subhead">What the model predicts</h4>
         <div class="content">
           <p>For every movable object and frame, fifteen numbers: displacement from the start, orientation, velocity and spin.
-            \(\mathrm{r6}\) keeps the first two columns of the rotation matrix, a rotation code without jumps.</p>
+            \(\mathrm{r6}\) keeps the first two columns of the rotation matrix, a rotation code without jumps. One-shot members predict
+            the whole tensor \(Y\) at once, as fifteen patches of six frames. Step-wise members predict one block at a time, each from the
+            state the previous block ended in, with the eight corners of the object's box in place of position and orientation (the pose
+            follows by a rigid fit), on top of a built-in motion \(\bar y\) (free flight at the centre of mass, pendulum and spring
+            equations) that the network only corrects.</p>
         </div>
-        \[ y^i_t = \big(p^i_t - p^i_0,\ \mathrm{r6}(R^i_t),\ v^i_t,\ \omega^i_t\big) \in \mathbb{R}^{15}, \qquad Y = \big(y^i_t\big)_{t \le T,\ i \le M} \in \mathbb{R}^{T \times M \times 15} \]
+        \[ y^i_t = \big(p^i_t - p^i_0,\ \mathrm{r6}(R^i_t),\ v^i_t,\ \omega^i_t\big) \in \mathbb{R}^{15}, \qquad Y = \big(y^i_t\big)_{t \le T,\ i \le M}, \qquad
+           \hat Y_{b} = \bar y\big(\hat s_{6b}\big) + f_\theta\big(\hat s_{6b},\ G,\ a_b\big),\ \ a_0 = a,\ a_{b \gt 0} = \varnothing \]
         <div class="content">
-          <p>A world model is a learned conditional model of that tensor, either one deterministic answer or a distribution to
-            sample from, with an optional head for contacts:</p>
+          <p>A world model is a learned conditional model of that tensor, one deterministic answer or a distribution to sample from,
+            with a head for contacts. The masked member extends the model to the properties and the action: whatever is hidden is
+            generated from whatever is given.</p>
         </div>
-        \[ \hat Y = f_\theta(G, a) \quad \text{or} \quad Y \sim p_\theta(Y \mid G, a), \qquad \hat\kappa^{ij}_t = \sigma\big(\ell^{ij}_{t}\big) \]
+        \[ \hat Y = f_\theta(G, a) \quad \text{or} \quad Y \sim p_\theta(Y \mid G, a) \quad \text{or} \quad (P, a, Y)_{\text{hidden}} \sim p_\theta\big(\cdot \mid (P, a, Y)_{\text{given}},\ G_{\setminus P}\big), \qquad
+           \hat\kappa^{ij}_t = \sigma\big(\ell^{ij}_{t}\big) \]
         <div class="content">
-          <p>Every member shares one backbone: a transformer over one token per object (built from \(c_i\) and \(s^i_0\)), one per
-            action, one global token (gravity, rates) and one output slot per movable object and chunk of frames. The number of
-            objects is not fixed.</p>
+          <p>Every member shares one backbone: a transformer over one token per object (built from \(c_i\) and \(s^i_0\): 69 numbers plus
+            the object's convex parts), one per action, one global token (gravity, rates), one per joint, and one output slot per
+            movable object and patch or block of frames. The number of objects is not fixed. Two networks of this family are in use
+            today, and the rest of this page calls them by these names: the <strong>step-wise regressor</strong>, the co-author's V5 to V7
+            models, one answer per block, the most accurate forward simulator; and the <strong>masked flow model</strong>, one-shot and
+            generative, with property and action tokens that can be hidden, built for the backward questions of section 12. Earlier
+            versions of this page called them head 1 and head 2.</p>
         </div>
         <h4 class="title is-6 wm-subhead">Identity comes from the structure, not from learned ids</h4>
         <div class="content">
@@ -601,7 +617,9 @@
         <div class="content">
           <p>Write \(x = (G, a)\) for the condition, \(\varepsilon \sim \mathcal{N}(0, I)\) for noise of the shape of \(Y\), and
             \(\sigma \in [0, 1]\) for a noise level (0 clean, 1 pure noise). Objects that move in the truth count fully and still ones
-            one tenth: \(\lVert Z \rVert_w^2 = \sum_{t,i} w_i \lVert z^i_t \rVert^2\) with \(w_i \in \{1, 0.1\}\).</p>
+            one tenth: \(\lVert Z \rVert_w^2 = \sum_{t,i} w_i \lVert z^i_t \rVert^2\) with \(w_i \in \{1, 0.1\}\). Objectives (1) to (5)
+            and (7) are the one-shot members as first proposed; (6) is what became of the step-by-step variant; (8) and (9) are the
+            backward questions, added in October.</p>
         </div>
         <div class="wm-eqs">
           <div class="wm-eq"><span class="wm-eq-name">(1) Regression</span>
@@ -609,7 +627,7 @@
             <p>One pass, one answer: the average of all futures the data allows.</p></div>
           <div class="wm-eq"><span class="wm-eq-name">(2) Flow matching</span>
             \[ Y_\sigma = (1 - \sigma)\, Y + \sigma\, \varepsilon, \qquad \mathcal{L}_{\text{flow}} = \mathbb{E}_{\sigma, \varepsilon}\, \big\lVert v_\theta(Y_\sigma, \sigma, x) - (\varepsilon - Y) \big\rVert_w^2 \]
-            <p>To predict, start from noise at \(\sigma = 1\) and follow \(v_\theta\) down to \(\sigma = 0\) in 32 to 50 small steps.
+            <p>To predict, start from noise at \(\sigma = 1\) and follow \(v_\theta\) down to \(\sigma = 0\) in 20 to 50 small steps.
               \(\sigma\) is drawn uniformly or from a logit-normal law; each draw of \(\varepsilon\) gives one possible future.</p></div>
           <div class="wm-eq"><span class="wm-eq-name">(3) Diffusion (DDPM)</span>
             \[ Y_\sigma = \sqrt{\bar\alpha_\sigma}\, Y + \sqrt{1 - \bar\alpha_\sigma}\, \varepsilon, \qquad \mathcal{L}_{\text{ddpm}} = \mathbb{E}_{\sigma, \varepsilon}\, \big\lVert \varepsilon_\theta(Y_\sigma, \sigma, x) - \varepsilon \big\rVert^2 \]
@@ -617,22 +635,53 @@
           <div class="wm-eq"><span class="wm-eq-name">(4) Diffusion Forcing</span>
             \[ \sigma = (\sigma_1, \dots, \sigma_K) \ \text{independent, one per chunk of frames}, \qquad \mathcal{L}_{\text{df}} = \mathbb{E}\, \big\lVert v_\theta(Y_\sigma, \sigma, x) - (\varepsilon - Y) \big\rVert_w^2 \]
             <p>The sampler lowers the levels in a staggered order, so early frames are clean while late ones are still noisy; a known
-              beginning of the trajectory is simply \(\sigma_k = 0\).</p></div>
+              beginning of the trajectory is simply \(\sigma_k = 0\). The per-chunk noise levels are what the masked member (8) builds on.</p></div>
           <div class="wm-eq"><span class="wm-eq-name">(5) JEPA with a state decoder</span>
             \[ \mathcal{L}_{\text{jepa}} = \ell\big(\hat z,\ \mathrm{sg}[E_{\bar\phi}(Y)]\big) + \lambda_v \mathcal{L}_{\text{var}}(\hat z) + \lambda_c \mathcal{L}_{\text{cov}}(\hat z) + \big\lVert D(E_\phi(Y)) - Y \big\rVert^2 + \big\lVert D(\hat z) - Y \big\rVert^2, \qquad \hat z = g_\theta(x),\ \ \hat Y = D(\hat z) \]
             <p>The predictor \(g_\theta\) predicts latents of the future. An encoder \(E_\phi\) of state chunks and a decoder \(D\) are
               trained to reconstruct states; the targets come from \(E_{\bar\phi}\), a slow copy of the encoder
               (\(\bar\phi \leftarrow 0.99\,\bar\phi + 0.01\,\phi\)). \(\ell\) is a smooth L1 loss, \(\mathrm{sg}\) stops gradients, and the
               variance and covariance terms (VICReg) prevent all latents from collapsing to one point.</p></div>
-          <div class="wm-eq"><span class="wm-eq-name">(6) Autoregressive step model</span>
-            \[ \hat s_{t+1} = \hat s_t \oplus h_\theta\big(\hat s_{t-4:t},\, G,\, a\big), \qquad t = 0, \dots, T-1 \]
-            <p>One pass per frame, fed its own output; trained on single transitions with noise on the input and an eight-step
-              unrolled loss. The scaled study runs it in blocks of six frames (0.2 s), the basis of every model since Improved
-              Results V2.</p></div>
+          <div class="wm-eq"><span class="wm-eq-name">(6) Step-wise block model</span>
+            \[ \mathcal{L}_{\text{block}} = \mathbb{E}_{b}\, \big\lVert \bar y(s_{6b}) + f_\theta(s_{6b}, G, a_b) - Y_b \big\rVert_w^2 + \lambda_\mu \mathcal{L}_\mu + \lambda_\kappa \mathcal{L}_\kappa + \lambda_{\text{pen}} \mathcal{L}_{\text{pen}},
+               \qquad \text{then } \hat s_{6b} \text{ from the model's own previous block, five blocks deep} \]
+            <p>One pass per 0.2 s block, from the engine's state at a random block start (eight blocks per rollout and step), with the
+              hold-still head (<a href="#WM-A1">A1</a>), the contact head (7) and the no-penetration loss (<a href="#WM-F3">F3</a>); a
+              second stage chains five blocks through the model's own output. This is variant D of the first proposal, in blocks of six
+              frames instead of single frames, and the basis of every model since Improved Results V2 (section 5).</p></div>
           <div class="wm-eq"><span class="wm-eq-name">(7) Contact head</span>
             \[ \ell^{ij}_t = \frac{q^{i\top}_t k_j}{\sqrt{d}} + b, \qquad \mathcal{L}_\kappa = \mathrm{BCE}\big(\ell, \kappa\big), \qquad \mathcal{L} + \lambda_\kappa \mathcal{L}_\kappa \]
             <p>Added to any member: each output slot asks every object whether they touch in that frame. Many tasks are about
               contacts ("hits the blue ball", "never touches the barrier").</p></div>
+          <div class="wm-eq"><span class="wm-eq-name">(8) Masked flow matching over properties, action and motion</span>
+            \[ X = (P, a, Y), \qquad X_\sigma = m \odot \big((1 - \sigma)\, X + \sigma\, \varepsilon\big) + (1 - m) \odot X, \qquad
+               \mathcal{L}_{\text{mask}} = \mathbb{E}_{m, \sigma, \varepsilon}\, \big\lVert m \odot \big(v_\theta(X_\sigma, \sigma, m, G_{\setminus P}, s_0, [s_T]) - (\varepsilon - X)\big) \big\rVert_w^2 \]
+            <p>Every token of \(X\) has its own noise level: given tokens are clean and clamped, hidden tokens (\(m = 1\)) start as noise
+              and are denoised together, and the loss counts hidden tokens only. The mask \(m\) is drawn per example from a fixed
+              mixture that does not change over training: the motion hidden (the forward question) 40 percent; the properties hidden,
+              motion and action given (properties from a recording) 15; the action and the whole motion hidden, with the start at rest
+              and the final frame \(s_T\) given as a condition (the cause of an end state) 15; the motion and a random subset of the
+              properties hidden 15; and mixed 15 (a known beginning; a bridge between a known first and last patch; properties and
+              action from the end; properties from the end with the action known). So the property and action heads train from the
+              first step on 60 percent of the examples, and the same weights answer every question; only the mask changes. A rollout
+              without an action takes part with the zero token as its answer. When the action is hidden, the token also loses the acted
+              object's embedding, so nothing points at the answer.</p>
+            \[ \hat a = a_\sigma - \sigma\, v^a_\theta, \qquad
+               \mathcal{L}_{\text{cycle}} = \Big\lVert \big[\varepsilon' - v_{\mathrm{sg}[\theta]}\big(\varepsilon', 1, m_{\text{fwd}}, G, s_0(\hat a)\big)\big]_{t = T} - y_T \Big\rVert_w^2 \]
+            <p>The cycle term, optional and started after a quarter of training: the one-step estimate \(\hat a\) of a hidden action is
+              applied to the rest state (velocity and pose set as the engine would set them), the frozen network predicts the motion it
+              produces in one step from pure noise, and the final frame of that prediction must match the given end. The gradient
+              reaches the action estimate, not the forward model. The same replay, with the true sampler, ranks candidate answers at
+              inference, and PhysX replays the decoded action as the independent check.</p></div>
+          <div class="wm-eq"><span class="wm-eq-name">(9) Attribute dropout and a property head for the regressor</span>
+            \[ \tilde P_i = \begin{cases} \bar P & h_i = 1 \\ P_i & h_i = 0 \end{cases}, \qquad
+               \mathcal{L}_{\text{prop}} = \sum_{i:\ h_i = 1} \Big\lVert g_\theta\big(G_{\tilde P}, \cdot\big)_i - \frac{P_i - \bar P}{\sigma_P} \Big\rVert^2 \]
+            <p>Each movable object's six property numbers are replaced by the training mean \(\bar P\) with probability 0.15 (all of them
+              in 10 percent of examples), together with a flag. The replacement is made in the one table every part of the model reads,
+              built-in motion and generation rules included, so nothing downstream can see the true value. A head on the object tokens
+              returns the standardised properties of the hidden objects; in 10 percent of the blocks the block's true motion is shown to
+              the tokens and only this head is trained, which is the recording question with one answer per object (the average over
+              the blocks in which the object moves or turns).</p></div>
         </div>
 
         <h4 class="title is-6 wm-subhead">How a prediction is judged, in two spaces</h4>
@@ -643,26 +692,38 @@
             the verdict agreement \(\alpha\):</p>
         </div>
         \[ \mathrm{ADE} = \frac{1}{|\mathcal{M}|\, T} \sum_{i \in \mathcal{M}} \sum_{t=1}^{T} \big\lVert \hat p^i_t - p^i_t \big\rVert, \qquad \mathrm{FDE} = \frac{1}{|\mathcal{M}|} \sum_{i \in \mathcal{M}} \big\lVert \hat p^i_T - p^i_T \big\rVert, \qquad \alpha = \Pr\big[\, V(\hat Y, \hat\kappa) = V(\Phi(G, a)) \,\big] \]
+        <div class="content">
+          <p>The backward questions are judged against the stored simulation and against a baseline. Properties: the error of each
+            number next to the error of predicting the training mean, on the objects whose motion carries evidence. The cause: the
+            type and the acted object, the error of every parameter the true type has, whether the generated history ends in the given
+            state (position, orientation, velocity and spin, each with its tolerance), and whether the decoded action, replayed by
+            PhysX from the same start under the same conditions, reproduces that end within 5 cm, 15 degrees, 0.1 m/s and 0.5 rad/s;
+            the true action replayed is the ceiling and no action the floor.</p>
+        </div>
 
         <h4 class="title is-6 wm-subhead">Members of the family, and where each has been trained</h4>
         <div class="table-container">
           <table class="table is-narrow is-fullwidth wm-table wm-family">
-            <thead><tr><th>Member</th><th>Objective</th><th>Toy runs (this proposal)</th><th>End-to-end study</th><th>Scaled study</th></tr></thead>
+            <thead><tr><th>Member</th><th>Objective</th><th>Toy runs (this proposal)</th><th>End-to-end study</th><th>Scaled study and after</th></tr></thead>
             <tbody>
               <tr><td>Regression</td><td>(1)</td><td>trained (A)</td><td>trained</td><td>trained</td></tr>
               <tr><td>Flow matching</td><td>(2)</td><td>trained (B)</td><td>trained</td><td>trained, uniform and logit-normal \(\sigma\)</td></tr>
               <tr><td>Diffusion (DDPM)</td><td>(3)</td><td>no</td><td>trained</td><td>one pass: did not converge (sampler bug, K1); per block: trains when it predicts the clean block or v</td></tr>
-              <tr><td>Diffusion Forcing</td><td>(4)</td><td>trained</td><td>no</td><td>trained</td></tr>
-              <tr><td>JEPA with a state decoder</td><td>(5)</td><td>trained (C, C2)</td><td>no</td><td>trained</td></tr>
-              <tr><td>Autoregressive step model</td><td>(6)</td><td>designed</td><td>no</td><td>trained in 0.2 s blocks: the basis of the best model (section 4)</td></tr>
+              <tr><td>Diffusion Forcing</td><td>(4)</td><td>trained</td><td>no</td><td>trained one-shot; far behind the others (section 7)</td></tr>
+              <tr><td>JEPA with a state decoder</td><td>(5)</td><td>trained (C, C2)</td><td>no</td><td>trained one-shot; as accurate as regression (section 9)</td></tr>
+              <tr><td>Step-wise block model</td><td>(6)</td><td>designed (D)</td><td>no</td><td>trained in 0.2 s blocks since V2: the basis of the best model (section 4); regression per block beats flow matching and block diffusion</td></tr>
               <tr><td>Contact head</td><td>(7)</td><td>no</td><td>contacts as output channels</td><td>on every member</td></tr>
+              <tr><td>Masked flow model</td><td>(8)</td><td>no</td><td>no</td><td>first run training since 29 October on the subset of section 13, with and without the cycle term</td></tr>
+              <tr><td>Regressor with attribute dropout and property head</td><td>(9)</td><td>no</td><td>no</td><td>first run training since 30 October, the V5 configuration with exact geometry, then five-block chains</td></tr>
             </tbody>
           </table>
         </div>
         <ul class="wm-note-list">
           <li><strong>Data.</strong> Toy runs: 96 PhysX rollouts of the benchmark's rooms, 2 s at 30 frames per second. End-to-end study:
             generated table-top and room scenes, 11 s at 10 frames per second, positions, rotations and contacts. Scaled study: 134,000
-            training rollouts from 357 scenes of twelve families, 3 s at 30 frames per second, with object parts, joints and several actions at once.</li>
+            training rollouts from 357 scenes of twelve families, 3 s at 30 frames per second, with object parts, joints and several
+            actions at once. The two first runs of (8) and (9) use a subset of those rollouts chosen for the backward questions
+            (section 13).</li>
           <li><strong>Reference points, not members:</strong> "nothing moves", a network without attention (MLP), and a language model
             prompted to write the future as text.</li>
           <li><strong>Best so far.</strong> In the scaled study the one-pass members reach an ADE of 0.55 to 0.57 m over 3 s on unseen
@@ -674,7 +735,6 @@
             models agree with PhysX's verdict on about 90 percent of test simulations.</li>
         </ul>
       </div>
-
       <div class="wm-section" id="world_model-status">
         <h3 class="title is-4">4. Where the learned simulators stand (scaled study, 18 October)</h3>
         <div class="content">
@@ -735,18 +795,34 @@
       </div>
 
       <div class="wm-section" id="world_model-io">
-        <h3 class="title is-4">5. Input and output</h3>
+        <h3 class="title is-4">5. Input and output, and the step-wise design</h3>
         <div class="content">
+          <p>What the networks read today, as the scaled study's generator writes it (the toy runs of the first proposal used a smaller
+            76-number token; the figure below is drawn from that sample task and still shows the shape of the idea).</p>
           <ul>
-            <li><strong>Input:</strong> 27 object rows. The <span class="wm-accent-red">red ball</span>'s row holds
-              position (-0.80, -2.20, 0.10) m, mass 0.2 kg, friction 0.9, restitution 0, radius 0.10 m and, after
-              the launch, velocity (2.0, 0, 3.4) m/s. One action token, "set the red ball's velocity to
-              (2.0, 0, 3.4) m/s at t = 0", and one global token (gravity, timestep).</li>
-            <li><strong>Output:</strong> 18 movable objects x 60 frames = 1,080 slots of 15 numbers each
-              (displacement 3, orientation 6, velocity 3, spin 3), written in the benchmark's answer format.
-              16 of the 18 rows stay zero because nothing moved those objects.</li>
-            <li><strong>No cap on the number of objects:</strong> slots are created per movable object, so a room
-              with more movable objects simply gets more slots.</li>
+            <li><strong>One token per object, static ones and the floor included: 69 numbers.</strong> Flags (dynamic, floor, structure,
+              acted on, container, support, has a front, ball), the mix of its part kinds, pose (position relative to the scene centre,
+              orientation as six numbers), geometry (local box, size, container interior, support height, front axis), the physical
+              properties (log mass, friction, restitution, damping, the six inertia terms, centre of mass), the velocity and spin at the
+              start, and mechanism flags (jointed, grouped, pendulum, spring, anchored). Up to 8 convex parts per object (16 with the
+              exact geometry of V6, plus face planes and surface points) go through a small set encoder and are added to the token.
+              A hidden property is the training mean in its channel plus a flag; the step-wise regressor also rebuilds the relative
+              geometry of the 8 nearest objects at every block (gap, contact direction, approach speed, time to impact).</li>
+            <li><strong>One token per action: 42 numbers and a pointer.</strong> The type (ten kinds: place, drop, throw, push, spin,
+              strike, swing, compress, poke, pull), whether it sets a pose and which, the velocity and spin it sets, the impulse in N&nbsp;s
+              and its offset, the amount of a swing or a spring compression, the force in N with its duration, and four validity bits;
+              plus which object it acts on (its token's embedding is added). Impulse and force used to be stored per unit mass, which
+              hid the mass inside the action; since 29 October they are physical quantities, so one newton-second on one kilogram is a
+              different token from two on two. A rollout without an action has the zero token.</li>
+            <li><strong>One global token</strong> (gravity, physics rate, horizon, frame rate, floor material) and <strong>one token per
+              joint</strong> (type, stiffness, damping, rest length, limits, anchor, axis).</li>
+            <li><strong>Output, two forms.</strong> The one-shot members write the whole motion: for every movable object 90 frames of 15
+              numbers (displacement, orientation, velocity, spin), as fifteen patches of six frames; the masked flow model also writes a
+              property token per object (six standardised numbers) and the action token. The step-wise regressor writes one block of 0.2 s
+              per pass: the eight corners of each object's box as a change from the block start, its velocity and its spin; the pose follows
+              by a rigid fit, and the block's end is the next block's start.</li>
+            <li><strong>No cap on the number of objects:</strong> slots are created per movable object, so a room with more movable objects
+              simply gets more slots (up to 48 movable and 64 objects in the current tensors).</li>
           </ul>
         </div>
         <figure class="wm-figure">
@@ -754,8 +830,8 @@
             <img class="wm-web-figure" src="./static/images/world_model/web_io.svg" width="900" height="470"
                  alt="The sample task's object rows on the left, the 29 tokens and the transformer in the middle, and the 18 by 60 output grid on the right with the red and blue ball rows filled in.">
           </div>
-          <figcaption>Input and output on the sample task: object rows in, one slot per movable object and frame out.
-            Every number comes from the real manifest and PhysX rollout.</figcaption>
+          <figcaption>Input and output on the first proposal's sample task (the benchmark's 2 s, 76-number tokens): object rows in,
+            one slot per movable object and frame out. Every number comes from the real manifest and PhysX rollout.</figcaption>
         </figure>
         <div class="wm-anim" id="anim-pipeline">
           <div class="wm-svg-scroll">
@@ -767,22 +843,166 @@
             <p class="wm-caption"></p>
           </div>
         </div>
-      </div>
 
-      <div class="wm-section" id="world_model-training">
-        <h3 class="title is-4">6. Training objective</h3>
+        <h4 class="title is-6 wm-subhead" id="world_model-step">The step-wise design: what became of variant D</h4>
         <div class="content">
-          <p>Variant B, the primary model, is rectified flow matching over the whole 60-frame tensor.</p>
+          <p>The first proposal's variant D predicted the change over one frame and fed it back sixty times. The scaled study made it
+            the design that works: the change over a block of six frames (0.2 s), fed back fifteen times, with the relative geometry of
+            the nearest objects recomputed at every block, the built-in motion for free flight and mechanisms underneath the network's
+            correction, and three rules applied at generation (lift pieces onto the floor, no new overlap on the exact shapes with the
+            separation exchanged as momentum, objects at rest stay until something reaches them). Trained by regression, one pass per
+            block, it is the most accurate simulator of the family: 0.435 m average position error over 3 s on the test scenes against
+            0.58 m in one pass (section 4). Its weak point is the loop itself: each block is accurate to about 2 cm, but small speed
+            errors compound over the fifteen blocks (<a href="#WM-K11">K11</a>). Flow matching per block is the generative member of
+            the same design (0.555 m), and block diffusion trails it.</p>
+        </div>
+        <figure class="wm-figure">
+          <div class="wm-svg-scroll">
+            <img class="wm-web-figure" src="./static/images/world_model/web_cap_model.svg" width="900" height="470"
+                 alt="The tokens on the left, the encoder and transformer in the middle, the block head, built-in motion, rules and end state on the right, with the loop back to the tokens; side boxes for the hold-still head, the contact head, the training and what the model cannot do.">
+          </div>
+          <figcaption>The step-wise regressor (iteration 6): one pass per 0.2 s block, chained; the properties enter as input numbers,
+            or as the "unknown" code since October.</figcaption>
+        </figure>
+        <figure class="wm-figure">
+          <div class="wm-svg-scroll">
+            <img class="wm-web-figure" src="./static/images/world_model/web_step.svg" width="900" height="300"
+                 alt="The step predictor reads the state at frame t, outputs the change over one frame, integrates it and feeds the new state back; the loop runs 60 times.">
+          </div>
+          <figcaption>The loop as first drawn, one frame per pass on the sample task; the numbers are the recorded change from frame 15
+            to 16. The trained models take six frames per pass.</figcaption>
+        </figure>
+        <div class="wm-anim" id="anim-step">
+          <canvas width="900" height="440"
+                  aria-label="Step-loop animation: the red ball advances one recorded frame per tick; the loop diagram feeds state t+1 back as the next input."></canvas>
+          <p class="wm-live"></p>
+          <div class="wm-controls">
+            <button class="button is-small is-light" type="button" aria-pressed="true">Pause</button>
+            <p class="wm-caption"></p>
+          </div>
+          <p class="wm-note">Positions and velocities are the recorded PhysX states of the sample rollout
+            (x and z components; y is constant at -2.20 m); the change shown each tick is the quantity one network
+            pass of the step model has to predict.</p>
+        </div>
+        <div class="wm-math">
+        <h4 class="title is-6 wm-subhead" id="world_model-coarse-fine">Key events first, then the motion between them (proposal, 31 October)</h4>
+        <div class="content">
+          <p>The step-wise loop has no view of the whole motion: a block knows the state it starts from and nothing about where the
+            motion is headed, so a small speed error in one block becomes a wrong position in every block after it
+            (<a href="#WM-K11">K11</a>). A result on language models suggests the opposite order. Next-Concept Modeling (Kumbong, Khare
+            and colleagues, Stanford, <a href="https://arxiv.org/abs/2610.14162">arXiv 2610.14162</a>, October 2026) writes text coarse
+            to fine: a learned tokenizer turns a passage into a hierarchy of discrete codes, and a transformer predicts every code of
+            one level in parallel from the levels before it, one pass per level, 10 to 31 times faster than a diffusion language model
+            at comparable quality. Text has no natural coarse level, so they learn one. A trajectory has one: its <strong>key
+            events</strong>. Over three seconds a thrown crate leaves the hand, lands, slides into a second crate and comes to rest;
+            between those moments it is in free flight, sliding or at rest. Flight and rest the built-in motion and the generation
+            rules above give exactly, and a slide is a steady deceleration. The hard, discrete part of a motion is which events happen,
+            between which objects and when. The proposal is to predict that part first.</p>
+          <p><strong>Two levels.</strong> The coarse level is the schedule of key events: for each movable object the frames at which
+            its regime changes (a contact begins or ends, it leaves its support, it topples, it comes to rest), the partner of each
+            contact, and the object's state at those frames, its <strong>key frames</strong>, plus its state at 3 s. The fine level is
+            the motion between consecutive key frames. The coarse level is small (a few events per object, none for most) and discrete
+            in its structure, so it is generated: flow matching over the key-frame states with a head for the kind of event and its
+            partner. A grazing contact that may or may not happen is then a fork in the schedule, two samples, not a blur in the
+            motion. The fine level is nearly deterministic once its key frames are fixed, so it stays with the step-wise regressor,
+            with two inputs added to every block: the key frame its segment must reach and the event there. One segment is the question
+            "the motion between a known start and a known end", one of the mixed masks the masked flow model already draws in training
+            (section 12). Key frames sit on block boundaries (0.2 s); events closer together than that are merged.</p>
+        </div>
+        \[ \text{coarse:}\quad \mathcal{K} = \big\{(t_k,\ i_k,\ j_k,\ e_k,\ s^{i_k}_{t_k})\big\}_{k \le K},\ \ s_T \ \sim\ p_\theta\big(\cdot \mid G, a\big) \]
+        \[ \text{fine, for the blocks } b \text{ of segment } k:\quad \hat Y_b = \bar y\big(\hat s_{6b}\big) + f_\theta\big(\hat s_{6b},\ s_{t_{k+1}},\ e_k,\ G,\ a_b\big) \]
+        <div class="content">
+          <p><strong>What changes in the network.</strong> Nothing in the tokens of this section; two things in the attention and the
+            heads. The coarse tokens (one per key frame) and the fine slots (one per block) sit in one sequence under a
+            <strong>block-causal mask across levels</strong>, the paper's second ingredient: a coarse token attends to the scene, the
+            action and the other coarse tokens; a fine slot attends to the scene, the action, the coarse tokens and the fine slots of
+            its own segment; nothing attends from the fine level back to the coarse one, and nothing from one segment to another. One
+            forward pass therefore trains both levels at once, with the key frames teacher-forced from the recorded motion, and
+            generation runs the coarse level first and every segment after it, in parallel, since each starts and ends at a known key
+            frame. A speed error no longer travels past the next key frame. The paper's third ingredient matters most here: during
+            training a share of the key frames the fine level reads are <strong>corrupted</strong> (shifted by a block, moved, dropped
+            or invented), so the fine pass learns to reach an imperfect key frame gracefully instead of trusting it. It is the same
+            medicine as the chained-block training of section 6, one level up.</p>
+        </div>
+        \[ \text{attention } u \to v \text{ allowed iff}\quad v \in \{G, a\}\ \ \text{or}\ \ u, v \in \mathcal{K}\ \ \text{or}\ \ \big(u \in \text{seg}_k,\ v \in \mathcal{K}\big)\ \ \text{or}\ \ u, v \in \text{seg}_k \]
+        <div class="content">
+          <p><strong>Where the key frames come from.</strong> The event extractor of section 8 (<a href="#WM-D1">D1</a>), run on the
+            recorded motion with the engine's contact episodes: contact start and end per pair, loss of support, topple and rest, at
+            the frame they occur. The coarse targets are measured, not annotated by hand, and the Dataset V2 records already carry them
+            as timed events. The coarse pass itself reads only the scene and the action; recorded events are training targets for it
+            and conditioning for the fine pass, never an input at generation time.</p>
+          <p><strong>The risk, stated plainly.</strong> A wrong coarse pass cannot be repaired below it. If the schedule misses the
+            collision, the fine pass fits a smooth motion in which nothing collides, and it looks plausible; if a key frame is 20 cm
+            off, the fine pass reaches it exactly. The errors change character, from drift to confident mistakes, and whether they also
+            shrink is what the experiment has to show. Three safeguards: the fine pass is scored with the recorded key frames (the
+            ceiling: what a perfect schedule buys) and with the predicted ones, separately; the coarse pass is scored as an event
+            detector (precision and recall of events with a tolerance of one block, the error of the key-frame states and of the end
+            state), not only through the final motion; and the fine pass keeps its dense loss on every frame, so the motion between
+            events is not free to drift. Where the coarse pass is unsure, the schedule carries a spread and the motion inherits it,
+            which is the right behaviour in contact physics: a crate that barely reaches the edge of the table either falls or does
+            not, and both futures belong in the sample set.</p>
+          <p><strong>What it costs, and what to measure first.</strong> A regression rollout is fifteen passes already; this design adds
+            one coarse pass and makes nothing faster. The gain, if it comes, is accuracy and consistency. Two measurements need no
+            training and come first: inside the step-wise loop, restore the recorded state at a few key frames only (the sampler's
+            teacher input takes a mask per block and channel) and read off how much of the 1.5 m of drift a perfect schedule would
+            remove; and on the masked flow model, clean the patches at the event times first and the others after, a change of the
+            noise schedule alone, against the ordinary sampler on the same test rollouts.</p>
+        </div>
+        <figure class="wm-figure">
+          <div class="wm-svg-scroll">
+            <img class="wm-web-figure" src="./static/images/world_model/web_coarse_fine.svg" width="900" height="556"
+                 alt="Four bands: the height and speed of a thrown crate over three seconds with its key events marked (lands, hits the blue crate, comes to rest, end state); one amber token per key event in the coarse pass; fifteen blue blocks of the fine pass grouped into four segments between the key frames; and a text panel on training, generation and the risk next to a six by six grid showing which tokens may attend to which.">
+          </div>
+          <figcaption>Key events first. The coarse pass writes one token per key event with the object's state there; the fine pass fills
+            each segment between two key frames with the step-wise regressor, segments independently. The grid is the block-causal mask
+            across levels: a row reads its filled columns. The motion is a sketch in closed form, not data.</figcaption>
+        </figure>
+        <ul class="wm-todo">
+          <li id="WM-L1" data-todo="WM-L1"><span class="wm-todo-id">WM-L1</span><span class="wm-badge-todo">to do</span>
+            <strong>The ceiling, without training.</strong> In the step-wise loop, restore the recorded state at the key frames only
+            (the extractor's events, snapped to block boundaries), first the velocity channels, then the pose, and measure the position
+            error at 3 s against the free-running 1.5 m and the 18 cm of K11's every-block control. The gap is what a perfect coarse
+            pass could buy; if it is small, the proposal stops here.</li>
+          <li id="WM-L2" data-todo="WM-L2"><span class="wm-todo-id">WM-L2</span><span class="wm-badge-todo">to do</span>
+            <strong>The coarse model.</strong> Key-frame states and the end state as flow-matching targets, an event head (kind,
+            partner, block) trained by cross-entropy, on the masked flow model's tokens with the recorded events as targets. Scored as
+            an event detector against the extractor's events on held-out rollouts (precision, recall, onset error) and by the error of
+            the key-frame and end states; the spread over samples reported next to the forks in the data.</li>
+          <li id="WM-L3" data-todo="WM-L3"><span class="wm-todo-id">WM-L3</span><span class="wm-badge-todo">to do</span>
+            <strong>The fine model.</strong> The step-wise regressor with a target key frame and an event token per block, trained
+            segment by segment with the recorded key frames, a share of them corrupted; then on the coarse model's own schedules.
+            Reported with recorded and with predicted key frames separately, in event and in quiet windows, next to the chained
+            5-block model of iteration 6.</li>
+          <li id="WM-L4" data-todo="WM-L4"><span class="wm-todo-id">WM-L4</span><span class="wm-badge-todo">to do</span>
+            <strong>Both levels in one network.</strong> Coarse tokens as a first block and the fine slots as segment blocks of one
+            sequence under the block-causal mask, trained in one pass, so the fine level's use of the coarse tokens is learned through
+            attention rather than through an added input; compared with L2 plus L3 as separate networks.</li>
+        </ul>
+        </div>
+      </div>
+      <div class="wm-section" id="world_model-training">
+        <h3 class="title is-4">6. Training objectives, as the two networks are trained</h3>
+        <div class="content">
+          <p>Objectives (1) to (9) are listed in section 3; this is how the two networks in use combine them.</p>
           <ul>
-            <li><strong>Mix:</strong> x1 is the stored PhysX trajectory tensor, normalised; x0 is Gaussian noise of
-              the same shape; tau is drawn from a logit-normal distribution and x_tau = (1 - tau) x0 + tau x1.</li>
-            <li><strong>Loss:</strong> the network outputs u_hat, its guess of the direction from the noise sample
-              to the truth; the loss is the mean of w (u_hat - (x1 - x0))^2, with w = 1 for objects that move in
-              the truth and 0.1 for the ones that stay still (92 percent of them). Two small extra terms keep
-              positions consistent with velocities and predict each object's first contact.</li>
-            <li><strong>Prediction, and the control:</strong> start from noise and take 32 Euler steps along u_hat.
-              Variant A, the deterministic control, is the same network with no noise, one pass and a squared error
-              on the trajectory.</li>
+            <li><strong>The step-wise regressor</strong> (objective 6, with 9). Each training step draws eight blocks per rollout at random
+              block starts, from the engine's own state there; blocks in which two movable objects begin to touch are drawn three times
+              out of ten. The loss is the squared error of the block's corners, velocity and spin against the engine (moving objects
+              weighted 1, still ones 0.1), plus cross-entropy for the hold-still head and the contact head and the no-penetration loss
+              on close pairs. In the new runs 15 percent of the objects (and every object in 10 percent of the examples) have their
+              properties replaced by the training mean before anything reads them, and a property head is trained to recover them; in
+              another 10 percent of the blocks the block's true motion is shown to the object tokens and only the property head is
+              trained. After 40,000 such steps a second stage chains five blocks through the model's own output for 8,000 steps, so the
+              errors a block makes are corrected where they are made.</li>
+            <li><strong>The masked flow model</strong> (objective 8). The one-shot configuration, 23 million parameters, trained on the same
+              subset for 40,000 steps. Each example draws its question from the fixed mixture (forward 40 percent, properties 15, cause
+              15, unknown properties 15, mixed 15), one noise level, and the hidden tokens are noised and denoised together; the loss is
+              the flow-matching error on the hidden tokens plus the contact head. One run adds the cycle term from a quarter of training
+              on, one does not, so its effect can be measured. Every term is logged separately (the motion loss by question, the property
+              loss, the action loss, the contact loss, the cycle loss), and validation answers all four questions on held-out rollouts.</li>
+            <li><strong>Prediction.</strong> The regressor: one pass per block, fifteen blocks. The masked model: 20 to 50 Euler steps from
+              noise; for the cause question several candidate histories are sampled, each candidate's action is replayed forward by the
+              same network from the state that action produces, and the candidate whose replay ends closest to the given end is kept.</li>
           </ul>
         </div>
         <figure class="wm-figure">
@@ -790,8 +1010,9 @@
             <img class="wm-web-figure" src="./static/images/world_model/web_training.svg" width="900" height="470"
                  alt="The stored PhysX trajectory tensor and a noise tensor are mixed, the transformer predicts the direction back to the truth, and the squared error is the loss.">
           </div>
-          <figcaption>Training: the stored PhysX trajectory (the red ball's 15 channels are shown) is mixed with noise;
-            the network predicts the direction back to the truth and is scored on the gap.</figcaption>
+          <figcaption>Flow matching on the sample task: the stored PhysX trajectory (the red ball's 15 channels are shown) is mixed with
+            noise; the network predicts the direction back to the truth and is scored on the gap. The masked model does the same for
+            the property and action tokens.</figcaption>
         </figure>
         <div class="wm-anim" id="anim-flow">
           <canvas width="900" height="400"
@@ -805,7 +1026,6 @@
             the true direction, standing in for an untrained network; nothing here is a trained model's output.</p>
         </div>
       </div>
-
       <div class="wm-section" id="world_model-forcing">
         <h3 class="title is-4">7. Diffusion Forcing variant</h3>
         <div class="content">
@@ -815,6 +1035,11 @@
             ones, so a frame is predicted while the frames before it are already clean; a known prefix is simply
             frames at noise level zero. Rollouts can extend past 60 frames by sliding the window.
           </p>
+          <p><strong>What the scaled study found.</strong> Trained one-shot on its data, Diffusion Forcing trailed every other member
+            by a wide margin (acted-object error 1.42 m against 0.45 m for regression, measured even on training scenes), and it was
+            not taken further as a simulator. Its idea survives: the masked flow model gives every token its own noise level, which is
+            exactly what lets a given token stay clean while hidden ones are generated, and what a schedule that cleans the key events
+            first needs (<a href="#world_model-coarse-fine">section 5</a>).</p>
         </div>
         <div class="wm-anim" id="anim-forcing">
           <svg class="wm-diagram" viewBox="0 0 910 86" role="img"
@@ -825,18 +1050,17 @@
           </div>
         </div>
       </div>
-
-      <div class="wm-section" id="world_model-counterfactuals">
-        <h3 class="title is-4">8. Counterfactuals built in</h3>
+      <div class="wm-section wm-math" id="world_model-counterfactuals">
+        <h3 class="title is-4">8. Counterfactuals, events in words, and error bands</h3>
         <div class="content">
-          <p>
-            The inputs are the explicit scene graph and the explicit action, so a counterfactual is an edited input
-            (change the friction in the table's row, move the cup, change the launch vector, remove an object)
-            followed by a second sampling run; mid-trajectory questions clamp the known frames and continue from an
-            edited state. The training generator must randomise friction, restitution, mass, placements and
-            actions, otherwise the model ignores those inputs. Accuracy is checked against PhysX on paired rollouts,
-            such as the benchmark's yes/no twin pairs (GPT-5.4 got 6 of 7 pairs, Qwen3-VL-30B-Thinking 3 of 7).
-          </p>
+          <p>Three things that make the model usable beyond a position error. <strong>Counterfactuals are input edits</strong> (built in,
+            and measured): the inputs are the explicit scene graph and the explicit action, so a counterfactual is an edited input
+            (change the friction in the table's row, move the cup, change the launch vector, remove an object) followed by a second
+            prediction; mid-trajectory questions clamp the known frames and continue from an edited state. The training generator
+            randomises friction, restitution, mass, placements and actions, otherwise the model ignores those inputs; attribute sweeps
+            and removals are training inputs, and the evaluation script measures whether the predicted change under an edit goes the
+            engine's way (76 percent for the old one-pass model; not yet measured for the current models). <strong>Words</strong> and
+            <strong>error bands</strong> (D and E below) are still to do.</p>
         </div>
         <figure class="wm-figure">
           <div class="wm-svg-scroll">
@@ -895,271 +1119,21 @@
             a sketch, not a simulation.</figcaption>
         </figure>
         <div class="content">
-          <p>Every property of the edited scene is known here. A counterfactual about a scene that was only observed first needs its
-            hidden properties back from the motion: <a href="#world_model-backward">section 14</a>.</p>
+          <p><strong>Counterfactuals about what was only observed.</strong> The edit above assumes every property of the scene is known.
+            For a scene that was only observed, a counterfactual takes the three steps of causal inference (abduction, action,
+            prediction): infer what is hidden from what was seen (the backward questions of section 12), change one thing, and predict
+            forward with what was inferred. The spread of \(\hat P\) carries into the spread of \(Y'\) (<a href="#WM-E1">E1</a>); PhysX
+            checks the answer by simulating the edited scene with the true properties, as in the benchmark's twin pairs.</p>
         </div>
-      </div>
-
-      <div class="wm-section" id="world_model-jepa">
-        <h3 class="title is-4">9. JEPA variant (C)</h3>
-        <div class="content">
-          <p>
-            An encoder maps a scene-graph state to one embedding per object; a slowly updated copy of the encoder
-            embeds the future states as targets; a predictor conditioned on the action and the frame offset predicts
-            the future embeddings for all offsets at once. The loss is taken in embedding space with variance and
-            covariance regularisers, and a probe decoder maps embeddings back to states for scoring. Its role is
-            latent planning and a bridge to visual inputs; it is not expected to beat direct state prediction on an
-            exact 15-number state.
-          </p>
-        </div>
-        <figure class="wm-figure">
-          <div class="wm-svg-scroll">
-            <svg class="wm-diagram" viewBox="0 0 900 252" role="img" aria-labelledby="jp-title">
-              <title id="jp-title">JEPA variant: encoder, predictor, slowly updated target encoder, loss in embedding space, probe decoder</title>
-              <defs>
-                <marker id="jp-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-                  <path d="M0,0 L10,5 L0,10 z" fill="#767676"/>
-                </marker>
-              </defs>
-              <g font-size="12" fill="#333">
-                <!-- probe decoder -->
-                <rect x="690" y="12" width="200" height="44" rx="8" fill="#fff" stroke="#d9dee5" stroke-width="1.5"/>
-                <text x="790" y="30" text-anchor="middle" font-weight="bold">probe decoder</text>
-                <text x="790" y="47" text-anchor="middle" fill="#55606e">embedding to state (15 numbers)</text>
-                <line x1="790" y1="98" x2="790" y2="58" stroke="#767676" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#jp-arrow)"/>
-                <!-- row A: current state -->
-                <rect x="10" y="100" width="140" height="50" rx="8" fill="#fff" stroke="#d9dee5" stroke-width="1.5"/>
-                <text x="80" y="121" text-anchor="middle" font-weight="bold">state s_0</text>
-                <text x="80" y="139" text-anchor="middle" fill="#55606e">scene graph + action</text>
-                <line x1="152" y1="125" x2="198" y2="125" stroke="#767676" stroke-width="1.5" marker-end="url(#jp-arrow)"/>
-                <rect x="200" y="100" width="120" height="50" rx="8" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.5"/>
-                <text x="260" y="130" text-anchor="middle" font-weight="bold" fill="#1f6feb">encoder</text>
-                <line x1="322" y1="125" x2="368" y2="125" stroke="#767676" stroke-width="1.5" marker-end="url(#jp-arrow)"/>
-                <rect x="370" y="100" width="120" height="50" rx="8" fill="#fff" stroke="#d9dee5" stroke-width="1.5"/>
-                <text x="430" y="121" text-anchor="middle" font-weight="bold">z_0</text>
-                <text x="430" y="139" text-anchor="middle" fill="#55606e">one per object</text>
-                <line x1="492" y1="125" x2="538" y2="125" stroke="#767676" stroke-width="1.5" marker-end="url(#jp-arrow)"/>
-                <rect x="540" y="100" width="150" height="50" rx="8" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.5"/>
-                <text x="615" y="121" text-anchor="middle" font-weight="bold" fill="#1f6feb">predictor</text>
-                <text x="615" y="139" text-anchor="middle" fill="#55606e">action a, offset k</text>
-                <line x1="692" y1="125" x2="738" y2="125" stroke="#767676" stroke-width="1.5" marker-end="url(#jp-arrow)"/>
-                <rect x="740" y="100" width="100" height="50" rx="8" fill="#fff" stroke="#1f6feb" stroke-width="1.5"/>
-                <text x="790" y="121" text-anchor="middle" font-weight="bold" fill="#1f6feb">z_k predicted</text>
-                <text x="790" y="139" text-anchor="middle" fill="#55606e">all k at once</text>
-                <!-- slow copy -->
-                <line x1="260" y1="152" x2="260" y2="196" stroke="#767676" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#jp-arrow)"/>
-                <text x="270" y="178" fill="#55606e">slow copy of the encoder weights</text>
-                <!-- loss -->
-                <line x1="790" y1="154" x2="790" y2="194" stroke="#d7263d" stroke-width="2" marker-start="url(#jp-arrow)" marker-end="url(#jp-arrow)"/>
-                <text x="776" y="170" text-anchor="end" fill="#d7263d">loss in embedding space</text>
-                <text x="776" y="188" text-anchor="end" fill="#d7263d">+ variance and covariance regularisers</text>
-                <!-- row B: future state -->
-                <rect x="10" y="198" width="140" height="50" rx="8" fill="#fff" stroke="#d9dee5" stroke-width="1.5"/>
-                <text x="80" y="219" text-anchor="middle" font-weight="bold">state s_k</text>
-                <text x="80" y="237" text-anchor="middle" fill="#55606e">future, from PhysX</text>
-                <line x1="152" y1="223" x2="198" y2="223" stroke="#767676" stroke-width="1.5" marker-end="url(#jp-arrow)"/>
-                <rect x="200" y="198" width="150" height="50" rx="8" fill="#fff" stroke="#d9dee5" stroke-width="1.5"/>
-                <text x="275" y="219" text-anchor="middle" font-weight="bold">target encoder</text>
-                <text x="275" y="237" text-anchor="middle" fill="#55606e">slowly updated, no gradient</text>
-                <line x1="352" y1="223" x2="738" y2="223" stroke="#767676" stroke-width="1.5" marker-end="url(#jp-arrow)"/>
-                <rect x="740" y="198" width="100" height="50" rx="8" fill="#fff" stroke="#d9dee5" stroke-width="1.5"/>
-                <text x="790" y="219" text-anchor="middle" font-weight="bold">z_k target</text>
-                <text x="790" y="237" text-anchor="middle" fill="#55606e">one per object</text>
-              </g>
-            </svg>
-          </div>
-          <figcaption>Variant C: the predictor works in embedding space; the dashed arrow marks the slowly updated
-            target encoder; the probe decoder exists only so that the same state metrics can be applied.</figcaption>
-        </figure>
-      </div>
-
-      <div class="wm-section" id="world_model-step">
-        <h3 class="title is-4">10. Variant D: autoregressive next-state predictor</h3>
-        <div class="content">
-          <p>
-            Input: the state at frame t (plus the last 4 frames) and the pairwise geometry, recomputed every step.
-            Output: the change over one frame (position change, rotation change as an axis-angle vector, at most
-            1.9 rad per frame at the fastest measured spin, the new velocity and the new spin); integrate and
-            repeat 60 times. Training is teacher forcing, each stored PhysX transition being one example, with noise
-            added to the input state and an 8-step unrolled loss so that errors do not pile up. Against the joint
-            model: geometry is always current and any horizon is reachable, at the price of 60 sequential passes and
-            error accumulation.
-          </p>
-        </div>
-        <figure class="wm-figure">
-          <div class="wm-svg-scroll">
-            <img class="wm-web-figure" src="./static/images/world_model/web_step.svg" width="900" height="300"
-                 alt="The step predictor reads the state at frame t, outputs the change over one frame, integrates it and feeds the new state back; the loop runs 60 times.">
-          </div>
-          <figcaption>The step-by-step alternative: one network pass predicts the change over one frame and the loop
-            runs 60 times; the numbers are the recorded change from frame 15 to 16.</figcaption>
-        </figure>
-        <div class="wm-anim" id="anim-step">
-          <canvas width="900" height="440"
-                  aria-label="Step-loop animation: the red ball advances one recorded frame per tick; the loop diagram feeds state t+1 back as the next input."></canvas>
-          <p class="wm-live"></p>
-          <div class="wm-controls">
-            <button class="button is-small is-light" type="button" aria-pressed="true">Pause</button>
-            <p class="wm-caption"></p>
-          </div>
-          <p class="wm-note">Positions and velocities are the recorded PhysX states of the sample rollout
-            (x and z components; y is constant at -2.20 m); the change shown each tick is the quantity one network
-            pass of variant D has to predict.</p>
-        </div>
-      </div>
-
-      <div class="wm-section wm-math" id="world_model-todo">
-        <h3 class="title is-4">11. Failure modes, physics-grounded fixes and shape descriptors</h3>
-        <div class="content">
-          <p>Two failures show up in every member trained so far. <strong>Ghost motion:</strong> objects that stand still from the
-            start, and that nothing in the action touches, are predicted to drift (in the toy runs 84 to 100 percent of still objects
-            move more than 1 cm). <strong>Inconsistent kinematics:</strong> predicted positions and velocities do not agree with each
-            other at the same frame, so no physical motion could produce them; with objects also overlapping by a median of 15 to 34 cm,
-            none of 58 held-out predictions passes the benchmark's checks. A higher weight on still objects and soft position-velocity
-            and overlap penalties were tried on 96 samples and changed the ghost-motion rate little, so the plan puts fixes that hold
-            <em>by construction</em> first and physics penalties second. Each item is a feature to
-            implement in the shared predictor; the ids are for tracking.</p>
-          <p><strong>Since then.</strong> The scaled study's physics iterations built first versions of A1, A2, B1 and B5
-            (<a href="./improved-results-v1.html">Improved Results V1</a>): the share of still objects that its regressor moves fell from 84 to 1 percent and the energy gained from nowhere
-            from 3.8 to 0.5 J per simulation, at an average position error about 11 percent higher. Step-wise prediction
-            (<a href="#WM-F1">F1</a>), corners as outputs, built-in gravity (B2) and built-in joint equations followed in iterations 2 to
-            5 (<a href="#world_model-status">section 4</a>). Objects still pass through each other at speed
-            (<a href="#world_model-collisions">section 13</a>), and errors compound over chained blocks (<a href="#WM-K11">K11</a>).
-            Each item's badge gives its state; items that came from the scaled study say so.</p>
-          <p class="wm-todo-groups">All groups: <a href="#world_model-todo">A ghost motion, B kinematics, C shape and identity</a>
-            (this section) &middot; <a href="#world_model-language-uncertainty">D words, E error bands</a> (12) &middot;
-            <a href="#world_model-collisions">F collisions</a> (13) &middot; <a href="#world_model-backward">G backward questions</a>
-            (14) &middot; <a href="#world_model-data-real">H training data and speed, I real scenes</a> (15) &middot;
-            <a href="#world_model-tracking">J ideas from tracking and forecasting</a> (16) &middot;
-            <a href="#world_model-issues">K known issues</a> (17)</p>
-        </div>
-
-        <h4 class="title is-6 wm-subhead">A. Ghost motion: motion needs a cause</h4>
-        <ul class="wm-todo">
-          <li id="WM-A1" data-todo="WM-A1" class="is-first"><span class="wm-todo-id">WM-A1</span><span class="wm-badge-first">first version</span>
-            <strong>Motion gate.</strong> A head predicts whether each object moves at all, \(\hat\mu_i = \sigma(u_i)\), trained on
-            \(m_i = \mathbb{1}\big[\max_t \lVert p^i_t - p^i_0 \rVert \gt 1\,\text{cm}\big]\); the trajectory is the still pose plus the gated change,
-            and objects with \(\hat\mu_i \lt 0.5\) are pinned exactly at inference:
-            \[ \hat Y^i = Y^i_{\text{still}} + \hat\mu_i \big( f_\theta(x)^i - Y^i_{\text{still}} \big), \qquad \mathcal{L}_{\mu} = \mathrm{BCE}(\hat\mu_i, m_i) \]
-            <span class="wm-todo-note">First version: "hold still" in <a href="./improved-results-v1.html">Improved Results V1</a>, a per-object logit, with objects predicted still kept exactly in place. Still objects moved by more than 5 cm fell from 84 to 4 percent for regression and from 70 to 18 percent for flow matching, and the regressor's position error did not rise.</span></li>
-          <li id="WM-A2" data-todo="WM-A2" class="is-first"><span class="wm-todo-id">WM-A2</span><span class="wm-badge-first">first version</span>
-            <strong>Causal-cone penalty.</strong> An object may start moving only once something moving touches it (a support counts).
-            Activation spreads along contacts from the acted objects (and objects already moving at \(t = 0\)); motion outside the
-            cone is penalised. In training the true contacts \(\kappa\) can stand in for \(\hat\kappa\):
-            \[ \zeta^i_0 = \mathbb{1}[i \text{ acted on or moving}], \quad \zeta^i_t = \max\Big(\zeta^i_{t-1},\ \max_j \zeta^j_{t-1}\, \hat\kappa^{ij}_t\Big), \qquad \mathcal{L}_{\text{cause}} = \sum_{t,i} \big(1 - \zeta^i_t\big)\, \big\lVert \hat y^i_t - y^i_{\text{still}} \big\rVert^2 \]
-            <span class="wm-todo-note">A simpler first version is the "cause" rule of <a href="./improved-results-v1.html">Improved Results V1</a>: an object not acted on is penalised for moving before the frame at which it really starts to move, read from the PhysX truth. With hold still and the other rules, objects moved before being touched fell from 95 to 4 percent. The cone over predicted contacts is still to do: it needs no truth, so it also holds at inference.</span>
-            <span class="wm-todo-note">Second version (<a href="./improved-results-v4.html">Improved Results V4</a>, stage 2): the first-law gate holds an object with no cause (not acted on, not moving, not airborne, not touched or about to be hit by a moving neighbour) using the predicted geometry, at inference too and without reading the truth; it was neutral on the four-scene study.</span></li>
-          <li id="WM-A3" data-todo="WM-A3" class="is-first"><span class="wm-todo-id">WM-A3</span><span class="wm-badge-first">first version</span>
-            <strong>Local attention.</strong> Output slots of two objects attend to each other only when their collision boxes are within
-            reach (the distance the fastest object can travel in the horizon), as in graph-network simulators; far objects cannot
-            move each other. With blocks of length \(\tau\) (F1) the reach is short: 1 m per 0.2 s block at 5 m/s.
-            \[ \ell_{ij} = \frac{q_i^\top k_j}{\sqrt d} + b_\phi(g_{ij}) \ \ \text{if}\ \ g_{ij} \le \big(\lVert v_i \rVert + \lVert v_j \rVert\big)\, \tau + \delta, \qquad \ell_{ij} = -\infty \ \ \text{otherwise} \]
-            <span class="wm-todo-note">A soft first version runs in the step-wise models: attention between each object and its 8 nearest neighbours is biased by their box geometry (<a href="#WM-F2">F2</a>, the scaled study's "who is close to whom"); the hard mask by reach is still to do.</span></li>
-          <li id="WM-A4" data-todo="WM-A4" class="is-first"><span class="wm-todo-id">WM-A4</span><span class="wm-badge-first">first version</span>
-            <strong>Exact zeros.</strong> Add an L1 term on still objects' displacement (a squared error tolerates many small drifts), and
-            report the ghost-motion rate next to ADE on every run.
-            <span class="wm-todo-note">Related first version (<a href="./improved-results-v4.html">Improved Results V4</a>, stage 2): full loss weight for objects moving in the truth or in the prediction, the only addition there that lowered both position error (0.269 to 0.262 m) and passing through; a candidate at lower weight.</span></li>
-        </ul>
-
-        <h4 class="title is-6 wm-subhead">B. Kinematics: positions, velocities and physics that agree</h4>
-        <ul class="wm-todo">
-          <li id="WM-B1" data-todo="WM-B1" class="is-first"><span class="wm-todo-id">WM-B1</span><span class="wm-badge-first">first version</span>
-            <strong>Integrate instead of predicting twice.</strong> Predict velocities and spins only and integrate them with the
-            evaluator's trapezoid rule, so positions and velocities agree exactly; keep the position loss on the integrated positions
-            so that integration drift is trained away (\(\mathrm{Exp}\) is the rotation of a rotation vector, \(\omega\) in world axes):
-            \[ \hat p_t = \hat p_{t-1} + \tfrac{\Delta t}{2}\,(\hat v_{t-1} + \hat v_t), \qquad \hat R_t = \mathrm{Exp}\big(\tfrac{\Delta t}{2}\,(\hat\omega_{t-1} + \hat\omega_t)\big)\, \hat R_{t-1} \]
-            <span class="wm-todo-note">First version: "integrate motion" in <a href="./improved-results-v1.html">Improved Results V1</a> predicts accelerations, zero by default, and adds them up from the state just after the action, so positions always match velocities; direction reversals in mid-air fell from 4.5 to 0 per moving object for regression and from 166 to 0 for flow matching. Rotation is still predicted directly; integrating the spin is still to do.</span></li>
-          <li id="WM-B2" data-todo="WM-B2" class="is-done"><span class="wm-todo-id">WM-B2</span><span class="wm-badge-done">done</span>
-            <strong>Free flight follows gravity.</strong> Integrated motion started from zero acceleration, so nothing taught gravity.
-            The construction proposed here is now built in: an object touching nothing falls ballistically from its centre of mass and
-            turns with constant angular momentum, and the network predicts only a correction,
-            \(\hat a^i_t = \big(1 - \hat c^i_t\big)\, \mathbf{g} + r^i_t\) with \(\hat c^i_t\) whether the object touches anything
-            (the floor counts) and \(\mathbf{g} = (0, 0, -9.81)\) m/s²; the penalty stays available if the correction drifts:
-            \[ \mathcal{L}_{\text{ff}} = \sum_{t,i} \Big(1 - \max_j \hat\kappa^{ij}_t\Big) \Big( \big\lVert \tfrac{\hat v^i_{t+1} - \hat v^i_t}{\Delta t} - \mathbf{g} \big\rVert^2 + \big\lVert \hat\omega^i_{t+1} - \hat\omega^i_t \big\rVert^2 \Big) \]
-            <span class="wm-todo-note">Done in <a href="./improved-results-v4.html">Improved Results V4</a> (stage 2) and used by V5: on free flights the built-in motion is within 6 mm of PhysX,
-            and V5's free-fall error is 1.9 m/s² for regression and 2.0 for flow matching (PhysX: 0.02). The 9 to 10 m/s² quoted here
-            earlier came from a faulty measure that counted objects resting on the floor as airborne (PhysX itself scored 9.8 on
-            it).</span></li>
-          <li id="WM-B3" data-todo="WM-B3"><span class="wm-todo-id">WM-B3</span><span class="wm-badge-todo">to do</span>
-            <strong>No energy from nothing.</strong> After the action, kinetic plus potential energy may only fall (friction, inelastic
-            contacts), up to the evaluator's tolerance \(\delta\) (15 percent plus 0.03 J), with \(g = 9.81\) m/s²; the inertia \(I_i\) is
-            given in the object's own frame and the spin in world axes, hence the rotation by \(\hat R^i_t\):
-            \[ E_t = \sum_i \tfrac12 m_i \lVert \hat v^i_t \rVert^2 + \tfrac12\, \hat\omega^{i\top}_t \hat R^i_t I_i \hat R^{i\top}_t\, \hat\omega^i_t + m_i\, g\, \hat z^i_t, \qquad \mathcal{L}_E = \sum_t \mathrm{relu}\big(E_{t+1} - E_t - \delta\big)^2 \]
-            <span class="wm-todo-note">B3 and B4 are also the scaled study's proposal for what its rules leave: with step-wise prediction the energy gained from nowhere is 0.5 to 0.8 J per simulation for the best models, from 2.6 to 3.0 J in one pass (<a href="./improved-results-v2.html">Improved Results V2</a>).</span></li>
-          <li id="WM-B4" data-todo="WM-B4" class="is-tried"><span class="wm-todo-id">WM-B4</span><span class="wm-badge-tried">tried, not kept</span>
-            <strong>Momentum at contacts.</strong> When two objects touch only each other in a frame (no floor or fixed object involved),
-            their momentum changes cancel: \(m_i \Delta \hat v^i_t + m_j \Delta \hat v^j_t \approx 0\); a small soft penalty.
-            <span class="wm-todo-note">Tried (<a href="./improved-results-v4.html">Improved Results V4</a>, stage 2): the third law at impacts, applied only where PhysX itself satisfies it, made every measure worse (position error up 18 percent, toppling recall down to 34 percent).</span></li>
-          <li id="WM-B5" data-todo="WM-B5" class="is-first"><span class="wm-todo-id">WM-B5</span><span class="wm-badge-first">first version</span>
-            <strong>No overlap, no sinking.</strong> Penalise penetration between object parts (the convex parts, not one box per object)
-            beyond 5 mm, and any part below the floor:
-            \(\mathcal{L}_{\text{pen}} = \sum \mathrm{relu}(d^{ij}_t - 5\,\text{mm})^2,\ \mathcal{L}_{\text{floor}} = \sum \mathrm{relu}(-z^{i}_{\text{low},t})^2\).
-            <span class="wm-todo-note">First version: the floor and overlap rules of <a href="./improved-results-v1.html">Improved Results V1</a>, on one box per object. A bug found on 15 October had treated fixed objects stored after the moving ones (most walls, poles and ramps) as points, so overlap with them went unpenalised. The loss on the objects' pieces, with the contact direction kept from before the overlap, is <a href="#WM-F3">F3</a>.</span>
-            <span class="wm-todo-note">Relative overlap (<a href="./improved-results-v4.html">Improved Results V4</a>, stage 2), the depth divided by the moving object's thinnest side, lowers relative passing through by 28 percent at 12 percent more position error; a candidate at lower weight.</span></li>
-          <li id="WM-B6" data-todo="WM-B6"><span class="wm-todo-id">WM-B6</span><span class="wm-badge-todo">to do</span>
-            <strong>Train against the judge.</strong> The benchmark already screens predicted motion with numbers: free-flight position
-            residual 15 mm, velocity residual 0.15 m/s, rotation residual 10 degrees, energy increase, penetration 5 mm. Use the same
-            quantities as hinge losses, so the model is trained on exactly what it is judged by.</li>
-        </ul>
-        <h4 class="title is-6 wm-subhead">C. Shape and identity: what an object token must carry</h4>
-        <div class="content">
-          <p>Same mass, same velocity at the centre of mass: a ball rolls away, a chair slides, tips or stops. In free flight only mass
-            and inertia matter; every difference appears at contacts, through the shape of the contact surface (curved or flat), the
-            support polygon, the height of the centre of mass above it and how the mass is spread. The token therefore needs metric
-            geometry in the object's own frame, tied to the collision shape the simulator uses; category names and appearance only
-            correlate with it. Today's tokens carry bounding boxes, the inertia tensor and centre of mass, a primitive kind, and in the
-            scaled study a set of up to eight convex parts; the toy runs also had learned category, colour and asset ids, which the
-            design drops (C4).</p>
-        </div>
-        <ul class="wm-todo">
-          <li id="WM-C1" data-todo="WM-C1"><span class="wm-todo-id">WM-C1</span><span class="wm-badge-todo">to do</span>
-            <strong>Physical shape descriptors.</strong> Computed once per asset from the collision shape: principal moments and axes of
-            inertia; the resting support polygon and the height \(h\) of the centre of mass above it; the tipping angle toward each edge
-            \(k\) of the polygon, with \(d_k\) the distance from the centre of mass's projection to that edge; and the smallest radius of
-            curvature \(\rho_{\min}\) at the contact, which says whether the object can roll and about which axis (\(r_i\) is half the
-            diagonal of its box):
-            \[ I_i = Q_i\, \mathrm{diag}(\lambda_1, \lambda_2, \lambda_3)\, Q_i^\top, \qquad \theta_k = \arctan \frac{d_k}{h}, \qquad
-               \phi_i = \Big( \frac{\lambda_{1:3}}{m_i r_i^2},\ h,\ \min_k \theta_k,\ \text{support area},\ \rho_{\min} \Big) \]</li>
-          <li id="WM-C2" data-todo="WM-C2"><span class="wm-todo-id">WM-C2</span><span class="wm-badge-todo">to do</span>
-            <strong>Learned metric shape code.</strong> Points sampled on the collision surface with their normals, in the object's frame
-            and in metres, encoded by a small point network trained together with the world model. Never rescaled to a unit sphere and
-            never made rotation-invariant: the pose is given separately, and together they must still say where the legs are relative
-            to the floor. The convex-part set stays.
-            <span class="wm-todo-note">In the scaled study this is a decision still to make, for when boxes and pieces are not enough after F3 to F6 (<a href="#WM-F7">F7</a>); it would also work on real depth data (<a href="#WM-I1">I1</a>).</span></li>
-          <li id="WM-C3" data-todo="WM-C3"><span class="wm-todo-id">WM-C3</span><span class="wm-badge-todo">to do</span>
-            <strong>Pretrained point-cloud features as a semantic channel.</strong> A frozen encoder such as Utonia (a Point Transformer
-            V3 trained without labels on many kinds of point clouds), pooled per object and added to the token. Useful for real scenes and
-            for matching objects to words. Kept only if probes and ablations show a gain: features trained for perception are not trained
-            to encode support polygons or inertia, so check first whether they keep absolute size and the direction of gravity in the
-            object's frame.</li>
-          <li id="WM-C4" data-todo="WM-C4"><span class="wm-todo-id">WM-C4</span><span class="wm-badge-todo">to do</span>
-            <strong>No learned ids, and the tests.</strong> Remove the colour and asset embeddings from the toy model (the scaled study's
-            predictor already has none). If a semantic channel helps, use an open-vocabulary embedding of the object's name or pretrained
-            point-cloud features, dropped at random in training, never a table over the training vocabulary. Then test: assets never seen
-            in training; the same scene with objects reordered, renamed or recoloured (the prediction must not change beyond the
-            reordering); probes of every descriptor for the quantities of WM-C1; and a counterfactual set with the same mass and the
-            same launch on different shapes (ball, box, cylinder, chair), judged against PhysX.</li>
-        </ul>
-        <div class="content">
-          <p><strong>How to add them.</strong> Penalties act on outputs converted back to metres and metres per second, with masses and
-            inertias taken from the object tokens and \(\Delta t = 1/30\) s; inequality constraints are hinge losses; penalty weights
-            ramp up after a warm-up so that they do not stall early learning; every residual is reported on validation next to ADE,
-            the ghost-motion rate and the verdict agreement \(\alpha\). Suggested order: B1 and A1 (constructions, nothing to tune),
-            then A2 and B2 (they need the contact head), then B3 to B6; for shape, C1 and C4 first (cheap and exact), then C2 and C3.</p>
-        </div>
-      </div>
-
-      <div class="wm-section wm-math" id="world_model-language-uncertainty">
-        <h3 class="title is-4">12. Saying what happens, and how sure it is (to do)</h3>
-        <div class="content">
-          <p>Two features make the world model usable by people. It should say in words what its predicted trajectory contains, and
-            when, while staying faithful to that trajectory even when the trajectory is wrong. And it should attach an honest error band
-            to what it predicts, which matters most on real scenes, where the scene graph itself is estimated from photographs. The
-            uncertainty items take up two ideas of the scaled study, several hypotheses (<a href="#WM-E5">E5</a>) and a spread when
-            properties are unknown (<a href="#WM-E3">E3</a>), and serve the step from photographs to a scene graph
+        \[ \hat P \sim p_\theta\big(P \mid Y_{\text{obs}}, a, G_{\setminus P}\big), \qquad Y' \sim p_\theta\big(Y \mid G'_{\setminus P}, \hat P, a'\big) \]
+        <div class="content" id="world_model-language-uncertainty">
+          <p><strong>Saying what happens, and how sure it is (to do).</strong> The model should say in words what its predicted trajectory
+            contains, and when, while staying faithful to that trajectory even when the trajectory is wrong; and it should attach an
+            honest error band to what it predicts, which matters most on real scenes, where the scene graph itself is estimated from
+            photographs. The uncertainty items take up two ideas of the scaled study, several hypotheses (<a href="#WM-E5">E5</a>) and a
+            spread when properties are unknown (<a href="#WM-E3">E3</a>), and serve the step from photographs to a scene graph
             (<a href="#WM-I1">I1</a>).</p>
         </div>
-
         <h4 class="title is-6 wm-subhead">D. A description in words that cannot contradict the trajectory</h4>
         <figure class="wm-figure">
           <div class="wm-svg-scroll">
@@ -1334,9 +1308,230 @@
                \mathcal{L}_{\text{wta}} = \big\lVert \hat Y_{k^\star} - Y \big\rVert_w^2 - \lambda \log \hat\pi_{k^\star} \]</li>
         </ul>
       </div>
+      <div class="wm-section" id="world_model-jepa">
+        <h3 class="title is-4">9. JEPA variant (C)</h3>
+        <div class="content">
+          <p>
+            An encoder maps a scene-graph state to one embedding per object; a slowly updated copy of the encoder
+            embeds the future states as targets; a predictor conditioned on the action and the frame offset predicts
+            the future embeddings for all offsets at once. The loss is taken in embedding space with variance and
+            covariance regularisers, and a probe decoder maps embeddings back to states for scoring. Its role is
+            latent planning and a bridge to visual inputs; it is not expected to beat direct state prediction on an
+            exact 15-number state.
+          </p>
+        </div>
+        <figure class="wm-figure">
+          <div class="wm-svg-scroll">
+            <svg class="wm-diagram" viewBox="0 0 900 252" role="img" aria-labelledby="jp-title">
+              <title id="jp-title">JEPA variant: encoder, predictor, slowly updated target encoder, loss in embedding space, probe decoder</title>
+              <defs>
+                <marker id="jp-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 z" fill="#767676"/>
+                </marker>
+              </defs>
+              <g font-size="12" fill="#333">
+                <!-- probe decoder -->
+                <rect x="690" y="12" width="200" height="44" rx="8" fill="#fff" stroke="#d9dee5" stroke-width="1.5"/>
+                <text x="790" y="30" text-anchor="middle" font-weight="bold">probe decoder</text>
+                <text x="790" y="47" text-anchor="middle" fill="#55606e">embedding to state (15 numbers)</text>
+                <line x1="790" y1="98" x2="790" y2="58" stroke="#767676" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#jp-arrow)"/>
+                <!-- row A: current state -->
+                <rect x="10" y="100" width="140" height="50" rx="8" fill="#fff" stroke="#d9dee5" stroke-width="1.5"/>
+                <text x="80" y="121" text-anchor="middle" font-weight="bold">state s_0</text>
+                <text x="80" y="139" text-anchor="middle" fill="#55606e">scene graph + action</text>
+                <line x1="152" y1="125" x2="198" y2="125" stroke="#767676" stroke-width="1.5" marker-end="url(#jp-arrow)"/>
+                <rect x="200" y="100" width="120" height="50" rx="8" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.5"/>
+                <text x="260" y="130" text-anchor="middle" font-weight="bold" fill="#1f6feb">encoder</text>
+                <line x1="322" y1="125" x2="368" y2="125" stroke="#767676" stroke-width="1.5" marker-end="url(#jp-arrow)"/>
+                <rect x="370" y="100" width="120" height="50" rx="8" fill="#fff" stroke="#d9dee5" stroke-width="1.5"/>
+                <text x="430" y="121" text-anchor="middle" font-weight="bold">z_0</text>
+                <text x="430" y="139" text-anchor="middle" fill="#55606e">one per object</text>
+                <line x1="492" y1="125" x2="538" y2="125" stroke="#767676" stroke-width="1.5" marker-end="url(#jp-arrow)"/>
+                <rect x="540" y="100" width="150" height="50" rx="8" fill="#e8eef9" stroke="#1f6feb" stroke-width="1.5"/>
+                <text x="615" y="121" text-anchor="middle" font-weight="bold" fill="#1f6feb">predictor</text>
+                <text x="615" y="139" text-anchor="middle" fill="#55606e">action a, offset k</text>
+                <line x1="692" y1="125" x2="738" y2="125" stroke="#767676" stroke-width="1.5" marker-end="url(#jp-arrow)"/>
+                <rect x="740" y="100" width="100" height="50" rx="8" fill="#fff" stroke="#1f6feb" stroke-width="1.5"/>
+                <text x="790" y="121" text-anchor="middle" font-weight="bold" fill="#1f6feb">z_k predicted</text>
+                <text x="790" y="139" text-anchor="middle" fill="#55606e">all k at once</text>
+                <!-- slow copy -->
+                <line x1="260" y1="152" x2="260" y2="196" stroke="#767676" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#jp-arrow)"/>
+                <text x="270" y="178" fill="#55606e">slow copy of the encoder weights</text>
+                <!-- loss -->
+                <line x1="790" y1="154" x2="790" y2="194" stroke="#d7263d" stroke-width="2" marker-start="url(#jp-arrow)" marker-end="url(#jp-arrow)"/>
+                <text x="776" y="170" text-anchor="end" fill="#d7263d">loss in embedding space</text>
+                <text x="776" y="188" text-anchor="end" fill="#d7263d">+ variance and covariance regularisers</text>
+                <!-- row B: future state -->
+                <rect x="10" y="198" width="140" height="50" rx="8" fill="#fff" stroke="#d9dee5" stroke-width="1.5"/>
+                <text x="80" y="219" text-anchor="middle" font-weight="bold">state s_k</text>
+                <text x="80" y="237" text-anchor="middle" fill="#55606e">future, from PhysX</text>
+                <line x1="152" y1="223" x2="198" y2="223" stroke="#767676" stroke-width="1.5" marker-end="url(#jp-arrow)"/>
+                <rect x="200" y="198" width="150" height="50" rx="8" fill="#fff" stroke="#d9dee5" stroke-width="1.5"/>
+                <text x="275" y="219" text-anchor="middle" font-weight="bold">target encoder</text>
+                <text x="275" y="237" text-anchor="middle" fill="#55606e">slowly updated, no gradient</text>
+                <line x1="352" y1="223" x2="738" y2="223" stroke="#767676" stroke-width="1.5" marker-end="url(#jp-arrow)"/>
+                <rect x="740" y="198" width="100" height="50" rx="8" fill="#fff" stroke="#d9dee5" stroke-width="1.5"/>
+                <text x="790" y="219" text-anchor="middle" font-weight="bold">z_k target</text>
+                <text x="790" y="237" text-anchor="middle" fill="#55606e">one per object</text>
+              </g>
+            </svg>
+          </div>
+          <figcaption>Variant C: the predictor works in embedding space; the dashed arrow marks the slowly updated
+            target encoder; the probe decoder exists only so that the same state metrics can be applied.</figcaption>
+        </figure>
+      
+        <div class="content">
+          <p><strong>What the scaled study found.</strong> Trained one-shot, JEPA with a state decoder was as accurate as regression and
+            more accurate than flow matching (0.55 to 0.57 m against 0.62 to 0.64 m on unseen scenes; on the validation scenes 0.39 m
+            acted-object error against 0.45 m for regression). Its distinct promise, planning in the latent space and a bridge to visual
+            inputs, has not been tested, and no step-wise version was trained; the step-wise regressor took over as the forward
+            simulator. The variant stays available in the code.</p>
+        </div>
+      </div>
+      <div class="wm-section wm-math" id="world_model-todo">
+        <h3 class="title is-4">10. Failure modes, physics-grounded fixes and shape descriptors</h3>
+        <div class="content">
+          <p>Two failures show up in every member trained so far. <strong>Ghost motion:</strong> objects that stand still from the
+            start, and that nothing in the action touches, are predicted to drift (in the toy runs 84 to 100 percent of still objects
+            move more than 1 cm). <strong>Inconsistent kinematics:</strong> predicted positions and velocities do not agree with each
+            other at the same frame, so no physical motion could produce them; with objects also overlapping by a median of 15 to 34 cm,
+            none of 58 held-out predictions passes the benchmark's checks. A higher weight on still objects and soft position-velocity
+            and overlap penalties were tried on 96 samples and changed the ghost-motion rate little, so the plan puts fixes that hold
+            <em>by construction</em> first and physics penalties second. Each item is a feature to
+            implement in the shared predictor; the ids are for tracking.</p>
+          <p><strong>Since then.</strong> The scaled study's physics iterations built first versions of A1, A2, B1 and B5
+            (<a href="./improved-results-v1.html">Improved Results V1</a>): the share of still objects that its regressor moves fell from 84 to 1 percent and the energy gained from nowhere
+            from 3.8 to 0.5 J per simulation, at an average position error about 11 percent higher. Step-wise prediction
+            (<a href="#WM-F1">F1</a>), corners as outputs, built-in gravity (B2) and built-in joint equations followed in iterations 2 to
+            5 (<a href="#world_model-status">section 4</a>). Objects still pass through each other at speed
+            (<a href="#world_model-collisions">section 11</a>), and errors compound over chained blocks (<a href="#WM-K11">K11</a>).
+            Each item's badge gives its state; items that came from the scaled study say so.</p>
+          <p class="wm-todo-groups">All groups: <a href="#world_model-todo">A ghost motion, B kinematics, C shape and identity</a>
+            (this section) &middot; <a href="#world_model-language-uncertainty">D words, E error bands</a> (8) &middot;
+            <a href="#world_model-collisions">F collisions</a> (11) &middot; <a href="#world_model-backward">G backward questions</a>
+            (12) &middot; <a href="#world_model-data-real">H training data, pretraining and speed, I real scenes</a> (13) &middot;
+            <a href="#world_model-issues">K known issues</a> (14) &middot;
+            <a href="#world_model-tracking">J ideas from tracking and forecasting</a> (15) &middot;
+            <a href="#world_model-coarse-fine">L key events first</a> (5)</p>
+        </div>
+
+        <h4 class="title is-6 wm-subhead">A. Ghost motion: motion needs a cause</h4>
+        <ul class="wm-todo">
+          <li id="WM-A1" data-todo="WM-A1" class="is-first"><span class="wm-todo-id">WM-A1</span><span class="wm-badge-first">first version</span>
+            <strong>Motion gate.</strong> A head predicts whether each object moves at all, \(\hat\mu_i = \sigma(u_i)\), trained on
+            \(m_i = \mathbb{1}\big[\max_t \lVert p^i_t - p^i_0 \rVert \gt 1\,\text{cm}\big]\); the trajectory is the still pose plus the gated change,
+            and objects with \(\hat\mu_i \lt 0.5\) are pinned exactly at inference:
+            \[ \hat Y^i = Y^i_{\text{still}} + \hat\mu_i \big( f_\theta(x)^i - Y^i_{\text{still}} \big), \qquad \mathcal{L}_{\mu} = \mathrm{BCE}(\hat\mu_i, m_i) \]
+            <span class="wm-todo-note">First version: "hold still" in <a href="./improved-results-v1.html">Improved Results V1</a>, a per-object logit, with objects predicted still kept exactly in place. Still objects moved by more than 5 cm fell from 84 to 4 percent for regression and from 70 to 18 percent for flow matching, and the regressor's position error did not rise.</span></li>
+          <li id="WM-A2" data-todo="WM-A2" class="is-first"><span class="wm-todo-id">WM-A2</span><span class="wm-badge-first">first version</span>
+            <strong>Causal-cone penalty.</strong> An object may start moving only once something moving touches it (a support counts).
+            Activation spreads along contacts from the acted objects (and objects already moving at \(t = 0\)); motion outside the
+            cone is penalised. In training the true contacts \(\kappa\) can stand in for \(\hat\kappa\):
+            \[ \zeta^i_0 = \mathbb{1}[i \text{ acted on or moving}], \quad \zeta^i_t = \max\Big(\zeta^i_{t-1},\ \max_j \zeta^j_{t-1}\, \hat\kappa^{ij}_t\Big), \qquad \mathcal{L}_{\text{cause}} = \sum_{t,i} \big(1 - \zeta^i_t\big)\, \big\lVert \hat y^i_t - y^i_{\text{still}} \big\rVert^2 \]
+            <span class="wm-todo-note">A simpler first version is the "cause" rule of <a href="./improved-results-v1.html">Improved Results V1</a>: an object not acted on is penalised for moving before the frame at which it really starts to move, read from the PhysX truth. With hold still and the other rules, objects moved before being touched fell from 95 to 4 percent. The cone over predicted contacts is still to do: it needs no truth, so it also holds at inference.</span>
+            <span class="wm-todo-note">Second version (<a href="./improved-results-v4.html">Improved Results V4</a>, stage 2): the first-law gate holds an object with no cause (not acted on, not moving, not airborne, not touched or about to be hit by a moving neighbour) using the predicted geometry, at inference too and without reading the truth; it was neutral on the four-scene study.</span></li>
+          <li id="WM-A3" data-todo="WM-A3" class="is-first"><span class="wm-todo-id">WM-A3</span><span class="wm-badge-first">first version</span>
+            <strong>Local attention.</strong> Output slots of two objects attend to each other only when their collision boxes are within
+            reach (the distance the fastest object can travel in the horizon), as in graph-network simulators; far objects cannot
+            move each other. With blocks of length \(\tau\) (F1) the reach is short: 1 m per 0.2 s block at 5 m/s.
+            \[ \ell_{ij} = \frac{q_i^\top k_j}{\sqrt d} + b_\phi(g_{ij}) \ \ \text{if}\ \ g_{ij} \le \big(\lVert v_i \rVert + \lVert v_j \rVert\big)\, \tau + \delta, \qquad \ell_{ij} = -\infty \ \ \text{otherwise} \]
+            <span class="wm-todo-note">A soft first version runs in the step-wise models: attention between each object and its 8 nearest neighbours is biased by their box geometry (<a href="#WM-F2">F2</a>, the scaled study's "who is close to whom"); the hard mask by reach is still to do.</span></li>
+          <li id="WM-A4" data-todo="WM-A4" class="is-first"><span class="wm-todo-id">WM-A4</span><span class="wm-badge-first">first version</span>
+            <strong>Exact zeros.</strong> Add an L1 term on still objects' displacement (a squared error tolerates many small drifts), and
+            report the ghost-motion rate next to ADE on every run.
+            <span class="wm-todo-note">Related first version (<a href="./improved-results-v4.html">Improved Results V4</a>, stage 2): full loss weight for objects moving in the truth or in the prediction, the only addition there that lowered both position error (0.269 to 0.262 m) and passing through; a candidate at lower weight.</span></li>
+        </ul>
+
+        <h4 class="title is-6 wm-subhead">B. Kinematics: positions, velocities and physics that agree</h4>
+        <ul class="wm-todo">
+          <li id="WM-B1" data-todo="WM-B1" class="is-first"><span class="wm-todo-id">WM-B1</span><span class="wm-badge-first">first version</span>
+            <strong>Integrate instead of predicting twice.</strong> Predict velocities and spins only and integrate them with the
+            evaluator's trapezoid rule, so positions and velocities agree exactly; keep the position loss on the integrated positions
+            so that integration drift is trained away (\(\mathrm{Exp}\) is the rotation of a rotation vector, \(\omega\) in world axes):
+            \[ \hat p_t = \hat p_{t-1} + \tfrac{\Delta t}{2}\,(\hat v_{t-1} + \hat v_t), \qquad \hat R_t = \mathrm{Exp}\big(\tfrac{\Delta t}{2}\,(\hat\omega_{t-1} + \hat\omega_t)\big)\, \hat R_{t-1} \]
+            <span class="wm-todo-note">First version: "integrate motion" in <a href="./improved-results-v1.html">Improved Results V1</a> predicts accelerations, zero by default, and adds them up from the state just after the action, so positions always match velocities; direction reversals in mid-air fell from 4.5 to 0 per moving object for regression and from 166 to 0 for flow matching. Rotation is still predicted directly; integrating the spin is still to do.</span></li>
+          <li id="WM-B2" data-todo="WM-B2" class="is-done"><span class="wm-todo-id">WM-B2</span><span class="wm-badge-done">done</span>
+            <strong>Free flight follows gravity.</strong> Integrated motion started from zero acceleration, so nothing taught gravity.
+            The construction proposed here is now built in: an object touching nothing falls ballistically from its centre of mass and
+            turns with constant angular momentum, and the network predicts only a correction,
+            \(\hat a^i_t = \big(1 - \hat c^i_t\big)\, \mathbf{g} + r^i_t\) with \(\hat c^i_t\) whether the object touches anything
+            (the floor counts) and \(\mathbf{g} = (0, 0, -9.81)\) m/s²; the penalty stays available if the correction drifts:
+            \[ \mathcal{L}_{\text{ff}} = \sum_{t,i} \Big(1 - \max_j \hat\kappa^{ij}_t\Big) \Big( \big\lVert \tfrac{\hat v^i_{t+1} - \hat v^i_t}{\Delta t} - \mathbf{g} \big\rVert^2 + \big\lVert \hat\omega^i_{t+1} - \hat\omega^i_t \big\rVert^2 \Big) \]
+            <span class="wm-todo-note">Done in <a href="./improved-results-v4.html">Improved Results V4</a> (stage 2) and used by V5: on free flights the built-in motion is within 6 mm of PhysX,
+            and V5's free-fall error is 1.9 m/s² for regression and 2.0 for flow matching (PhysX: 0.02). The 9 to 10 m/s² quoted here
+            earlier came from a faulty measure that counted objects resting on the floor as airborne (PhysX itself scored 9.8 on
+            it).</span></li>
+          <li id="WM-B3" data-todo="WM-B3"><span class="wm-todo-id">WM-B3</span><span class="wm-badge-todo">to do</span>
+            <strong>No energy from nothing.</strong> After the action, kinetic plus potential energy may only fall (friction, inelastic
+            contacts), up to the evaluator's tolerance \(\delta\) (15 percent plus 0.03 J), with \(g = 9.81\) m/s²; the inertia \(I_i\) is
+            given in the object's own frame and the spin in world axes, hence the rotation by \(\hat R^i_t\):
+            \[ E_t = \sum_i \tfrac12 m_i \lVert \hat v^i_t \rVert^2 + \tfrac12\, \hat\omega^{i\top}_t \hat R^i_t I_i \hat R^{i\top}_t\, \hat\omega^i_t + m_i\, g\, \hat z^i_t, \qquad \mathcal{L}_E = \sum_t \mathrm{relu}\big(E_{t+1} - E_t - \delta\big)^2 \]
+            <span class="wm-todo-note">B3 and B4 are also the scaled study's proposal for what its rules leave: with step-wise prediction the energy gained from nowhere is 0.5 to 0.8 J per simulation for the best models, from 2.6 to 3.0 J in one pass (<a href="./improved-results-v2.html">Improved Results V2</a>).</span></li>
+          <li id="WM-B4" data-todo="WM-B4" class="is-tried"><span class="wm-todo-id">WM-B4</span><span class="wm-badge-tried">tried, not kept</span>
+            <strong>Momentum at contacts.</strong> When two objects touch only each other in a frame (no floor or fixed object involved),
+            their momentum changes cancel: \(m_i \Delta \hat v^i_t + m_j \Delta \hat v^j_t \approx 0\); a small soft penalty.
+            <span class="wm-todo-note">Tried (<a href="./improved-results-v4.html">Improved Results V4</a>, stage 2): the third law at impacts, applied only where PhysX itself satisfies it, made every measure worse (position error up 18 percent, toppling recall down to 34 percent).</span></li>
+          <li id="WM-B5" data-todo="WM-B5" class="is-first"><span class="wm-todo-id">WM-B5</span><span class="wm-badge-first">first version</span>
+            <strong>No overlap, no sinking.</strong> Penalise penetration between object parts (the convex parts, not one box per object)
+            beyond 5 mm, and any part below the floor:
+            \(\mathcal{L}_{\text{pen}} = \sum \mathrm{relu}(d^{ij}_t - 5\,\text{mm})^2,\ \mathcal{L}_{\text{floor}} = \sum \mathrm{relu}(-z^{i}_{\text{low},t})^2\).
+            <span class="wm-todo-note">First version: the floor and overlap rules of <a href="./improved-results-v1.html">Improved Results V1</a>, on one box per object. A bug found on 15 October had treated fixed objects stored after the moving ones (most walls, poles and ramps) as points, so overlap with them went unpenalised. The loss on the objects' pieces, with the contact direction kept from before the overlap, is <a href="#WM-F3">F3</a>.</span>
+            <span class="wm-todo-note">Relative overlap (<a href="./improved-results-v4.html">Improved Results V4</a>, stage 2), the depth divided by the moving object's thinnest side, lowers relative passing through by 28 percent at 12 percent more position error; a candidate at lower weight.</span></li>
+          <li id="WM-B6" data-todo="WM-B6"><span class="wm-todo-id">WM-B6</span><span class="wm-badge-todo">to do</span>
+            <strong>Train against the judge.</strong> The benchmark already screens predicted motion with numbers: free-flight position
+            residual 15 mm, velocity residual 0.15 m/s, rotation residual 10 degrees, energy increase, penetration 5 mm. Use the same
+            quantities as hinge losses, so the model is trained on exactly what it is judged by.</li>
+        </ul>
+        <h4 class="title is-6 wm-subhead">C. Shape and identity: what an object token must carry</h4>
+        <div class="content">
+          <p>Same mass, same velocity at the centre of mass: a ball rolls away, a chair slides, tips or stops. In free flight only mass
+            and inertia matter; every difference appears at contacts, through the shape of the contact surface (curved or flat), the
+            support polygon, the height of the centre of mass above it and how the mass is spread. The token therefore needs metric
+            geometry in the object's own frame, tied to the collision shape the simulator uses; category names and appearance only
+            correlate with it. Today's tokens carry bounding boxes, the inertia tensor and centre of mass, a primitive kind, and in the
+            scaled study a set of up to eight convex parts; the toy runs also had learned category, colour and asset ids, which the
+            design drops (C4).</p>
+        </div>
+        <ul class="wm-todo">
+          <li id="WM-C1" data-todo="WM-C1"><span class="wm-todo-id">WM-C1</span><span class="wm-badge-todo">to do</span>
+            <strong>Physical shape descriptors.</strong> Computed once per asset from the collision shape: principal moments and axes of
+            inertia; the resting support polygon and the height \(h\) of the centre of mass above it; the tipping angle toward each edge
+            \(k\) of the polygon, with \(d_k\) the distance from the centre of mass's projection to that edge; and the smallest radius of
+            curvature \(\rho_{\min}\) at the contact, which says whether the object can roll and about which axis (\(r_i\) is half the
+            diagonal of its box):
+            \[ I_i = Q_i\, \mathrm{diag}(\lambda_1, \lambda_2, \lambda_3)\, Q_i^\top, \qquad \theta_k = \arctan \frac{d_k}{h}, \qquad
+               \phi_i = \Big( \frac{\lambda_{1:3}}{m_i r_i^2},\ h,\ \min_k \theta_k,\ \text{support area},\ \rho_{\min} \Big) \]</li>
+          <li id="WM-C2" data-todo="WM-C2"><span class="wm-todo-id">WM-C2</span><span class="wm-badge-todo">to do</span>
+            <strong>Learned metric shape code.</strong> Points sampled on the collision surface with their normals, in the object's frame
+            and in metres, encoded by a small point network trained together with the world model. Never rescaled to a unit sphere and
+            never made rotation-invariant: the pose is given separately, and together they must still say where the legs are relative
+            to the floor. The convex-part set stays.
+            <span class="wm-todo-note">In the scaled study this is a decision still to make, for when boxes and pieces are not enough after F3 to F6 (<a href="#WM-F7">F7</a>); it would also work on real depth data (<a href="#WM-I1">I1</a>).</span></li>
+          <li id="WM-C3" data-todo="WM-C3"><span class="wm-todo-id">WM-C3</span><span class="wm-badge-todo">to do</span>
+            <strong>Pretrained point-cloud features as a semantic channel.</strong> A frozen encoder such as Utonia (a Point Transformer
+            V3 trained without labels on many kinds of point clouds), pooled per object and added to the token. Useful for real scenes and
+            for matching objects to words. Kept only if probes and ablations show a gain: features trained for perception are not trained
+            to encode support polygons or inertia, so check first whether they keep absolute size and the direction of gravity in the
+            object's frame.</li>
+          <li id="WM-C4" data-todo="WM-C4"><span class="wm-todo-id">WM-C4</span><span class="wm-badge-todo">to do</span>
+            <strong>No learned ids, and the tests.</strong> Remove the colour and asset embeddings from the toy model (the scaled study's
+            predictor already has none). If a semantic channel helps, use an open-vocabulary embedding of the object's name or pretrained
+            point-cloud features, dropped at random in training, never a table over the training vocabulary. Then test: assets never seen
+            in training; the same scene with objects reordered, renamed or recoloured (the prediction must not change beyond the
+            reordering); probes of every descriptor for the quantities of WM-C1; and a counterfactual set with the same mass and the
+            same launch on different shapes (ball, box, cylinder, chair), judged against PhysX.</li>
+        </ul>
+        <div class="content">
+          <p><strong>How to add them.</strong> Penalties act on outputs converted back to metres and metres per second, with masses and
+            inertias taken from the object tokens and \(\Delta t = 1/30\) s; inequality constraints are hinge losses; penalty weights
+            ramp up after a warm-up so that they do not stall early learning; every residual is reported on validation next to ADE,
+            the ghost-motion rate and the verdict agreement \(\alpha\). Suggested order: B1 and A1 (constructions, nothing to tune),
+            then A2 and B2 (they need the contact head), then B3 to B6; for shape, C1 and C4 first (cheap and exact), then C2 and C3.</p>
+        </div>
+      </div>
 
       <div class="wm-section wm-math" id="world_model-collisions">
-        <h3 class="title is-4">13. Collisions: objects that pass through each other</h3>
+        <h3 class="title is-4">11. Collisions: objects that pass through each other</h3>
         <div class="content">
           <p>In every model trained so far, with or without the fixes of A and B, a pushed traffic cone ends 8 to 24 cm inside a wall
             instead of bouncing off a pole, and a dropped basketball sinks into a bucket. The geometry is in the inputs, but a model
@@ -1404,17 +1599,36 @@
             object as the shape input and for contact distances (<a href="#WM-C2">C2</a>), which would also work on real depth data
             (<a href="#WM-I1">I1</a>).</li>
         </ul>
+      
+        <div class="content">
+          <p><strong>What worked, in the end.</strong> Two things lowered passing through without hurting accuracy and are in use: the
+            collision guidance while sampling (F6), and V6's contact constraint at generation on the exact part shapes, which pushes
+            overlapping pieces apart and exchanges the separation as momentum (test error 0.443 to 0.434 m, passing through 4.2 to
+            1.9 cm). The no-penetration loss (F3) helped at a small cost in accuracy; the contact law (F4) added nothing measurable; the
+            corner loss (F5) was superseded by corners as outputs. The failure analysis settled the remaining question: given about
+            1,900 pushes of one scene, a plain network stops the cone at the wall, while stronger losses, training on its own rollouts
+            and shorter steps do not; so the missing ingredient at collisions is data on the interaction, not another term. Fast impacts
+            inside a frame (<a href="#WM-K5">K5</a>) and errors compounding over chained blocks (<a href="#WM-K11">K11</a>) remain open.</p>
+        </div>
       </div>
-
       <div class="wm-section wm-math" id="world_model-backward">
-        <h3 class="title is-4">14. Answering backwards: from motion to its causes (to do)</h3>
+        <h3 class="title is-4">12. Answering backwards: properties from a recording, the cause of an end state</h3>
         <div class="content">
           <p>A physics engine runs only forward. To find which mass or friction explains an observed bounce, or which push produced a
             motion, it has to be run many times inside a search (simulation-based inference). A learned simulator can answer such
-            questions in one pass or a few gradient steps, with a spread when the motion does not settle the answer; the same
-            mask placed on the past returns, from how a motion ended, the histories that lead there. Write
-            \(P = \{m_i, \mu_i, e_i\}\) for the physical properties that are hidden, \(G_{\setminus P}\) for the rest of the scene
-            graph and \(Y_{\text{obs}}\) for an observed motion. Both items come from the scaled study.</p>
+            questions in one pass, with a spread when the motion does not settle the answer. Since October this is no longer only a
+            plan: the masked flow model (objective 8) and the regressor's property head (objective 9) are in their first training runs
+            on the subset of section 13, and the checks below are in the code. Write \(P = \{m_i, \mu_i, e_i, I_i\}\) for the properties
+            that are hidden, \(G_{\setminus P}\) for the rest of the scene graph and \(Y_{\text{obs}}\) for an observed motion.</p>
+          <p><strong>Why ask backwards at all.</strong> A picture from outside the laboratory. An aircraft drops off radar, and
+            minutes later it is found crashed. Its last tracked state is known (position, heading, speed, altitude), the wreckage
+            says where and how it ended, and the minutes between are the question. Investigators answer it forward today: candidate
+            histories are flown through a simulator until one matches the evidence, a search by hand over what could have
+            happened. A model that can be asked backwards proposes the histories consistent with the last known state and the end,
+            returns several when the evidence allows several, and each is checked by running it forward. That is the shape of the
+            cause question below, on a much smaller stage: rigid bodies on a table over three seconds, where friction and inelastic
+            contacts erase much of the history, as drag and unknown control inputs do in the air. The aircraft is the motivation
+            for the ability, not a claim about this model.</p>
         </div>
         <figure class="wm-figure" id="world_model-bidirectional">
           <div class="wm-svg-scroll">
@@ -1425,7 +1639,8 @@
             fixed, hidden ones (speckled) start as noise and are filled in. Predicting the motion, inferring the properties or
             the action, inferring from a beginning and continuing, and reconstructing a history from its end are different masks
             of one model (<a href="#WM-G2">G2</a>, <a href="#WM-G3">G3</a>); a regressor answers backward questions only by search
-            or with a second network (<a href="#WM-G1">G1</a>).</figcaption>
+            or with a second head (<a href="#WM-G1">G1</a>, objective 9). In the built model the end is given as the final frame only,
+            not the last chunk shown here.</figcaption>
         </figure>
         <div class="wm-anim" id="anim-bidirectional">
           <canvas width="900" height="360"
@@ -1448,6 +1663,78 @@
             tracked centres with 3 cm noise: what a perfect generative model would return; the histories drawn are the distinct
             ones among 40 samples. Regression shows that posterior's mean. Nothing here is a trained model's output.</p>
         </div>
+
+        <h4 class="title is-6 wm-subhead" id="world_model-capabilities-questions">The questions, as masks of one network</h4>
+        <div class="content">
+          <p>A question for this model is a choice of what is given and what is wanted. <strong>Properties from a recording</strong>
+            (the bidirectional ability): the scene, the action, the start and the whole motion are given; the property tokens of the
+            movable objects start as noise and are filled in. The masked flow model returns samples, which is what an unidentifiable
+            property needs: a mass that shows only in a collision comes back as a spread when there was no collision and as a tight
+            cluster when there was one. The regressor's property head returns one value per object, averaged over the blocks in which
+            the object moves or turns. <strong>The cause of an end state</strong> (the priority): the scene, the properties, the start
+            at rest and the final frame of every object (its pose and velocity at 3 s, nothing of the 3 s before) are given; the action
+            token and the whole motion are generated together, so each sample is one coherent story that starts at \(s_0\) and ends at
+            \(s_T\). "No action" is a possible answer: a rollout in which nothing happened has the zero token, and the model is trained
+            to return it when the end state equals the start. Several samples are the set of causes the end allows; each candidate's
+            action is replayed forward by the same network from the state that action produces, and the one whose replay reaches the
+            given end is kept. <strong>Forward with unknown properties</strong>: some or all property tokens are hidden, the motion is
+            generated from the distribution of properties the model has seen for such objects, and the hidden tokens are narrowed as
+            the motion unfolds; in the regressor, attribute dropout does the same with one answer. <strong>Intervening mid-way</strong>
+            and <strong>counterfactuals</strong> need no new training: stop at a block, apply the second action to the predicted state
+            and restart; edit a property or drop an object and predict again (section 8).</p>
+        </div>
+        \[ P \sim p_\theta\big(P \mid Y_{\text{obs}}, a, G_{\setminus P}\big)\ \text{(properties)}, \qquad
+           (a, Y) \sim p_\theta\big(a, Y \mid s_0, s_T, P, G_{\setminus P}\big)\ \text{(cause)}, \qquad
+           (Y, P_{\text{hidden}}) \sim p_\theta\big(\cdot \mid a, s_0, P_{\text{given}}, G_{\setminus P}\big)\ \text{(unknown properties)} \]
+        <figure class="wm-figure">
+          <div class="wm-svg-scroll">
+            <img class="wm-web-figure" src="./static/images/world_model/web_cap_questions.svg" width="900" height="600"
+                 alt="Six rows, one per question: forward, properties from a recording, cause from start and end, forward with unknown properties, intervene mid-way, counterfactual; for each the given and wanted tokens, how the model answers it, and whether it exists, is in its first training run, or is to be trained.">
+          </div>
+          <figcaption>Six questions as given (blue) and generated (amber) tokens, how each is answered, and its status on 30 October.</figcaption>
+        </figure>
+
+        <h4 class="title is-6 wm-subhead" id="world_model-capabilities-build">What is built</h4>
+        <div class="content">
+          <p>Both networks share the tokens and the encoder of section 5. The <strong>masked flow model</strong> is the one-shot
+            configuration (23 million parameters) with three kinds of token that can be hidden: a property token per movable object
+            (six numbers: log mass, friction, restitution, the three diagonal inertia terms, standardised), the action token (42 numbers
+            and a pointer to the acted object) and the fifteen motion patches. The end state enters the object tokens as a condition
+            through its own input layer. The <strong>step-wise regressor</strong> keeps its design and gains attribute dropout, a
+            property head on the object tokens and an input for a block of observed motion. Both train on the subset of section 13.
+            A review of the code on 29 and 30 October by a second model found and we fixed five problems, each now covered by a
+            test: hidden properties were still reaching the built-in motion and the generation rules (they are now replaced in the one
+            table every part reads); the action token carried the impulse per unit mass, so the mass was inside the action; the
+            decoded action was validated on its type, object and velocity only (now on every parameter, with limits, and a pointer at
+            no object is invalid); the forward replay of a candidate started from rest instead of from the state the candidate's action
+            produces; and the end-state checks compared positions only (now position, orientation, velocity and spin). The code map is
+            <code>docs/MASKED_WM.md</code> in the simagent checkout.</p>
+        </div>
+        <figure class="wm-figure">
+          <div class="wm-svg-scroll">
+            <img class="wm-web-figure" src="./static/images/world_model/web_cap_build.svg" width="900" height="584"
+                 alt="One shared encoder feeding three heads: the step-wise regressor with attribute dropout and a property head, the masked flow model over property, action and motion-chunk tokens, and a text head still to come; on the right how each is checked and what new data adds.">
+          </div>
+          <figcaption>What is built: one encoder, two networks in training, the text head still to come. Blue exists, the lighter blue
+            is in its first run, dashed amber comes later.</figcaption>
+        </figure>
+
+        <h4 class="title is-6 wm-subhead">How it is checked</h4>
+        <div class="content">
+          <p>During training, validation answers every question on held-out rollouts: the forward error; the property errors against
+            predicting the training mean, on objects whose motion carries evidence; for the cause, the accuracy of the type and of the
+            acted object, the error of every parameter the true type has, the share of decoded actions that are valid, how close the
+            generated history ends to the given end (position, orientation, velocity, spin) and how close the network's own replay of
+            the generated action ends, for the first sample and for the candidate kept among several. The independent check is PhysX:
+            a script re-runs the decoded action from the same rest start, with the rollout's recorded property change or removed object
+            restored, next to the true action (the ceiling) and no action (the floor), and asks whether the recorded end is reproduced
+            within 5 cm, 15 degrees, 0.1 m/s and 0.5 rad/s. It runs after the first checkpoints exist, on one family of test scenes with
+            qualitative cases (the decoded action next to the true one, the replayed motion next to the recording).</p>
+          <p><strong>What this does not do yet.</strong> The start is always the rest state (the stored rollouts start settled), only the
+            first of up to two actions is inferred, a removed object is not a cause the model can name, and the kept candidate is the
+            most consistent of the samples, not the most likely history; an exact likelihood under the flow is possible but costs
+            several times the sampling and is not planned.</p>
+        </div>
         <ul class="wm-todo">
           <li id="WM-G1" data-todo="WM-G1"><span class="wm-todo-id">WM-G1</span><span class="wm-badge-todo">to do</span>
             <strong>Backward answers from the forward model, as a baseline.</strong> On the test what-if simulations, where a mass,
@@ -1458,49 +1745,55 @@
             motion:
             \[ \hat P = \arg\min_{P \in \mathcal{C}} \big\lVert f_\theta(G_{\setminus P}, P, a) - Y_{\text{obs}} \big\rVert_w^2, \qquad
                P \leftarrow P - \eta\, \nabla_P \big\lVert f_\theta(G_{\setminus P}, P, a) - Y_{\text{obs}} \big\rVert_w^2 \]</li>
-          <li id="WM-G2" data-todo="WM-G2"><span class="wm-todo-id">WM-G2</span><span class="wm-badge-todo">to do</span>
-            <strong>One model for forward and backward questions.</strong> Train one generative model on properties, action and motion
-            together, \(X = (P, a, Y)\), hiding a random part \(m\) in each step: the motion in about 60 percent of steps, some
-            properties in 20, the action in 10, a mix in 10. Hidden parts are noised and denoised, known parts are given clean, which is
-            objective (2) on the hidden part only:
-            \[ X_\sigma = m \odot \big((1 - \sigma) X + \sigma \varepsilon\big) + (1 - m) \odot X, \qquad
-               \mathcal{L}_{\text{mask}} = \mathbb{E}\, \big\lVert m \odot \big(v_\theta(X_\sigma, \sigma, m, G_{\setminus P}) - (\varepsilon - X)\big) \big\rVert^2 \]
-            One denoising run then returns masses, frictions or the action from an observed motion,
+          <li id="WM-G2" data-todo="WM-G2" class="is-run"><span class="wm-todo-id">WM-G2</span><span class="wm-badge-run">first run training</span>
+            <strong>One model for forward and backward questions.</strong> One generative model on properties, action and motion
+            together, \(X = (P, a, Y)\), hiding a random part \(m\) in each step: objective (8) of section 3. As built, the mixture is
+            the motion in 40 percent of the examples, the properties in 15, the action and motion with the end given in 15, motion and
+            some properties in 15, mixed in 15; one denoising run returns masses, frictions or the action from an observed motion,
             \(P \sim p_\theta(P \mid Y_{\text{obs}}, a, G_{\setminus P})\), with a spread where the motion does not determine them.
             With the motion hidden it is the forward model of section 3; hiding only the later frames conditions on a known beginning,
-            as Diffusion Forcing does (objective 4).</li>
-          <li id="WM-G3" data-todo="WM-G3"><span class="wm-todo-id">WM-G3</span><span class="wm-badge-todo">to do</span>
+            as Diffusion Forcing does.
+            <span class="wm-todo-note">First run since 29 October (two arms, with and without the cycle term), 40,000 steps on the subset
+            of section 13; the regressor's property head (objective 9) runs alongside as the one-answer version. Mid-run, the property
+            error from a recording had fallen well below the mean baseline on validation rollouts; the numbers go on a results page when
+            the runs finish.</span></li>
+          <li id="WM-G3" data-todo="WM-G3" class="is-run"><span class="wm-todo-id">WM-G3</span><span class="wm-badge-run">first run training</span>
             <strong>Backwards in time: from the end of a motion to the histories that led to it.</strong> The question a collapsed
-            structure asks of its rubble, and the action item of the 20 October meeting (<a href="./scaled-results.html#mp-todo">scaled
-            results, item 4</a>): given the scene's shapes, the action and the final state, which motion produced it. In the model of
-            G2 it is one more mask: the last chunk of frames is given, the properties and every earlier chunk are hidden and generated
-            together, so each sample is a complete history that ends in the observed state and agrees with one set of properties.
-            Friction and inelastic collisions destroy information, so an end state rarely fixes its history: the spread of the
-            samples says how much it does, and the training data decides which of the allowed histories count as likely (a model
-            that has seen such collapses offers the ways it has seen them happen). Hiding the start poses and the action as well asks
-            the meeting's full question, the scene graph at \(t = 0\). With Diffusion Forcing's per-chunk noise levels (objective 4)
-            the hidden chunks can be cleaned from the end backwards, the mirror image of continuing a known beginning. Check on test
-            rollouts: hide all but the last 0.3 s, compare the sampled histories with the stored one (ADE, first contacts, the task's
-            checks run on the sampled history) and with the set of histories the physics engine finds by search over properties and
-            actions, separately for motions with and without collisions. The rubble demo's test pulls already answer question 2 on
-            real piles (hidden masses and pins from an observed pull); this asks the same of a pile that has already come down.
-            \[ \hat Y_{1:K-1},\ \hat P \sim p_\theta\big(Y_{1:K-1}, P \mid Y_K, a, G_{\setminus P}\big), \qquad
-               \sigma_k \text{ lowered from } k = K-1 \text{ down to } k = 1 \]</li>
+            structure asks of its rubble, or an aircraft lost from radar of its wreckage (the opening of this section), and the
+            action item of the 20 October meeting (<a href="./scaled-results.html#mp-todo">scaled
+            results, item 4</a>): given the scene's shapes, the properties and the final state, which action and which motion produced
+            it. In the model of G2 it is one more mask: the final frame is given as a condition, the action token and every motion patch
+            are hidden and generated together, so each sample is a complete history that ends in the observed state. Friction and
+            inelastic collisions destroy information, so an end state rarely fixes its history: the spread of the samples says how
+            much it does, and the training data decides which of the allowed histories count as likely. Hiding the properties as well
+            (the "inverse" mask) asks for the properties and the cause at once.
+            <span class="wm-todo-note">As built on 30 October: the end is the final frame, not the last 0.2 s (which would reveal the
+            speed of approach); the whole motion is generated, so the generated history's own end is a real check against the given
+            one; candidates are ranked by the network's forward replay of their action and checked in PhysX by the replay script. Not
+            yet: the mirror-image sampler that cleans the hidden patches from the end backwards, and hiding the start poses as well
+            (the meeting's full question).</span>
+            \[ \hat Y_{1:T},\ \hat a \sim p_\theta\big(Y, a \mid s_0, s_T, P, G_{\setminus P}\big) \]</li>
         </ul>
-        <div class="content">
-          <p><strong>Counterfactuals about what was observed.</strong> Section 8 edits a scene whose properties are all known. For a
-            scene that was only observed, a counterfactual takes the three steps of causal inference (abduction, action, prediction):
-            infer what is hidden from what was seen (G1 or G2), change one thing, and predict forward with what was inferred:</p>
-        </div>
-        \[ \hat P \sim p_\theta\big(P \mid Y_{\text{obs}}, a, G_{\setminus P}\big), \qquad Y' \sim p_\theta\big(Y \mid G'_{\setminus P}, \hat P, a'\big) \]
-        <div class="content">
-          <p>The spread of \(\hat P\) carries into the spread of \(Y'\) (<a href="#WM-E1">E1</a>). PhysX checks the answer by
-            simulating the edited scene with the true properties, as in the benchmark's twin pairs.</p>
+
+        <h4 class="title is-6 wm-subhead">At a glance</h4>
+        <div class="table-container">
+          <table class="table is-narrow is-fullwidth wm-table">
+            <thead><tr><th>Question</th><th>Now, no training</th><th>In the first training runs (October 2026)</th><th>Needs the next data round</th></tr></thead>
+            <tbody>
+              <tr><td>Forward</td><td>yes (the step-wise regressor as it is)</td><td>the masked flow model's forward question, for comparison</td><td></td></tr>
+              <tr><td>Properties from a recording</td><td></td><td>masked flow model: property tokens, samples; regressor: property head, one value</td><td></td></tr>
+              <tr><td>Cause of an end state (action and motion)</td><td></td><td>masked flow model: the set of fitting action-and-motion pairs, replay-checked</td><td></td></tr>
+              <tr><td>Forward with unknown properties</td><td></td><td>masked flow model: masks; regressor: attribute dropout</td><td></td></tr>
+              <tr><td>Intervene mid-way</td><td>by restart from the predicted state</td><td></td><td>an action starting inside one rollout (timed actions, from the motion pilot)</td></tr>
+              <tr><td>Counterfactual</td><td>yes (edits are training inputs; measure on the 50M model)</td><td>a spread</td><td></td></tr>
+              <tr><td>Events in time</td><td>contact head only</td><td></td><td>event head: type and time within the block; engine-written event records as targets</td></tr>
+              <tr><td>Text</td><td>extractor and templates, round-trip checked (section 8, to do)</td><td></td><td>decoder on the slot tokens; written descriptions</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
-
       <div class="wm-section wm-math" id="world_model-data-real">
-        <h3 class="title is-4">15. Training data, speed and real scenes (to do)</h3>
+        <h3 class="title is-4">13. Training data, pretraining, speed and real scenes</h3>
         <h4 class="title is-6 wm-subhead">H. What the model learns from, and how fast it runs</h4>
         <ul class="wm-todo">
           <li id="WM-H1" data-todo="WM-H1"><span class="wm-todo-id">WM-H1</span><span class="wm-badge-todo">to do</span>
@@ -1554,10 +1847,178 @@
         </ul>
         <p class="wm-note">H1 to H3 and I1, I2 come from the scaled study; its experiment status and open fixes are on the
           <a href="./scaled-results.html#mp-todo">Scaled results</a> page.</p>
+      
+        <h4 class="title is-6 wm-subhead" id="world_model-capabilities-data">What one stored simulation contains</h4>
+        <div class="content">
+          <p>Every stored simulation is a scene (objects with shape, size, mass, friction, restitution and inertia; joints; the floor),
+            one or two actions, all applied at \(t = 0\), and the result: position, rotation, velocity and spin of every object at 30
+            frames per second for 3 s, the pairs of objects touching in each frame, every contact episode between two objects with
+            its start and end at the engine's 1/1920 s resolution, an energy audit and the verdict of each of the scene's tasks. So
+            the timing of contacts between objects is in the data exactly. Landings, topples, slides and coming to rest are not
+            events in the data: they are computed from the states afterwards with thresholds (the Ablations tab's event tags are
+            made this way). Per scene there are about 580 simulations: random actions and actions refined by search make three
+            quarters, one in nine is an action sweep, one in fourteen is an attribute sweep (one object's mass, friction or
+            restitution set to each of seven values: the counterfactual training signal), about one in 250 removes an object. No
+            stored action starts after \(t = 0\), and the only simulations that begin from a mid-motion state are the rubble demo's
+            brace / let-go set and the V7 engine continuations, both without a new action. The next subsection checks the generator against what the new heads need.</p>
+        </div>
+        <figure class="wm-figure">
+          <div class="wm-svg-scroll">
+            <img class="wm-web-figure" src="./static/images/world_model/web_cap_data.svg" width="900" height="455"
+                 alt="One stored simulation: the scene and its actions at t = 0 on the left; a 3 s timeline with the stored states, touching pairs, contact episodes and task verdicts, and the derived events; the mix of simulations per scene on the right; and the three things the next data round adds.">
+          </div>
+          <figcaption>What one stored simulation contains: recorded exactly (blue), derived afterwards (dashed grey), and what the
+            next data round adds (amber).</figcaption>
+        </figure>
+
+        <h4 class="title is-6 wm-subhead" id="world_model-capabilities-events">Does the generator record what the heads need?</h4>
+        <div class="content">
+          <p>Checked against <code>sim.py</code>, the data README, the dataset-expansion plan (section 4, timestamped events) and the
+            motion pilot's event tags (<code>pilot_events.py</code>). What exists today is enough to train the masked flow model and a first event
+            head: contact start and end between objects are exact, and landings, topples, rest and container entry can be derived
+            with the pilot's thresholds (topple at 45 degrees, falling below 0.5 m/s downwards, rest below 0.05 m/s for 0.5 s).
+            Two gaps are in the generator itself, not in the plan: the peak impulse stored with each contact episode is read when
+            the contact is first found, before force builds, so it is zero in 79 percent of episodes and cannot serve as an
+            impact-strength target until the read is moved later in the episode; and contact with the floor is present in about
+            two thirds of sampled records although the README says none, so its coverage has to be audited per data source before
+            floor contacts are used as targets. The planned logging (verified floor contacts, impulses across the episode, contact
+            points and normals, generator-emitted events with an evidence contract, persisted horizons) covers the rest of what
+            the event head and the templates need. One thing to add to the plan: a start time on the action record, so that the
+            pilot's timed-intervention branches become a training set for actions inside a rollout and not only previews.</p>
+        </div>
+        <figure class="wm-figure">
+          <div class="wm-svg-scroll">
+            <img class="wm-web-figure" src="./static/images/world_model/web_cap_events.svg" width="900" height="530"
+                 alt="Ten rows of what the heads need (contact timing, floor contact, impact strength, derived events, slides, timed actions, many actions per start, names, descriptions, horizons) against what is recorded today, what the planned data round adds and what is still missing, with green, amber and red dots.">
+          </div>
+          <figcaption>The generator against the heads' needs: green available, amber partly or derived with thresholds, red absent.</figcaption>
+        </figure>
+
+        <h4 class="title is-6 wm-subhead" id="world_model-subset">The training subset of the backward runs</h4>
+        <div class="content">
+          <p>The scaled study's generator stores several hundred simulations per training scene, far more than the backward questions
+            need from one scene. The first runs of objectives (8) and (9) use a fixed subset of the co-author's round-3 tensors: per scene
+            the no-op, every removal counterfactual, up to 14 attribute-sweep rollouts kept as whole sweeps (one action under seven
+            masses, frictions, restitutions or floor frictions, the counterfactual signal for the property question), up to 8 aimed
+            collisions, and random other rollouts up to 40. That gives 14,194 training rollouts over 357 scenes (attribute sweeps 4,557,
+            removals 2,088, random 1,994, action sweeps 1,696, refined 1,456, aimed 1,240, free 834, no-op 329; first actions: push 4,691,
+            throw 3,435, spin 2,121, drop 1,621, place 1,032, strike 570, pull 229, mechanisms 166, none 329) and 5,547 validation rollouts
+            over 140 scenes by the same rule. The scenes are the generator's families: the MOVi and Physion scenes rebuilt in PhysX with
+            our actions (2,470 rollouts), jenga (1,000), toss (840), mechanisms (800), dominoes (520), the Physion-style families, rooms,
+            playground, tabletop and the scanned-room twins. Every rollout has its 90 frames; the median scene has five movable
+            objects.</p>
+        </div>
+
+        <h4 class="title is-6 wm-subhead" id="world_model-pretraining">Pretraining on MOVi and Physion: what it trains, and what it cannot</h4>
+        <div class="content">
+          <p>The co-author's recipe for the one-pass and step-wise models was to train first on the public MOVi and Physion clips,
+            converted to our format, then on our simulations; on the one-pass models this lowered the validation error by 10 to 14
+            percent (section 4). The clips are 3,745 recordings, one per scene (MOVi-A 1,895, MOVi-B 952, Physion 898 across six
+            scenarios), 1.2 to 3 s long, in which every object starts with its recorded velocity and nothing is done to the scene: no
+            action, ever. MOVi carries real properties, masses from density and size and two materials (friction 0.4 or 0.8, restitution
+            0.3 or 0.7); the Physion records carry masses but placeholder friction and restitution, which the training treats as unknown.
+            The figure says, block by block, what such clips can train in each network and what they cannot touch: everything about the
+            scene, the motion, contacts and the properties learns from them; everything about actions sees only the no-action token, and
+            the cause question learns one answer, that nothing was done. Our simulations have to supply the rest: pushes, throws,
+            strikes and pulls, mechanisms, several actions at once, and sweeps of properties over continuous ranges. Before the
+            pretraining runs the clip tensor needs rebuilding with the two fields added in October (the start state after the action
+            and the physical action encoding); the converters and records are in place.</p>
+        </div>
+        <figure class="wm-figure">
+          <div class="wm-svg-scroll">
+            <img class="wm-web-figure" src="./static/images/world_model/web_pretrain.svg" width="900" height="600"
+                 alt="Left, what the MOVi and Physion clips contain; middle and right, the blocks of the step-wise regressor and of the masked flow model, each marked as trained by the clips, trained only on the no-action token, or untouched because the clips have no actions, mechanisms or property sweeps.">
+          </div>
+          <figcaption>Pretraining on the clips: blue blocks learn from them, amber blocks see only the no-action token, dashed grey
+            blocks are reached by nothing in the clips and wait for our simulations.</figcaption>
+        </figure>
+      </div>
+      <div class="wm-section wm-math" id="world_model-issues">
+        <h3 class="title is-4">14. Known issues</h3>
+        <div class="content">
+          <p>Bugs and blind spots found while reading the code and the results, with their state. Numbers affected by an open issue
+            should be checked before they are compared.</p>
+        </div>
+        <ul class="wm-todo">
+          <li id="WM-K1" data-todo="WM-K1" class="is-open"><span class="wm-todo-id">WM-K1</span><span class="wm-badge-open">open</span>
+            <strong>The one-pass DDPM sampler divides by nearly zero at its first step.</strong> In the scaled study's one-pass
+            DDPM member, DDIM starts at \(t = 1\), where the cosine schedule gives \(\bar\alpha(1) \approx 2 \times 10^{-15}\) in
+            single precision, so the first estimate \(\hat Y_0 = \big(Y_t - \sqrt{1 - \bar\alpha}\, \hat\varepsilon\big) / \sqrt{\bar\alpha}\)
+            divides by about \(4 \times 10^{-8}\) and the clamp to \(\pm 6\) saturates it. Its reported failure (3.0 m average error,
+            2.4 m drift of objects that never move) is more likely this bug than a property of diffusion. The block diffusion added in
+            V5 clamps \(\bar\alpha \ge 10^{-4}\); the one-pass sampler still does not. Fix: the same clamp, then re-evaluate the
+            one-pass member.
+            <span class="wm-todo-note">A separate finding (<a href="./improved-results-v5.html">Improved Results V5</a>): block diffusion that predicts the noise fails when blocks are chained,
+            because the noise cannot be predicted at low noise levels and each block ends with leftover noise that the next block starts
+            from; predicting the clean block or v trains, but trails flow matching (0.748 and 0.804 m against 0.555 m).</span></li>
+          <li id="WM-K2" data-todo="WM-K2" class="is-done"><span class="wm-todo-id">WM-K2</span><span class="wm-badge-done">fixed</span>
+            <strong>No gravity in free flight.</strong> Integrated motion started from zero acceleration and nothing taught
+            gravity. Fixed by built-in gravity (<a href="#WM-B2">B2</a>, in V4 and V5). The 9 to 10 m/s² error quoted here before came
+            from a faulty measure that counted objects resting on the floor as airborne (PhysX scored 9.8 on it); the corrected free-fall
+            error of V5 regression is 1.9 m/s², against 0.02 for PhysX.</li>
+          <li id="WM-K3" data-todo="WM-K3" class="is-done"><span class="wm-todo-id">WM-K3</span><span class="wm-badge-done">fixed</span>
+            <strong>The position update was off by half an acceleration step.</strong> Positions were summed with end-of-frame
+            velocities, \(p_t = p_{t-1} + v_t \Delta t\), which misplaces every frame by \(\tfrac12 a \Delta t^2\) under a constant
+            acceleration, 5.5 mm per frame under gravity. Fixed with the built-in motion of the scaled study (V4): the trapezoid rule
+            \(p_t = p_{t-1} + \tfrac{\Delta t}{2}(v_{t-1} + v_t)\), exact for constant acceleration and the rule the benchmark's own
+            motion screen uses.</li>
+          <li id="WM-K4" data-todo="WM-K4" class="is-open"><span class="wm-todo-id">WM-K4</span><span class="wm-badge-open">open</span>
+            <strong>Orientation and spin do not have to agree.</strong> Orientation is predicted as a change from the post-action pose
+            and spin separately, so no rotation of the object need produce the predicted orientations. Fix: integrate the spin
+            (<a href="#WM-B1">B1</a>).
+            <span class="wm-todo-note">Tested in <a href="./improved-results-v4.html">Improved Results V4</a>: orientation integrated from the predicted spin lowers regression's position error a little but gives the worst tilt; velocity and spin taken from the predicted motion lower the tilt error but cost 11 percent position error. Neither was kept; corners as outputs is the rotation change in use.</span></li>
+          <li id="WM-K5" data-todo="WM-K5" class="is-open"><span class="wm-todo-id">WM-K5</span><span class="wm-badge-open">open</span>
+            <strong>A bounce cannot happen inside a frame.</strong> The model outputs a smooth acceleration per frame, but a bounce is a
+            velocity jump within one; at 30 frames per second a cone at 4.5 m/s moves 15 cm between frames, more than a wall's thickness,
+            so a smooth path passes through or averages the two outcomes. F1 to F6 address parts of it
+            (<a href="#world_model-collisions">section 11</a>); ending a block at the predicted time of impact is a further option to
+            discuss.
+            <span class="wm-todo-note">Still so in V5: every model pushes the traffic cone into the wall in the clips. The <a href="./failure-analysis.html">Failure analysis</a> shows that with about 1,900 pushes of that one scene a plain model stops the cone at the wall, so the moment of contact can be learned from data.</span></li>
+          <li id="WM-K6" data-todo="WM-K6" class="is-done"><span class="wm-todo-id">WM-K6</span><span class="wm-badge-done">fixed</span>
+            <strong>The first overlap rule could not see thin obstacles.</strong> Iteration 1 checked axis-aligned boxes every third
+            frame, 45 cm apart at 4.5 m/s, and treated fixed objects stored after the moving ones (most walls, poles and ramps) as
+            points. The bug was fixed on 15 October and iteration 3 checks pieces every frame (<a href="#WM-F3">F3</a>); Improved Results
+            V1's overlap numbers undercount until they are recomputed.</li>
+          <li id="WM-K7" data-todo="WM-K7" class="is-done"><span class="wm-todo-id">WM-K7</span><span class="wm-badge-done">fixed</span>
+            <strong>The cause rule reads the answer.</strong> Iteration 1's rule against motion before contact uses the true moment each
+            object starts to move, so it cannot act at inference or on a scene without a simulation. Fix: the causal cone over predicted
+            contacts (<a href="#WM-A2">A2</a>).
+            <span class="wm-todo-note">Addressed in <a href="./improved-results-v4.html">Improved Results V4</a> (stage 2): the first-law gate decides from the predicted geometry and needs no truth (A2); on the four-scene study it was neutral.</span></li>
+          <li id="WM-K8" data-todo="WM-K8" class="is-open"><span class="wm-todo-id">WM-K8</span><span class="wm-badge-open">open</span>
+            <strong>No measure catches missing motion.</strong> Every violation measure punishes moving too much (overlap, bystanders,
+            energy), none moving too little, so a timid model that barely moves scores well on all of them. Report, for objects that
+            really move, the ratio of predicted to true path length; a timid model has \(\rho \lt 1\):
+            \[ \rho = \frac{1}{|\mathcal{M}|} \sum_{i \in \mathcal{M}} \frac{\sum_t \lVert \hat p^i_{t+1} - \hat p^i_t \rVert}{\sum_t \lVert p^i_{t+1} - p^i_t \rVert} \]
+            <span class="wm-todo-note">The <a href="./failure-analysis.html">Failure analysis</a> now counts a related case: a quarter of the objects that should be knocked away are barely moved. A standard measure is still missing.</span></li>
+          <li id="WM-K9" data-todo="WM-K9" class="is-open"><span class="wm-todo-id">WM-K9</span><span class="wm-badge-open">open</span>
+            <strong>Single-sample distance errors favour regression.</strong> A regressor predicts the average of the possible
+            futures, a generative member draws one of them and is penalised for it, so ADE ranks the two unfairly. Compare on verdict
+            agreement \(\alpha\), and score generative members with several samples (best of \(k\), or the energy score
+            \(\mathbb{E}\lVert X - y \rVert - \tfrac12 \mathbb{E}\lVert X - X' \rVert\)).
+            <span class="wm-todo-note">In part: verdict agreement and, in V5, reviewers judging predicted motion now accompany ADE; generative members are still scored with one sample.</span></li>
+          <li id="WM-K10" data-todo="WM-K10" class="is-done"><span class="wm-todo-id">WM-K10</span><span class="wm-badge-done">fixed</span>
+            <strong>Energy formula on this page.</strong> B3 used the inertia in the object's frame with the spin in world axes; it now
+            rotates the inertia into world axes.</li>
+          <li id="WM-K11" data-todo="WM-K11" class="is-open"><span class="wm-todo-id">WM-K11</span><span class="wm-badge-open">open</span>
+            <strong>Errors compound over chained blocks: the main failure.</strong> Started from the true state, each 0.2 s block of V5
+            regression is accurate (about 2 cm in free motion, 6 cm at a collision); fed back block after block, the error grows to about
+            1.5 m by 3 s, and with the true speed restored at every block it stays at 18 cm. Speed is what is imprecise (0.1 to 0.5 m/s
+            per block), and the loss counts speed errors about four times less than position. In a linear picture, with
+            \(\delta^p_b, \delta^v_b\) the position and speed errors a block adds and \(\tau = 0.2\) s, an early speed error counts once
+            for every block that follows:
+            \[ e^p_{b+1} = e^p_b + \tau\, e^v_b + \delta^p_b, \qquad e^v_{b+1} = e^v_b + \delta^v_b \qquad \Rightarrow \qquad
+               e^p_B = \sum_{b \lt B} \delta^p_b + \tau \sum_{b \lt B} (B - 1 - b)\, \delta^v_b \]
+            <span class="wm-todo-note">From the <a href="./failure-analysis.html">Failure analysis</a>: chained-block training and DAgger did not help; weighting speed errors ten times
+            more, and training eight times longer on one scene, are being tested. A design that stops the drift at the next key event,
+            the coarse pass first, is proposed in <a href="#world_model-coarse-fine">section 5</a> (L1 to L4).</span></li>
+        </ul>
+        <p class="wm-note">Resolved since first noted: the Scaled results planning tables showed 0 percent in every cell before their
+          runs finished (now filled in), and models were chosen and reported on the same validation scenes (test results are now on
+          held-out test tasks).</p>
       </div>
 
       <div class="wm-section wm-math" id="world_model-tracking">
-        <h3 class="title is-4">16. Borrowed from tracking, detection and forecasting (ideas to discuss)</h3>
+        <h3 class="title is-4">15. Borrowed from tracking, detection and forecasting (ideas to discuss)</h3>
         <div class="content">
           <p>Predicting a trajectory is regression of 3D positions, orientations and velocities over time, close to what point
             tracking, object detection and trajectory forecasting optimise in pixels or on maps. Three of their tools are already in
@@ -1634,283 +2095,6 @@
         </ul>
       </div>
 
-      <div class="wm-section wm-math" id="world_model-issues">
-        <h3 class="title is-4">17. Known issues</h3>
-        <div class="content">
-          <p>Bugs and blind spots found while reading the code and the results, with their state. Numbers affected by an open issue
-            should be checked before they are compared.</p>
-        </div>
-        <ul class="wm-todo">
-          <li id="WM-K1" data-todo="WM-K1" class="is-open"><span class="wm-todo-id">WM-K1</span><span class="wm-badge-open">open</span>
-            <strong>The one-pass DDPM sampler divides by nearly zero at its first step.</strong> In the scaled study's one-pass
-            DDPM member, DDIM starts at \(t = 1\), where the cosine schedule gives \(\bar\alpha(1) \approx 2 \times 10^{-15}\) in
-            single precision, so the first estimate \(\hat Y_0 = \big(Y_t - \sqrt{1 - \bar\alpha}\, \hat\varepsilon\big) / \sqrt{\bar\alpha}\)
-            divides by about \(4 \times 10^{-8}\) and the clamp to \(\pm 6\) saturates it. Its reported failure (3.0 m average error,
-            2.4 m drift of objects that never move) is more likely this bug than a property of diffusion. The block diffusion added in
-            V5 clamps \(\bar\alpha \ge 10^{-4}\); the one-pass sampler still does not. Fix: the same clamp, then re-evaluate the
-            one-pass member.
-            <span class="wm-todo-note">A separate finding (<a href="./improved-results-v5.html">Improved Results V5</a>): block diffusion that predicts the noise fails when blocks are chained,
-            because the noise cannot be predicted at low noise levels and each block ends with leftover noise that the next block starts
-            from; predicting the clean block or v trains, but trails flow matching (0.748 and 0.804 m against 0.555 m).</span></li>
-          <li id="WM-K2" data-todo="WM-K2" class="is-done"><span class="wm-todo-id">WM-K2</span><span class="wm-badge-done">fixed</span>
-            <strong>No gravity in free flight.</strong> Integrated motion started from zero acceleration and nothing taught
-            gravity. Fixed by built-in gravity (<a href="#WM-B2">B2</a>, in V4 and V5). The 9 to 10 m/s² error quoted here before came
-            from a faulty measure that counted objects resting on the floor as airborne (PhysX scored 9.8 on it); the corrected free-fall
-            error of V5 regression is 1.9 m/s², against 0.02 for PhysX.</li>
-          <li id="WM-K3" data-todo="WM-K3" class="is-done"><span class="wm-todo-id">WM-K3</span><span class="wm-badge-done">fixed</span>
-            <strong>The position update was off by half an acceleration step.</strong> Positions were summed with end-of-frame
-            velocities, \(p_t = p_{t-1} + v_t \Delta t\), which misplaces every frame by \(\tfrac12 a \Delta t^2\) under a constant
-            acceleration, 5.5 mm per frame under gravity. Fixed with the built-in motion of the scaled study (V4): the trapezoid rule
-            \(p_t = p_{t-1} + \tfrac{\Delta t}{2}(v_{t-1} + v_t)\), exact for constant acceleration and the rule the benchmark's own
-            motion screen uses.</li>
-          <li id="WM-K4" data-todo="WM-K4" class="is-open"><span class="wm-todo-id">WM-K4</span><span class="wm-badge-open">open</span>
-            <strong>Orientation and spin do not have to agree.</strong> Orientation is predicted as a change from the post-action pose
-            and spin separately, so no rotation of the object need produce the predicted orientations. Fix: integrate the spin
-            (<a href="#WM-B1">B1</a>).
-            <span class="wm-todo-note">Tested in <a href="./improved-results-v4.html">Improved Results V4</a>: orientation integrated from the predicted spin lowers regression's position error a little but gives the worst tilt; velocity and spin taken from the predicted motion lower the tilt error but cost 11 percent position error. Neither was kept; corners as outputs is the rotation change in use.</span></li>
-          <li id="WM-K5" data-todo="WM-K5" class="is-open"><span class="wm-todo-id">WM-K5</span><span class="wm-badge-open">open</span>
-            <strong>A bounce cannot happen inside a frame.</strong> The model outputs a smooth acceleration per frame, but a bounce is a
-            velocity jump within one; at 30 frames per second a cone at 4.5 m/s moves 15 cm between frames, more than a wall's thickness,
-            so a smooth path passes through or averages the two outcomes. F1 to F6 address parts of it
-            (<a href="#world_model-collisions">section 13</a>); ending a block at the predicted time of impact is a further option to
-            discuss.
-            <span class="wm-todo-note">Still so in V5: every model pushes the traffic cone into the wall in the clips. The <a href="./failure-analysis.html">Failure analysis</a> shows that with about 1,900 pushes of that one scene a plain model stops the cone at the wall, so the moment of contact can be learned from data.</span></li>
-          <li id="WM-K6" data-todo="WM-K6" class="is-done"><span class="wm-todo-id">WM-K6</span><span class="wm-badge-done">fixed</span>
-            <strong>The first overlap rule could not see thin obstacles.</strong> Iteration 1 checked axis-aligned boxes every third
-            frame, 45 cm apart at 4.5 m/s, and treated fixed objects stored after the moving ones (most walls, poles and ramps) as
-            points. The bug was fixed on 15 October and iteration 3 checks pieces every frame (<a href="#WM-F3">F3</a>); Improved Results
-            V1's overlap numbers undercount until they are recomputed.</li>
-          <li id="WM-K7" data-todo="WM-K7" class="is-done"><span class="wm-todo-id">WM-K7</span><span class="wm-badge-done">fixed</span>
-            <strong>The cause rule reads the answer.</strong> Iteration 1's rule against motion before contact uses the true moment each
-            object starts to move, so it cannot act at inference or on a scene without a simulation. Fix: the causal cone over predicted
-            contacts (<a href="#WM-A2">A2</a>).
-            <span class="wm-todo-note">Addressed in <a href="./improved-results-v4.html">Improved Results V4</a> (stage 2): the first-law gate decides from the predicted geometry and needs no truth (A2); on the four-scene study it was neutral.</span></li>
-          <li id="WM-K8" data-todo="WM-K8" class="is-open"><span class="wm-todo-id">WM-K8</span><span class="wm-badge-open">open</span>
-            <strong>No measure catches missing motion.</strong> Every violation measure punishes moving too much (overlap, bystanders,
-            energy), none moving too little, so a timid model that barely moves scores well on all of them. Report, for objects that
-            really move, the ratio of predicted to true path length; a timid model has \(\rho \lt 1\):
-            \[ \rho = \frac{1}{|\mathcal{M}|} \sum_{i \in \mathcal{M}} \frac{\sum_t \lVert \hat p^i_{t+1} - \hat p^i_t \rVert}{\sum_t \lVert p^i_{t+1} - p^i_t \rVert} \]
-            <span class="wm-todo-note">The <a href="./failure-analysis.html">Failure analysis</a> now counts a related case: a quarter of the objects that should be knocked away are barely moved. A standard measure is still missing.</span></li>
-          <li id="WM-K9" data-todo="WM-K9" class="is-open"><span class="wm-todo-id">WM-K9</span><span class="wm-badge-open">open</span>
-            <strong>Single-sample distance errors favour regression.</strong> A regressor predicts the average of the possible
-            futures, a generative member draws one of them and is penalised for it, so ADE ranks the two unfairly. Compare on verdict
-            agreement \(\alpha\), and score generative members with several samples (best of \(k\), or the energy score
-            \(\mathbb{E}\lVert X - y \rVert - \tfrac12 \mathbb{E}\lVert X - X' \rVert\)).
-            <span class="wm-todo-note">In part: verdict agreement and, in V5, reviewers judging predicted motion now accompany ADE; generative members are still scored with one sample.</span></li>
-          <li id="WM-K10" data-todo="WM-K10" class="is-done"><span class="wm-todo-id">WM-K10</span><span class="wm-badge-done">fixed</span>
-            <strong>Energy formula on this page.</strong> B3 used the inertia in the object's frame with the spin in world axes; it now
-            rotates the inertia into world axes.</li>
-          <li id="WM-K11" data-todo="WM-K11" class="is-open"><span class="wm-todo-id">WM-K11</span><span class="wm-badge-open">open</span>
-            <strong>Errors compound over chained blocks: the main failure.</strong> Started from the true state, each 0.2 s block of V5
-            regression is accurate (about 2 cm in free motion, 6 cm at a collision); fed back block after block, the error grows to about
-            1.5 m by 3 s, and with the true speed restored at every block it stays at 18 cm. Speed is what is imprecise (0.1 to 0.5 m/s
-            per block), and the loss counts speed errors about four times less than position. In a linear picture, with
-            \(\delta^p_b, \delta^v_b\) the position and speed errors a block adds and \(\tau = 0.2\) s, an early speed error counts once
-            for every block that follows:
-            \[ e^p_{b+1} = e^p_b + \tau\, e^v_b + \delta^p_b, \qquad e^v_{b+1} = e^v_b + \delta^v_b \qquad \Rightarrow \qquad
-               e^p_B = \sum_{b \lt B} \delta^p_b + \tau \sum_{b \lt B} (B - 1 - b)\, \delta^v_b \]
-            <span class="wm-todo-note">From the <a href="./failure-analysis.html">Failure analysis</a>: chained-block training and DAgger did not help; weighting speed errors ten times
-            more, and training eight times longer on one scene, are being tested.</span></li>
-        </ul>
-        <p class="wm-note">Resolved since first noted: the Scaled results planning tables showed 0 percent in every cell before their
-          runs finished (now filled in), and models were chosen and reported on the same validation scenes (test results are now on
-          held-out test tasks).</p>
-      </div>
-
-      <div class="wm-section wm-math" id="world_model-capabilities">
-        <h3 class="title is-4">18. Six questions to one model: what is possible now, what needs training, what needs new data</h3>
-        <div class="content">
-          <p>The simulator so far answers one question: given the scene, every object's properties and the action at \(t = 0\), what
-            happens over the next 3 s. The questions below ask the same model for more: the properties from a recording, the
-            cause of an end state (the action and the motion that led there), prediction when some properties are unknown, a
-            change of plan half-way, a what-if, and a description in words. For each one this section says what the stored data
-            allows today, which answers come from the model as it is, which need one new head trained on the existing
-            simulations, and which need the next data round. No search anywhere: every answer is read out of the network.
-            Five figures, no animation.</p>
-        </div>
-
-        <h4 class="title is-6 wm-subhead" id="world_model-capabilities-data">18.1 What the data contains</h4>
-        <div class="content">
-          <p>Every stored simulation is a scene (objects with shape, size, mass, friction, restitution and inertia; joints; the floor),
-            one or two actions, all applied at \(t = 0\), and the result: position, rotation, velocity and spin of every object at 30
-            frames per second for 3 s, the pairs of objects touching in each frame, every contact episode between two objects with
-            its start and end at the engine's 1/1920 s resolution, an energy audit and the verdict of each of the scene's tasks. So
-            the timing of contacts between objects is in the data exactly. Landings, topples, slides and coming to rest are not
-            events in the data: they are computed from the states afterwards with thresholds (the Ablations tab's event tags are
-            made this way). Per scene there are about 580 simulations: random actions and actions refined by search make three
-            quarters, one in nine is an action sweep, one in fourteen is an attribute sweep (one object's mass, friction or
-            restitution set to each of seven values: the counterfactual training signal), about one in 250 removes an object. No
-            stored action starts after \(t = 0\), and the only simulations that begin from a mid-motion state are the rubble demo's
-            brace / let-go set and the V7 engine continuations, both without a new action. Section 18.5 checks the generator
-            against what the new heads need.</p>
-        </div>
-        <figure class="wm-figure">
-          <div class="wm-svg-scroll">
-            <img class="wm-web-figure" src="./static/images/world_model/web_cap_data.svg" width="900" height="455"
-                 alt="One stored simulation: the scene and its actions at t = 0 on the left; a 3 s timeline with the stored states, touching pairs, contact episodes and task verdicts, and the derived events; the mix of simulations per scene on the right; and the three things the next data round adds.">
-          </div>
-          <figcaption>18.1 What one stored simulation contains: recorded exactly (blue), derived afterwards (dashed grey), and what the
-            next data round adds (amber).</figcaption>
-        </figure>
-
-        <h4 class="title is-6 wm-subhead" id="world_model-capabilities-model">18.2 The model as it is</h4>
-        <div class="content">
-          <p>One transformer reads one token per object (pose, velocity, size and parts, and the mass, friction, restitution and inertia
-            as plain numbers), one token per action, one global token and one per joint, plus for every movable object the gaps,
-            contact directions and times to impact of its eight nearest neighbours. It predicts 0.2 s at a time: for each movable
-            object a block of motion (eight box corners, velocity, spin), added to the built-in motion for free flight, pendulums and
-            springs, then corrected by the rules (exact floor, no new overlap, objects at rest stay until something reaches them).
-            The end of the block is the start of the next; fifteen blocks make 3 s. It is trained by regression: one pass per block,
-            squared error against the engine, five blocks chained through its own output. Three consequences matter below: the
-            properties are inputs, not outputs; every simulation in training gives all nine property numbers of every object,
-            exactly, so the model has never seen an unknown property; and the model gives one answer per pass, never a set.</p>
-        </div>
-        <figure class="wm-figure">
-          <div class="wm-svg-scroll">
-            <img class="wm-web-figure" src="./static/images/world_model/web_cap_model.svg" width="900" height="470"
-                 alt="The tokens on the left, the encoder and transformer in the middle, the block head, built-in motion, rules and end state on the right, with the loop back to the tokens; side boxes for the hold-still head, the contact head, the training and what the model cannot do.">
-          </div>
-          <figcaption>18.2 The model as it is (iteration 6): one pass per 0.2 s block, chained; properties enter as input numbers.</figcaption>
-        </figure>
-
-        <h4 class="title is-6 wm-subhead" id="world_model-capabilities-questions">18.3 Each question in terms of the model</h4>
-        <div class="content">
-          <p>A question for this model is a choice of what is given and what is wanted (figure 18.3). Four of the six are answered
-            by one new head, trained on the existing simulations, that treats the properties, the action and the motion as tokens
-            that can each be hidden and generated; the other two are answered by the model as it is.</p>
-          <p><strong>Properties from a recording (the bidirectional ability).</strong> The properties get their own output slots: one
-            token per movable object, read out as its nine property numbers (log mass, friction, restitution, six inertia terms).
-            When they are hidden, the object token's property channels are replaced by an "unknown" code and the slot starts as
-            noise; the network reads the recording's chunks and the action through attention and fills the slot in. The decoder on
-            the input side is therefore the same transformer run with a different mask. Trained with flow matching, the slot
-            returns samples, which is what an unidentifiable property needs: a mass that shows only in a collision comes back as a
-            spread when there was no collision, and as a tight cluster when there was one. Trained with a squared error it returns
-            one value. It is the same slot with a different loss, so both can be reported.</p>
-          <p><strong>The cause of an end state (the priority).</strong> The question of the collapsed bridge: the scene at
-            \(t = 0\), every property, the end state, and nothing else. Given: the scene, the properties, the start and the end.
-            Hidden: the action token and all fifteen motion chunks between. The sampler denoises the action token and the chunks
-            together, so each sample is one coherent story, an action and the motion it produces, that starts at \(s_0\) and ends
-            at \(s_T\); forty samples give the set of causes the end state allows and how wide it is. The model does not search
-            over actions, it generates them. The action token holds which object, which kind of action, and its velocities,
-            impulse or force; the kind and the object are one-hot numbers inside the token, generated with the rest and rounded
-            at the end (a small classifier head for them is the fallback if the one-hot comes out blurred). Several actions can
-            produce the same end; the set shows that instead of hiding it. With the action given as well, the same mask returns
-            only the motion between the ends, with a spread where the ends do not pin it down.</p>
-          \[ X = (P, a, Y), \qquad X_\sigma = m \odot \big((1 - \sigma)\, X + \sigma\, \varepsilon\big) + (1 - m) \odot X, \qquad
-             \mathcal{L} = \mathbb{E}\, \big\lVert m \odot \big(v_\theta(X_\sigma, \sigma, m, G_{\setminus P}) - (\varepsilon - X)\big) \big\rVert^2 \]
-          \[ P \sim p_\theta\big(P \mid Y, a, G_{\setminus P}\big) \ \text{(bidirectional)}, \qquad
-             (a, Y) \sim p_\theta\big(a, Y \mid s_0, s_T, P, G_{\setminus P}\big) \ \text{(cause)} \]
-          <p><strong>Forward prediction with unknown or noisy properties.</strong> Today the training never hides a property. The new
-            head hides them at random (each object's property token with some probability, and in some examples all of them), so
-            it learns to predict motion from the distribution of properties it has seen for such objects when they are unknown,
-            and to narrow that distribution as the motion unfolds, since the hidden property tokens are denoised alongside the
-            motion. The same idea goes into the regression simulator (head 1) as attribute dropout: a property channel replaced by
-            the "unknown" code with an extra flag channel, appended with zero-initialised weights so the trained model is unchanged
-            at the start of fine-tuning (the lesson of V6: never change what an existing channel means).</p>
-          <p><strong>Intervene mid-way.</strong> Possible now by restarting. The model is Markov in the block state, so stopping at
-            block \(k\), applying a second action to the predicted state (velocities set or an impulse added, as the engine does at
-            \(t = 0\)) and restarting with the clock at zero is the operation the rubble demo already uses to continue from an
-            observed mid-slide state. Removing an object mid-way is the same restart with the object dropped from the scene
-            tokens; the training data has removals at \(t = 0\), so a cup left in the air by a removed table is a start the model
-            has seen. An action that starts at \(t_k\) inside one rollout, learned rather than simulated by restarting, needs data:
-            the motion pilot of the dataset expansion already produces factual rollouts next to timed-intervention branches
-            (a command applied from a given frame), so far as authored previews, not yet as a training set; with a start time on
-            the action record and a time channel on the action token, those become the training signal. The restart can be checked
-            today: PhysX restarts from stored states too (the brace / let-go code), so an evaluation set of a few thousand second
-            actions on test rollouts costs a few GPU hours.</p>
-          <p><strong>Counterfactuals.</strong> Already in the model: attribute sweeps and removals are training inputs, and
-            <code>eval_wm.py</code> measures whether the predicted change under an edit goes the engine's way (76 percent for the
-            old one-pass model; not yet measured for the 50M model). Head 2 adds a spread to the answer, nothing else.</p>
-          <p><strong>Events in time.</strong> Today the only event output is the contact head (which pairs touch, frame by frame),
-            and time enters the model only as the fraction of the 3 s. The event head of figure 18.4 adds, per block and object,
-            whether a contact, landing or topple starts in the block and when within it. Its targets come from the stored contacts
-            and the derived events now, and from the generator's event records once they exist (18.5); its prediction feeds the
-            block's time input (time since and until an event) and lets the block be split at the impact, which is where most of
-            the error growth happens (event blocks add 2.5 times the error of quiet blocks on the Ablations tab).</p>
-          <p><strong>Text.</strong> First with no training: an event extractor applied to any trajectory (engine or predicted) and a
-            verbalizer that turns the event list into sentences with times and objects, with a round-trip check (parse the sentence
-            back, compare the events), so faithfulness is event accuracy (<a href="#WM-D1">D1</a>, <a href="#WM-D3">D3</a>). Then a
-            learned head: the slot tokens projected into a small pretrained decoder as prefix tokens, trained on those templated
-            sentences plus a few thousand paraphrases written by the reviewer model, scored by the precision of the claims in the
-            text rather than by word overlap. BERT is not a candidate (an encoder cannot write); a Qwen-class decoder with LoRA is.</p>
-        </div>
-        <figure class="wm-figure">
-          <div class="wm-svg-scroll">
-            <img class="wm-web-figure" src="./static/images/world_model/web_cap_questions.svg" width="900" height="600"
-                 alt="Six rows, one per question: forward, properties from a recording, cause from start and end, forward with unknown properties, intervene mid-way, counterfactual; for each the given and wanted tokens, how the model answers it, and whether it exists or is to be trained.">
-          </div>
-          <figcaption>18.3 Six questions as given (blue) and generated (amber) tokens, how each is answered, and its status.</figcaption>
-        </figure>
-
-        <h4 class="title is-6 wm-subhead" id="world_model-capabilities-build">18.4 What to build, in order</h4>
-        <div class="content">
-          <p>Everything shares the tokens and the encoder of the current model (figure 18.4). Head 1 is the regression simulator as
-            it is, plus the event head and attribute dropout. Head 2 is the masked flow-matching model: the one-shot configuration
-            of the same class, with the context tokens as now and three kinds of token that can be hidden, a property token per
-            movable object (nine numbers), the action token (42 numbers) and the fifteen motion chunks (90 numbers each; the
-            per-chunk noise levels already exist in the code for Diffusion Forcing). Every token has its own noise level: given
-            tokens are clean and clamped, hidden tokens start as noise and are denoised together, and the loss is flow matching on
-            the hidden tokens only (objective 2 of section 3 under the mask of <a href="#WM-G2">G2</a>). The mask is drawn per
-            training example: motion hidden 40 percent (forward), properties hidden 15 (bidirectional), action and motion hidden
-            with both ends given 15 (cause), some properties and the motion hidden 15 (unknown properties), mixed 15 (prefix, end
-            only, bridges with the action known). Three heads read the slots out: properties, action, motion. It starts from head
-            1's encoder and trains on the existing simulations, which already contain what the two priorities need: about 580
-            actions per scene for the cause question (many actions on the same start), and the attribute sweeps for the property
-            question (the same action under different properties). It does not replace head 1 for forward prediction, where
-            regression wins (V7); it answers the questions whose answer is a set. Head 3 is the text decoder. The order: head 2
-            first (both priorities come out of the same training run), then the event head and attribute dropout in head 1 with
-            the restart evaluation set, then head 3.</p>
-        </div>
-        <figure class="wm-figure">
-          <div class="wm-svg-scroll">
-            <img class="wm-web-figure" src="./static/images/world_model/web_cap_build.svg" width="900" height="584"
-                 alt="One shared encoder feeding three heads: the existing step-wise regression head with an added event head and attribute dropout, a masked flow-matching head over property, action and motion-chunk tokens, and a text head; on the right how each is checked and what new data adds.">
-          </div>
-          <figcaption>18.4 What to build: one encoder, three heads; blue exists, amber is trained on the existing simulations, dashed
-            amber comes later.</figcaption>
-        </figure>
-
-        <h4 class="title is-6 wm-subhead" id="world_model-capabilities-events">18.5 Does the generator record what the heads need?</h4>
-        <div class="content">
-          <p>Checked against <code>sim.py</code>, the data README, the dataset-expansion plan (section 4, timestamped events) and the
-            motion pilot's event tags (<code>pilot_events.py</code>). What exists today is enough to train head 2 and a first event
-            head: contact start and end between objects are exact, and landings, topples, rest and container entry can be derived
-            with the pilot's thresholds (topple at 45 degrees, falling below 0.5 m/s downwards, rest below 0.05 m/s for 0.5 s).
-            Two gaps are in the generator itself, not in the plan: the peak impulse stored with each contact episode is read when
-            the contact is first found, before force builds, so it is zero in 79 percent of episodes and cannot serve as an
-            impact-strength target until the read is moved later in the episode; and contact with the floor is present in about
-            two thirds of sampled records although the README says none, so its coverage has to be audited per data source before
-            floor contacts are used as targets. The planned logging (verified floor contacts, impulses across the episode, contact
-            points and normals, generator-emitted events with an evidence contract, persisted horizons) covers the rest of what
-            the event head and the templates need. One thing to add to the plan: a start time on the action record, so that the
-            pilot's timed-intervention branches become a training set for actions inside a rollout and not only previews.</p>
-        </div>
-        <figure class="wm-figure">
-          <div class="wm-svg-scroll">
-            <img class="wm-web-figure" src="./static/images/world_model/web_cap_events.svg" width="900" height="530"
-                 alt="Ten rows of what the heads need (contact timing, floor contact, impact strength, derived events, slides, timed actions, many actions per start, names, descriptions, horizons) against what is recorded today, what the planned data round adds and what is still missing, with green, amber and red dots.">
-          </div>
-          <figcaption>18.5 The generator against the heads' needs: green available, amber partly or derived with thresholds, red absent.</figcaption>
-        </figure>
-
-        <h4 class="title is-6 wm-subhead">At a glance</h4>
-        <div class="table-container">
-          <table class="table is-narrow is-fullwidth wm-table">
-            <thead><tr><th>Question</th><th>Now, no training</th><th>After training on the existing simulations</th><th>Needs the next data round</th></tr></thead>
-            <tbody>
-              <tr><td>Forward</td><td>yes (the model as it is)</td><td></td><td></td></tr>
-              <tr><td>Properties from a recording</td><td></td><td>head 2: property slots, samples or one value</td><td></td></tr>
-              <tr><td>Cause of an end state (action and motion)</td><td></td><td>head 2: the set of fitting action-and-motion pairs</td><td></td></tr>
-              <tr><td>Forward with unknown properties</td><td></td><td>head 2 masks; head 1 attribute dropout</td><td></td></tr>
-              <tr><td>Intervene mid-way</td><td>by restart from the predicted state</td><td></td><td>an action starting inside one rollout (timed actions, from the motion pilot)</td></tr>
-              <tr><td>Counterfactual</td><td>yes (edits are training inputs; measure on the 50M model)</td><td>a spread</td><td></td></tr>
-              <tr><td>Events in time</td><td>contact head only</td><td>event head: type and time within the block</td><td>engine-written event records as targets</td></tr>
-              <tr><td>Text</td><td>extractor + templates, round-trip checked</td><td>decoder on the slot tokens</td><td>written descriptions</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
       <!-- this block's data and scripts (deferred: they run after the page is parsed, in this order) -->
       <script defer src="./static/data/world_model.js?v=dcbe32604e"></script>
       <script defer src="./static/js/world_model/anim_pipeline.js?v=e82422477f"></script>
@@ -1921,6 +2105,142 @@
     </div>
   </section>
   <!-- ---------- end proposal: world_model ---------- -->
+
+  <!-- ---------- proposal: dataset_expansion ---------- -->
+  <section class="section proposal" id="proposal-dataset_expansion">
+    <div class="container is-max-desktop">
+      <div class="wm-intro">
+        <h2 class="title is-3">A broader physics dataset, with timed explanations</h2>
+        <p>How do we get more useful motion, richer environments and explanations grounded in what actually happened?
+          Expand independent physical layouts, record events with their evidence, and render complete scenes. Longer clips
+          earn their cost when they contain continuing motion or later interactions.</p>
+      </div>
+      <p class="wm-lead">Proposal updated 26 October 2026. A read-only audit of eight shared-data cohorts found
+        1,179,700 stored rollouts in 3,974 scenes with rollout files; 1,113,039 pass the recorded physics screens.
+        These are state records, not available training videos or a new scientific qualification. The three indoor
+        appearance previews were approved on 20 October; three bounded composite-motion previews are rendered and
+        verified. Full compact Physion dynamics and MOVi-A/B retention is complete. Expansion at scale remains a proposal.</p>
+
+      <div class="wm-section" id="dataset_expansion-targets">
+        <h3 class="title is-4">Release targets and what counts</h3>
+        <p>The 31 October proposal is 100,000-200,000 new accepted records, with 250,000 a conditional stretch,
+          six GPUs at peak and 1,000-2,000 furnished layouts. Start with 100M-300M models; larger capacity needs
+          learning-curve evidence. The million-record stages below are longer-term targets, not October commitments.</p>
+        <details>
+        <summary>October budget and later scaling stages</summary>
+        <div class="table-container">
+          <table class="table is-striped is-fullwidth wm-table">
+            <thead><tr><th>Stage</th><th>Root physical layouts</th><th>Qualified trajectory records</th><th>Gate</th></tr></thead>
+            <tbody>
+              <tr><td>31 October proposal</td><td>4,000-8,000</td><td>100,000-200,000</td><td>Qualified subset; realistic layouts, events and matched branches</td></tr>
+              <tr><td>Capability pilot</td><td>1,000</td><td>25,000</td><td>Qualified solvers, events, replay and branch controls</td></tr>
+              <tr><td>Learning curves</td><td>40,000</td><td>1,000,000</td><td>100M/300M models, measured data and compute scaling</td></tr>
+              <tr><td>1B stage</td><td>200,000</td><td>5,000,000</td><td>4M train; qualified source-mechanics coverage; 2,000 structural backgrounds</td></tr>
+              <tr><td>5B stage</td><td>1,000,000</td><td>25,000,000</td><td>20M train; broader qualified coverage; 10,000 structural backgrounds</td></tr>
+            </tbody>
+          </table>
+        </div>
+        </details>
+        <div class="content">
+          <p>Count physical layouts, world conditions, complete trajectories, intervention suffixes and rendered views
+            separately. Each proposed 25-record bundle has 15 full simulations and 10 suffix branches. A new camera,
+            texture, light or property-only sweep remains a variant of its parent layout. PhysInOne's about two million
+            videos come from 153,810 dynamic scenes and 13 views each; our records are a different unit. Its 71 phenomena
+            span optics and magnetism too. The new 50-group target maps its 61 mechanical/fluid phenomena; a mapping
+            does not establish implemented or qualified coverage. The targets are planning
+            assumptions; capacity gains must be measured before scaling.</p>
+          <p>Use an 80/10/10 split of root layouts, grouping every descendant with its parent. Include separate tests
+            for held-out assets, environments and interaction families. Preserve existing frozen tests, rejected builds
+            and failed actions with explicit denominators; physically invalid rollouts do not satisfy the qualified-record target.
+            Release replayable states, events and licensed scene/assets, with RGB, depth, motion masks and flow generated locally on demand.</p>
+        </div>
+      </div>
+
+      <div class="wm-section" id="dataset_expansion-work">
+        <h3 class="title is-4">Work to do, in order</h3>
+        <p>Current order (26 October 2026): implement timed-action/branch/replay contracts and default events, qualify
+          each new solver, then measure a small capability pilot in realistic environments before training-scale generation.
+          Indoor appearance review and compact source retention are complete; generation at scale remains deferred.</p>
+        <ul class="wm-todo">
+          <li id="DATA-4" data-todo="DATA-4" class="is-done"><span class="wm-todo-id">DATA-4</span><span class="wm-badge-done">reviewed</span>
+            <strong>Three furnished indoor appearance previews reviewed.</strong> The user approved original textured furniture,
+            supported clutter, lighting and camera views in living, dining and bedroom layouts. These use observed
+            ARKitScenes object groups and visit-balanced size/distance descriptors; three samples do not establish
+            a ScanNet distribution match. The larger
+            proposal in <a href="#WM-H2">H2</a> remains deferred: 20 dressed layouts, broader room types and
+            object-count bands of 8-15, 16-30 and 31-50. Appearance-only replay needs clearance/visibility checks;
+            new interacting furniture needs fresh simulation and calibrated camera/object metadata.</li>
+          <li id="DATA-7" data-todo="DATA-7"><span class="wm-todo-id">DATA-7</span><span class="wm-badge-todo">to do</span>
+            <strong>Expand coupled motion and track distinct scenes.</strong> A three-case builder pilot is ready for review:
+            ball/block/table/open box, chair tipping with a supported ball, and toppling books transferring motion
+            to a ball. All three six-second physical probes pass their declared screens; the book-chain ball remains
+            on the table, a retained ordinary outcome failure. Existing two-action/composite templates do
+            not establish this coverage. Track structural layout, physical condition, action program and rendered
+            view separately. Convex pieces sharing one pose remain rigid; flexible motion needs node/mesh state,
+            material constraints and explicit force fields before becoming faithful training supervision.</li>
+          <li id="DATA-1" data-todo="DATA-1"><span class="wm-todo-id">DATA-1</span><span class="wm-badge-todo">to do</span>
+            <strong>Backfill timed events and verify explanations.</strong> Implement <a href="#WM-D1">D1</a> and
+            <a href="#WM-D3">D3</a> using existing states and contact episodes: contacts, landing, rest, tipping,
+            region entry and task outcomes. Write versioned sidecars with source hashes, measured evidence,
+            uncertainty and censored endpoints. Validate on 1,000 existing trajectories. The explanation describes
+            the model's own predicted events; comparison with PhysX supplies missed, extra or late events
+            (<a href="#WM-D4">D4</a>). A learned event head (<a href="#WM-D2">D2</a>) can follow.</li>
+          <li id="DATA-2" data-todo="DATA-2"><span class="wm-todo-id">DATA-2</span><span class="wm-badge-todo">to do</span>
+            <strong>Require event evidence for every new simulation.</strong> Incomplete event records block release completion.
+            Save actual simulation end, valid-frame masks,
+            verified environment contacts, contact points/normals, episode impulses and applied force intervals.
+            Existing records do contain floor contacts, with coverage to audit by source. Their stored peak impulses
+            are unreliable as impact-strength labels. Distinguish measured anomalies, inferred warnings and unavailable evidence.</li>
+          <li id="DATA-3" data-todo="DATA-3"><span class="wm-todo-id">DATA-3</span><span class="wm-badge-todo">to do</span>
+            <strong>Choose useful 3, 6 and 10 second horizons by family.</strong> In a diagnostic sample of 768
+            action-bearing rollouts from 24 scenes, 482 still had motion at 3 s, while 236 had unchanged poses for
+            the final second; these counts include physics-screen failures and are not dataset-wide estimates.
+            Compare 3/6 s prefixes of the pilot's fresh 10 s simulations. Measure late events, path length, rotation
+            and time to rest. Account for scheduled forces and stored spring energy before early stopping;
+            repeated final frames do not extend physical coverage.</li>
+
+          <li id="DATA-5" data-todo="DATA-5"><span class="wm-todo-id">DATA-5</span><span class="wm-badge-todo">to do</span>
+            <strong>Qualify tops and wheels, then drag and wind.</strong> Verify gyroscopic settings, inertia, contact
+            geometry and timestep convergence for precession, wobble and slip-to-roll transitions. Add explicit
+            air-relative forces with documented density, area and drag coefficients; damping alone is not a qualified
+            air-resistance model. Update energy and free-flight checks for external work. Leaves need orientation-dependent
+            forces and torques; cloth, hair and deformable tires require separate solver and state-contract qualification.</li>
+
+          <li id="DATA-6" data-todo="DATA-6"><span class="wm-todo-id">DATA-6</span><span class="wm-badge-todo">to do</span>
+            <strong>Provide post-hoc RGB, depth, masks and flow.</strong> Release full replay states, cameras, stable IDs,
+            deformable topology, materials and asset references. Demonstrate metric depth, object motion masks, optical
+            flow in pixels per frame and world scene flow in meters per frame, with occlusion/validity masks. Replay
+            saved states; separate resimulation from rendering. Dense videos/modalities are not part of the final training
+            payload. Every new scene still needs realistic materials, lighting, furniture and supported clutter.</li>
+          <li id="DATA-8" data-todo="DATA-8"><span class="wm-todo-id">DATA-8</span><span class="wm-badge-todo">to do</span>
+            <strong>Make counterfactual and intervention coverage uniform.</strong> Main training has explicit children for
+            only 7,161 of 291,328 original action rows. Its 27,454 property branches include 2,573 nominal identity edits;
+            MOVi-derived training families have no property branches. Dense/rubble cohorts have no explicit parent links.
+            Give each of four factual anchors two world-change branches and two observed-prefix interventions. Add five
+            recovery, uncertainty/boundary and long-motion records per root. Inverse/endpoint masks and event QA reuse
+            these traces; do not count them as new physics. Upgrade fixed action/object limits and the GPU-resident data
+            loader before million-record training.</li>
+          <li id="DATA-9" data-todo="DATA-9"><span class="wm-todo-id">DATA-9</span><span class="wm-badge-todo">to do</span>
+            <strong>Close solver and layout gaps before the October freeze.</strong> The starter has 34 rigid/constraint
+            groups and four experimental native surface/particle probes. Hair rods, fracture, plasticity and several
+            liquid regimes still need implementation and qualification. Cloth/free-leaf repeat variation and incomplete
+            native contact events block causal release qualification. ScanNet++ extraction currently uses 262 of 856
+            training annotations; refit room-conditioned scale/distance/co-occurrence statistics after download coverage
+            is audited. Texture, light and camera variants do not count as new furnished layouts.</li>
+        </ul>
+        <p class="wm-note">Reference scope: <a href="https://github.com/cogtoolslab/physics-benchmarking-neurips2021">Physion dataset</a>
+          and <a href="https://cogtoolslab.github.io/pdf/BWMB_neurips_2021.pdf">paper</a>;
+          <a href="https://github.com/google-research/kubric/blob/main/challenges/movi/README.md">MOVi dataset card</a>.
+          New comparisons: <a href="https://sim2reason.github.io/">Sim2Reason</a> (about 6,400 QA per ordinary Qwen2.5 RL run),
+          <a href="https://huggingface.co/blog/Luo-Yihang/mundo-world-model">Mundo</a> (about 40,000 renderer-training pairs),
+          <a href="https://vlar-group.github.io/PhysInOne.html">PhysInOne</a>, and
+          <a href="https://arxiv.org/abs/2609.30946">OneWorld</a> for consistency across action branches.
+          Physion movies span 5-10 s; MOVi clips span about 2 s. Isaac Sim 6.1 documents
+          <a href="https://docs.isaacsim.omniverse.nvidia.com/6.1.0/replicator_tutorials/tutorial_replicator_scene_based_sdg.html">custom environments and scene randomization</a>.</p>
+      </div>
+    </div>
+  </section>
+  <!-- ---------- end proposal: dataset_expansion ---------- -->
 
   <!-- append the next proposal block here -->
 </div>

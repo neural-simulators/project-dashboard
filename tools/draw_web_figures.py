@@ -2,7 +2,7 @@
 """Draw the world-model proposal's web figures as SVG, sized for the page (900 px wide, 13 px text).
 
 Reads static/data/world_model.js (the real sample task: manifest numbers and the PhysX rollout) and writes
-static/images/world_model/web_{io,training,step}.svg. The slide figures in reports/world_model/figures are too
+static/images/world_model/web_{io,training,step,...,coarse_fine}.svg. The slide figures in reports/world_model/figures are too
 dense to read at page width; these carry fewer words and bigger text. Standard library only.
 
     python3 tools/draw_web_figures.py
@@ -596,25 +596,26 @@ def figure_cap_questions():
 
     rows = [
         (["Forward"], "exists", "gggg" + "w" * 10 + "w", None, "P",
-         ["one pass per 0.2 s block, fifteen blocks: the model as it is (head 1)"], None),
-        (["Properties from", "a recording"], "to train", "gwgg" + "g" * 10 + "g", None, "P",
+         ["one pass per 0.2 s block, fifteen blocks: the step-wise regressor as it is;", "the masked flow model answers it in one pass over all fifteen chunks"], None),
+        (["Properties from", "a recording"], "training, first run", "gwgg" + "g" * 10 + "g", None, "P",
          ["the property slots read the recording and the action through attention", "and are filled in: samples with flow matching (a spread where the recording",
-          "does not decide), or one value with a squared error; same slot, other loss"], "P is an output slot of the network, not a search"),
-        (["Cause from", "start and end"], "to train, priority", "ggwg" + "w" * 10 + "g", None, "P",
-         ["properties known; the action token and the fifteen chunks are generated", "together, so each sample is one story that starts at s₀ and ends at sᴛ;",
-          "forty samples are the set of causes the end allows; with the action given", "as well, only the motion between the ends comes out"],
+          "does not decide), or one value from the regressor's property head"], "P is an output slot of the network, not a search"),
+        (["Cause from", "start and end"], "training, first run", "ggwg" + "w" * 10 + "g", None, "P",
+         ["properties known, start at rest, the final frame given as a condition; the", "action token and all fifteen chunks are generated together, so each sample is",
+          "one story from s₀ to sᴛ; 'no action' is an answer; candidates are checked by", "replaying the action forward (the model, then PhysX)"],
          "the collapsed bridge: what happened, and what did it"),
-        (["Forward with", "unknown properties"], "to train", "gwgg" + "w" * 10 + "w", None, "P?",
+        (["Forward with", "unknown properties"], "training, first run", "gwgg" + "w" * 10 + "w", None, "P?",
          ["some or all property tokens hidden at random during training, so the", "motion is predicted from the properties seen for such objects, and the hidden",
-          "ones are narrowed as the motion unfolds; attribute dropout does this in head 1"], "today no property is ever hidden in training"),
+          "ones are narrowed as the motion unfolds; attribute dropout does this in the regressor"], "hidden properties reach no part of the model, not even the built-in motion"),
         (["Intervene", "mid-way"], "exists by restart", "gggg" + "g" * 4 + "w" * 6 + "w", 4, "P",
          ["run to tₖ, apply the new action to the predicted state, restart with the", "clock at zero (predict_jobs takes a start state); an action starting at tₖ",
           "inside one rollout needs the motion pilot's timed-intervention data"], "a₂ enters as a new action token at tₖ"),
         (["Counterfactual"], "exists", "gggg" + "w" * 10 + "w", None, "P′",
-         ["edit the property numbers or drop an object, run again; attribute sweeps", "and removals are training inputs; with head 2 the answer gets a spread"],
+         ["edit the property numbers or drop an object, run again; attribute sweeps", "and removals are training inputs; the masked flow model adds a spread"],
          "P edited, or an object dropped from S"),
     ]
-    chip = {"exists": (blue, C["blue_fill"]), "exists by restart": (blue, C["blue_fill"]), "to train": (AMBER_TEXT, C["amber_fill"]), "to train, priority": (AMBER_TEXT, C["amber_fill"])}
+    chip = {"exists": (blue, C["blue_fill"]), "exists by restart": (blue, C["blue_fill"]), "to train": (AMBER_TEXT, C["amber_fill"]),
+            "to train, priority": (AMBER_TEXT, C["amber_fill"]), "training, first run": ("#1f5fbf", "#eef3fc")}
     for r, (name, status, states, mark, plabel, how, note) in enumerate(rows):
         y = 40 + r * 94
         if r:
@@ -629,7 +630,7 @@ def figure_cap_questions():
     y = 40 + 6 * 94 - 4
     svg.line(0, y, 900, y, stroke=C["border"], sw=0.8)
     svg.text(0, y + 14, "S scene table   P properties   a action   s₀ start state   sᴛ end state.   Blue: given and clamped.   Amber: generated.", size=10.5, fill=grey)
-    return svg.render("Six questions to one model: what is given, what is wanted, how each is answered, and whether it exists or is to be trained")
+    return svg.render("Six questions to one model: what is given, what is wanted, how each is answered, and whether it exists, is in its first training run, or is to be trained")
 
 
 def figure_cap_build():
@@ -641,14 +642,14 @@ def figure_cap_build():
          fill=C["blue_fill"], stroke=blue, tcolor=blue, bsize=10.5, step=15)
     for y in (100, 330, 516):
         svg.path("M194,%d L226,%d" % (160, y), grey, sw=1.4, arrow=True)
-    _box(svg, 230, 10, 330, 190, "Head 1: step-wise regression (exists)", [
+    _box(svg, 230, 10, 330, 190, "The step-wise regressor (exists)", [
         "block head + built-in motion + rules; 5-block chains;", "one pass per block",
         "answers: forward, restarts, counterfactual edits"], fill="#fff", stroke=blue, tcolor=blue, bsize=10.5, step=14)
-    svg.rect(238, 92, 314, 98, fill=C["amber_fill"], stroke=amber, sw=1.2, rx=5)
-    svg.text(246, 106, "add: event head, attribute dropout", size=11, weight="bold", fill=AMBER_TEXT)
-    svg.lines(246, 123, ["per block: which event starts (contact, landing,", "topple) and when inside it; feeds the time input and",
-                         "splits the block at the impact; attribute dropout:", "a property channel replaced by 'unknown' + a flag"], size=10, step=13.5)
-    _box(svg, 230, 212, 330, 236, "Head 2: masked flow matching (to train)", None, fill="#fff", stroke=amber, tcolor=AMBER_TEXT)
+    svg.rect(238, 92, 314, 98, fill="#eef3fc", stroke="#1f5fbf", sw=1.2, rx=5)
+    svg.text(246, 106, "added, in its first run: attribute dropout, property head", size=11, weight="bold", fill="#1f5fbf")
+    svg.lines(246, 123, ["a hidden property is the 'unknown' code + a flag, in every", "consumer's view; a head on the object tokens returns the six",
+                         "property numbers; blocks of the true motion train it (the", "recording question). Still to add: the event head"], size=10, step=13.5)
+    _box(svg, 230, 212, 330, 236, "The masked flow model (first run training)", None, fill="#fff", stroke="#1f5fbf", tcolor="#1f5fbf")
     x0, y0 = 244, 242
     for k, (lab, st) in enumerate((("P", "w"), ("P", "g"), ("P", "w"), ("a", "w"))):
         fill, stroke = (C["blue_fill"], blue) if st == "g" else (C["amber_fill"], amber)
@@ -660,16 +661,16 @@ def figure_cap_build():
         svg.rect(x0 + 112 + c * 12, y0, 11, 22, fill=fill, stroke=stroke, sw=1.2, rx=3)
     svg.text(x0 + 112 + 90, y0 + 32, "Y: 15 chunks of 0.2 s (the cause mask shown)", size=9.5, anchor="middle", fill=grey)
     svg.text(x0, y0 + 32, "per object", size=9.5, fill=grey)
-    svg.lines(244, 292, ["new output slots: a property token per movable object",
-                         "(9 numbers) and the action token (42), next to the",
-                         "motion chunks (90 numbers each)",
+    svg.lines(244, 292, ["output slots: a property token per movable object (6",
+                         "numbers) and the action token (42 + a pointer to the acted",
+                         "object), next to the motion chunks (90 numbers each)",
                          "every token has its own noise level: given tokens are",
                          "clean and clamped, hidden ones start as noise and are",
                          "denoised together; loss: flow matching on hidden tokens",
-                         "masks per example: motion 40%, properties 15%, action",
-                         "+ motion with both ends given 15%, some properties +",
-                         "motion 15%, mixed 15%",
-                         "sampling: 32 to 50 Euler steps; a set = N runs"], size=10, step=13.5)
+                         "per example: motion 40%, properties 15%, action + motion",
+                         "with the end given 15%, some properties + motion 15%,",
+                         "mixed 15%; a cycle term replays the action estimate",
+                         "sampling: 20 to 50 Euler steps; a set = N runs"], size=10, step=13.5)
     _box(svg, 230, 460, 330, 114, "Head 3: text (later)", [
         "projector: slot tokens -> prefix tokens -> small", "pretrained decoder (LoRA) -> one paragraph",
         "ground truth: event extractor + templates first,", "paraphrases and written descriptions later"],
@@ -681,10 +682,10 @@ def figure_cap_build():
         "attribute sweeps; wide where nothing in the",
         "recording depends on the property",
         "",
-        "cause: re-run every sampled action in PhysX from",
-        "s₀ with the true properties and measure the end-",
-        "state error; is the true action inside the set;",
-        "how wide the set is",
+        "cause: type, object and parameters against the",
+        "truth; the end state the sampled history reaches;",
+        "the action replayed by the model and by PhysX",
+        "(replay_causes.py): does it reproduce the end?",
         "",
         "unknown properties: error against the share of",
         "properties hidden, compared with the engine run",
@@ -704,7 +705,7 @@ def figure_cap_build():
         "event head instead of thresholds applied after",
         "",
         "written descriptions: training text for head 3"], fill=C["amber_fill"], stroke=amber, tcolor=AMBER_TEXT, bsize=10.5, step=14)
-    return svg.render("What to build: one encoder, the existing regression head with an event head and attribute dropout, a masked flow-matching head, a text head")
+    return svg.render("What is built: one encoder, the step-wise regressor with attribute dropout and a property head, the masked flow model, and the text head still to come")
 
 
 def figure_cap_events():
@@ -751,13 +752,186 @@ def figure_cap_events():
     return svg.render("What the generator records today, what the planned data round adds, and what is still missing, against what the heads need")
 
 
+def figure_pretrain():
+    """What pretraining on the MOVi and Physion clips trains in each network, and what only our simulations can train."""
+    svg = Svg(900, 600)
+    grey, blue, amber = C["muted"], C["blue"], C["amber"]
+    run_c, run_f = "#1f5fbf", "#eef3fc"
+    _box(svg, 0, 20, 230, 262, "The clips (3,745)", [
+        "MOVi-A 1,895, MOVi-B 952, Physion 898", "one recording per scene, 1.2 to 3 s", "",
+        "every object starts with its recorded", "velocity and spin; no action is applied", "",
+        "MOVi: mass from density and size,", "two materials (friction 0.4 / 0.8,", "restitution 0.3 / 0.7)",
+        "Physion: masses only; its friction and", "restitution are placeholders (hidden)", "",
+        "contacts from collision events;", "no joints, springs or soft bodies"], fill=C["blue_fill"], stroke=blue, tcolor=blue, bsize=10.5, step=15)
+    svg.text(0, 300, "what a block learns from them", size=11.5, weight="bold", fill=grey)
+    for k, (col, fill, lab) in enumerate(((blue, C["blue_fill"], "trained by the clips"), (AMBER_TEXT, C["amber_fill"], "sees only the zero token"),
+                                         (grey, "#f4f5f7", "untouched: needs our actions"))):
+        y = 312 + k * 24
+        svg.rect(0, y, 14, 14, fill=fill, stroke=col, sw=1.2, rx=3)
+        svg.text(20, y + 7, lab, size=10.5)
+    svg.lines(0, 396, ["After the clips the networks are fine-tuned", "on our simulations (pushes, throws, strikes,",
+                       "pulls, sweeps of mass, friction and", "restitution, removals, mechanisms):", "every block then trains.",
+                       "The co-author's recipe: clips first, then", "20,000 steps on our data, 10 to 14% lower", "error than from scratch (one-pass models)."], size=10.5, step=14)
+
+    def col(x, title, rows):
+        _box(svg, x, 20, 310, 36, title, None, fill="#fff", stroke=C["border"], tsize=12.5)
+        y = 66
+        for name, state, note in rows:
+            fill, stroke, tc = {"t": (C["blue_fill"], blue, C["text"]), "z": (C["amber_fill"], amber, AMBER_TEXT), "u": ("#f4f5f7", grey, grey)}[state]
+            if state == "u":
+                _dashed_rect(svg, x, y, 310, 40, stroke, fill=fill)
+            else:
+                svg.rect(x, y, 310, 40, fill=fill, stroke=stroke, sw=1.3)
+            svg.text(x + 10, y + 13, name, size=11, weight="bold", fill=tc)
+            svg.text(x + 10, y + 29, note, size=9.8, fill=tc if state != "u" else grey)
+            y += 46
+        return y
+
+    col(265, "The step-wise regressor", [
+        ("object tokens, parts, neighbour geometry", "t", "full scene tables, boxes and convex parts"),
+        ("transformer and block head", "t", "falls, slides, bounces and collisions, at speed"),
+        ("built-in motion", "t", "gravity and free rotation; no pendulum or spring in the clips"),
+        ("hold-still and contact heads", "t", "objects at rest; contacts from the collision events"),
+        ("property head, attribute dropout", "t", "on MOVi's masses and two materials only"),
+        ("recording input (properties from motion)", "t", "blocks of the clip's own motion"),
+        ("action token encoder", "z", "the zero token in every clip"),
+        ("response to pushes, throws, strikes, pulls", "u", "no clip has an action"),
+        ("joints, springs, soft bodies, rules at joints", "u", "none in the clips")])
+    col(590, "The masked flow model", [
+        ("object tokens and parts", "t", "as on the left"),
+        ("transformer and motion patches", "t", "the forward question, 15 patches at once"),
+        ("property tokens and property head", "t", "MOVi only: Physion's placeholders stay hidden"),
+        ("contact head", "t", "from the collision events"),
+        ("end-state input (the cause question)", "z", "learns one answer: nothing was done"),
+        ("action token encoder and action head", "z", "the zero token: 'no action'"),
+        ("cycle term", "u", "off: no action to replay"),
+        ("which push, throw or strike caused an end", "u", "needs our actions"),
+        ("mechanisms, several actions at once", "u", "none in the clips")])
+    svg.text(450, 586, "Blue: the clips train it.  Amber: trained, but only on the no-action token.  Dashed grey: nothing in the clips reaches it.", size=10.5, anchor="middle", fill=grey)
+    return svg.render("What pretraining on MOVi and Physion clips trains in the step-wise regressor and in the masked flow model, and what only our simulations can train")
+
+
+def figure_coarse_fine():
+    """Key events first (section 5): a thrown crate's height and speed with the moments its regime changes, the coarse level
+    (one amber token per key event, generated first), the fine level (fifteen blocks in four segments between the key frames),
+    and a panel on training and the risk next to the block-causal attention mask. The motion is a sketch in closed form, not data."""
+    svg = Svg(900, 556)
+    grey, blue, amber, red = C["muted"], C["blue"], C["amber"], C["red"]
+    X0, X1 = 70, 880                                                        # the time axis, 0 to 3 s
+    tx = lambda t: X0 + (X1 - X0) * t / 3.0
+    events = [(0.6, "lands", "floor contact begins"), (1.4, "hits blue crate", "contact starts, speed drops"),
+              (2.4, "comes to rest", "slower than 0.05 m/s"), (3.0, "end state", "pose and velocity")]
+
+    def height(t):                                                          # centre height in metres: a throw that lands at 0.6 s
+        return 0.9 + 1.693 * t - 4.905 * t * t if t < 0.6 else 0.15
+
+    def speed(t):                                                           # m/s: flight, a slide, a slower slide after the hit, rest
+        if t < 0.6:
+            return math.hypot(2.0, 1.693 - 9.81 * t)
+        if t < 1.4:
+            return 1.6 - 0.875 * (t - 0.6)
+        if t < 2.4:
+            return 0.45 - 0.45 * (t - 1.4)
+        return 0.0
+
+    # 1. the motion
+    svg.text(0, 12, "1. The motion of a thrown crate, and the moments its regime changes (a sketch in closed form, not data)", size=12, weight="bold")
+    Y0, H = 112, 76
+    times = sorted(set([3.0 * k / 300 for k in range(301)] + [t for t, _, _ in events] + [t - 1e-6 for t, _, _ in events]))
+    ph = " ".join("%.1f,%.1f" % (tx(t), Y0 - H * height(t) / 1.1) for t in times)
+    pv = " ".join("%.1f,%.1f" % (tx(t), Y0 - H * speed(t) / 5.0) for t in times)
+    for t, _, _ in events:
+        svg.line(tx(t), Y0 - H - 4, tx(t), Y0 + 6, stroke=amber, sw=1.2, dash="3 3")
+    svg.parts.append('<polyline points="%s" fill="none" stroke="%s" stroke-width="1.4" stroke-dasharray="4 3"/>' % (pv, grey))
+    svg.parts.append('<polyline points="%s" fill="none" stroke="%s" stroke-width="1.8"/>' % (ph, blue))
+    svg.line(X0, Y0, X1, Y0, stroke=C["border"])
+    for t in range(4):
+        svg.line(tx(t), Y0, tx(t), Y0 + 4, stroke=grey)
+        svg.text(tx(t), Y0 + 13, "%d s" % t, size=10, anchor="middle", fill=grey)
+    svg.line(560, 30, 584, 30, stroke=blue, sw=1.8)
+    svg.text(590, 30, "height of the crate (0 to 1.1 m)", size=10, fill=grey)
+    svg.line(560, 44, 584, 44, stroke=grey, sw=1.4, dash="4 3")
+    svg.text(590, 44, "its speed (0 to 5 m/s): it jumps at the events", size=10, fill=grey)
+    y_throw = Y0 - H * height(0) / 1.1
+    svg.circle(tx(0), y_throw, 4, red)
+    svg.text(tx(0) + 8, y_throw - 17, "thrown: the action", size=10, fill=red)
+    for t, name, detail in events:
+        x = tx(t)
+        svg.parts.append('<polygon points="%g,%g %g,%g %g,%g %g,%g" fill="%s"/>' % (x, Y0 - 6, x + 5, Y0, x, Y0 + 6, x - 5, Y0, amber))
+        anchor = "end" if t >= 2.9 else "middle"
+        svg.text(x, Y0 + 28, name, size=10.5, anchor=anchor, weight="bold", fill=AMBER_TEXT)
+        svg.text(x, Y0 + 40, detail, size=9.5, anchor=anchor, fill=grey)
+
+    # key-frame lines through bands 2 and 3 (drawn first; the tokens and the header plate cover them)
+    TOKX, TW, TY = [164, 380, 622, 764], 136, 180
+    BY, BH = 282, 20
+    for t, _, _ in events:
+        svg.line(tx(t), 174, tx(t), BY - 2, stroke=amber, sw=1.2, dash="3 3")
+        svg.circle(tx(t), BY - 2, 3, amber)
+
+    # 2. the coarse pass
+    svg.text(0, 168, "2. The coarse pass, generated first: one token per key event, with the object's state at that frame", size=12, weight="bold")
+    svg.lines(0, 190, ["flow matching over the", "key-frame states; a head", "names the event and its", "partner; a doubtful event", "is a fork: two schedules"],
+              size=10, step=12, fill=grey)
+    for (t, name, detail), x in zip(events, TOKX):
+        body = [detail, "s(%g s): pose, velocity" % t] if t < 3 else [detail, "of every object"]
+        _box(svg, x, TY, TW, 56, "%s · %g s" % (name, t), body, fill=C["amber_fill"], stroke=amber, tsize=10, bsize=9, step=12, tcolor=AMBER_TEXT)
+
+    # 3. the fine pass
+    svg.rect(0, 253, 650, 18, fill="#fff", stroke="#fff", rx=0)
+    svg.text(0, 262, "3. The fine pass, one segment at a time: the step-wise regressor runs from one key frame to the next", size=12, weight="bold")
+    bw = (X1 - X0) / 15.0
+    for b in range(15):
+        svg.rect(X0 + b * bw + 1, BY, bw - 2, BH, fill=C["blue_fill"], stroke=blue, sw=1.1, rx=3)
+        svg.text(X0 + (b + .5) * bw, BY + BH / 2 + 1, str(b), size=9, anchor="middle", fill=grey)
+    bounds = [0.0] + [t for t, _, _ in events]
+    labels = ["flight: 3 blocks", "slide: 4 blocks", "slower slide: 5 blocks", "rest: 3 blocks"]
+    for k in range(4):
+        x0, x1, y = tx(bounds[k]) + 1, tx(bounds[k + 1]) - 1, BY + BH + 8
+        svg.line(x0, y, x1, y, stroke=grey, sw=1.2)
+        svg.line(x0, y - 4, x0, y + 4, stroke=grey, sw=1.2)
+        svg.line(x1, y - 4, x1, y + 4, stroke=grey, sw=1.2)
+        svg.text((x0 + x1) / 2, y + 12, labels[k], size=10, anchor="middle", fill=grey)
+    svg.lines(0, 346, ["block by block as before, but every block also reads the key frame its segment must reach and the event there; a speed error",
+                       "stops at the next key frame instead of travelling to 3 s; segments start at known key frames, so they are independent and run in parallel"],
+              size=10, step=12, fill=grey)
+
+    # 4. training, generation, risk; the attention mask across levels
+    _box(svg, 0, 376, 560, 164, "4. Training, generation, and the risk", [
+        "Training: one pass trains both levels. The key frames come from the recorded motion (the event",
+        "extractor on the engine's contacts). The fine pass reads them teacher-forced; a share of them are",
+        "corrupted on purpose (shifted by a block, moved, dropped or invented), so it learns to reach an",
+        "imperfect key frame instead of trusting it.",
+        "Generation: coarse pass first, from the scene and the action alone; then every segment, in parallel.",
+        "Risk: a wrong coarse pass cannot be repaired below it. A missed collision gives a smooth motion with",
+        "no collision; a key frame 20 cm off is reached exactly. So the fine pass is scored with recorded and",
+        "with predicted key frames separately, and the coarse pass as an event detector (precision, recall,",
+        "timing), not only through the final motion."], bsize=9.8, step=13)
+    svg.text(590, 384, "who attends to whom", size=11, weight="bold")
+    names = ["G, a", "coarse", "fine 1", "fine 2", "fine 3", "fine 4"]
+    gx, gy, cell = 664, 412, 19
+
+    def allowed(i, j):
+        return j == 0 or (i == 1 and j == 1) or (i >= 2 and (j == 1 or j == i))
+
+    for j, n in enumerate(names):
+        svg.text(gx + j * cell + 7, gy - 6, n, size=9.5, fill=grey, rotate=-50)
+    for i, n in enumerate(names):
+        svg.text(gx - 6, gy + i * cell + cell / 2 + 1, n, size=9.5, anchor="end", fill=grey)
+        for j in range(6):
+            ok = allowed(i, j)
+            svg.rect(gx + j * cell, gy + i * cell, cell, cell, fill=C["blue_fill"] if ok else "#fff", stroke=blue if ok else C["border"], sw=1 if ok else .7, rx=2)
+    svg.lines(590, 540, ["block-causal across levels: a row reads its filled columns;", "fine slots read the coarse tokens, never the reverse"], size=9.5, step=12, fill=grey)
+    return svg.render("Key events first: the motion of a thrown crate with its key events, one coarse token per event, the fine blocks between key frames in four segments, and the block-causal attention mask across the two levels")
+
 def main():
     S = load_sample()
     OUT.mkdir(parents=True, exist_ok=True)
     for name, text in (("web_io", figure_io(S)), ("web_training", figure_training(S)), ("web_step", figure_step(S)),
                        ("web_bidirectional", figure_bidirectional()), ("web_cap_data", figure_cap_data()),
                        ("web_cap_model", figure_cap_model()), ("web_cap_questions", figure_cap_questions()),
-                       ("web_cap_build", figure_cap_build()), ("web_cap_events", figure_cap_events())):
+                       ("web_cap_build", figure_cap_build()), ("web_cap_events", figure_cap_events()), ("web_pretrain", figure_pretrain()),
+                       ("web_coarse_fine", figure_coarse_fine())):
         (OUT / (name + ".svg")).write_text(text, encoding="utf-8")
         print("wrote %s (%d bytes)" % (OUT / (name + ".svg"), len(text.encode("utf-8"))))
     return 0
