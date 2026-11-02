@@ -25,7 +25,7 @@
     <div class="container is-max-desktop">
       <div class="columns is-centered">
         <div class="column has-text-centered">
-          <h1 class="title is-2 publication-title">Post-training a 7B language model on simulator-verified scene edits</h1>
+          <h1 class="title is-2 publication-title">Post-training language models with the simulator as their teacher</h1>
           <p class="subtitle is-4 wm-subtitle">Standalone preview of the post-training blocks of the <a href="./index.html">Neural Simulators page</a></p>
         </div>
       </div>
@@ -41,19 +41,20 @@
       <h2 class="title is-3">Post-training an open model with the simulator as its teacher</h2>
       <div class="wm-intro">
         <h3 class="wm-intro-title">Why post-train a language model?</h3>
-        <p>Language models are the natural interface for instructions like "knock the red chair over" or "toss the ball into the box",
-          and a model that also judges physics well could plan actions for a simulator or a robot. On the benchmark, GPT-5.4 meets the
-          goal in about nine tasks out of ten. Open models, the ones anyone can run, inspect and fine-tune, do much worse: the 30B model
-          passes a third to a half of the tasks and the 7B model almost none.</p>
+        <p>Language models are the natural interface for a request to a simulator: "toss the ball into the box", "make the cart
+          travel at least a metre", "what if the block were lighter?". A model that also judges physics well could plan actions for a
+          simulator or a robot and say what it expects to happen. On the benchmark's launch tasks, where one initial velocity must make
+          something happen in the simulation, GPT-5.4 meets the goal in about nine tasks out of ten. Open models, the ones anyone can
+          run, inspect and fine-tune, do much worse: the 30B model passes about a third of the launches and the 7B model almost none.</p>
         <p>Post-training asks whether that gap can be closed with the simulator as the teacher instead of human labels. The model
-          proposes several answers to a task, each answer is checked (geometric checks for a static edit, a full PhysX simulation for a
-          launch), and small adapters are trained toward the answers that worked while the model's own weights stay frozen. The
-          feedback is exact and unlimited; its cost is time, about 50 seconds per simulated launch, which a fast world model could cut
-          to milliseconds. Every scene, answer and score below is a real record from the benchmark.</p>
+          proposes several answers to a task, each answer is played out in PhysX and judged, and small adapters are trained toward the
+          answers that worked while the model's own weights stay frozen. The feedback is exact and unlimited; its cost is time, about
+          50 seconds per simulated launch, which a fast world model could cut to milliseconds. Every scene, answer and score below is a
+          real record from the benchmark or from Dataset V2.</p>
         <ul class="wm-facts">
           <li><b>Reward</b>the simulator's verdict, no human labels</li>
           <li><b>About 1%</b>of the weights trained (LoRA adapters)</li>
-          <li><b>Qwen2.5-7B</b>the open model being taught</li>
+          <li><b>Qwen 7B and 8B</b>the open models being taught</li>
           <li><b>Held-out tasks</b>judged by PhysX at the end</li>
         </ul>
       </div>
@@ -61,15 +62,15 @@
       <div class="wm-section" id="post_training-abstract">
         <h3 class="title is-4">1. Abstract</h3>
         <div class="content">
-          <p>The benchmark has two kinds of task. A <em>static edit</em> asks the model to move or turn named objects so that an
-            instruction holds ("bring the red chair closer to the brown table"). A <em>launch task</em> asks for one initial velocity
-            of one object so that something happens in the simulation ("toss the red ball over the barrier into the box"). Both are
-            judged by deterministic checks and the PhysX simulator. GPT-5.4 passes most of them, the 30B open model a third to a half, and
-            the 7B open models almost none.</p>
-          <p>Post-training turns those checks into a teacher. The model writes several answers to the same prompt, each answer is
-            scored (cheap geometry checks for static edits, a full simulation for every launch), and the model is pushed toward the
-            answers that scored better than their siblings (GRPO), or toward the better answer of a pair (DPO, the cheaper baseline).
-            The simulator is the final judge, on held-out tasks the model never trained on.</p>
+          <p>Three kinds of task, all judged by deterministic measurements on PhysX rollouts. The benchmark's <em>launch tasks</em>
+            ask for one initial velocity of one object so that something happens in the simulation ("toss the red ball over the
+            barrier into the box"). Dataset V2's <em>planner tasks</em> ask for the parameters of a push, a release or a force so that
+            a measured outcome holds. Its <em>reasoner questions</em> ask what a changed world would do. On the launches GPT-5.4 passes
+            most tasks, the 30B open model about a third, the 7B open models almost none.</p>
+          <p>Post-training turns those verdicts into a teacher. The model writes several answers to the same prompt, each answer is
+            scored (a full simulation for every launch; for Dataset V2 a lookup against measurements already recorded), and the model
+            is pushed toward the answers that scored better than their siblings (GRPO), or toward the better answer of a pair (DPO,
+            the cheaper baseline). The simulator is the final judge, on held-out tasks the model never trained on.</p>
         </div>
       </div>
 
@@ -85,7 +86,7 @@
           <dt>\(\pi_\theta(y \mid x) = \prod_{l} \pi_\theta(y_l \mid x, y_{\lt l})\)</dt><dd>the language model as a policy over answers</dd>
           <dt>\(W = W_0 + BA\)</dt><dd>LoRA: every weight matrix \(W_0\) stays frozen and only the low-rank \(B A\) (rank 32) is trained, about 1 percent of the weights</dd>
           <dt>\(\pi_{\text{ref}}\)</dt><dd>the model before training, the anchor for DPO</dd>
-          <dt>\(\psi(y)\)</dt><dd>the parser: the action \(a\) the answer states (new poses, or a launch velocity), or \(\bot\) when it breaks the answer contract</dd>
+          <dt>\(\psi(y)\)</dt><dd>the parser: the action \(a\) the answer states (a launch velocity, or the parameters of a program), or \(\bot\) when it breaks the answer contract</dd>
           <dt>\(r(x, y)\)</dt><dd>the reward, always computed by code, never by a person or another model</dd>
         </dl>
 
@@ -96,9 +97,8 @@
         </div>
         \[ r(x, y) = 0.1\,\mathbb{1}[\psi(y) \text{ parses}] + 0.2\,\mathbb{1}[\psi(y) \text{ is allowed}] + 0.4\, \frac{1}{K}\sum_{k=1}^{K} g_k\big(\Phi(G, \psi(y))\big) + 0.3\, V\big(\Phi(G, \psi(y))\big) \]
         <div class="content">
-          <p>For a static edit the simulator is replaced by geometric checks on the new poses (the requested relations, overlaps,
-            support, tilt), which agree with PhysX's verdict on 60 of 61 stored answers:
-            \(r = 0.05\, r_{\text{format}} + 0.10\, r_{\text{contract}} + 0.35\, r_{\text{relation}} + 0.20\, r_{\text{physical}} + 0.30\, r_{\text{pass}}\).</p>
+          <p>Section 9 gives the two rewards of Dataset V2: a yes-or-no goal verdict for the planner and a four-part score against the
+            changed run's record for the reasoner.</p>
         </div>
 
         <h4 class="title is-6 wm-subhead">Three ways to train</h4>
@@ -127,9 +127,9 @@
       <div class="wm-section" id="post_training-examples">
         <h3 class="title is-4">3. Training examples from the benchmark</h3>
         <div class="content">
-          <p>Five real tasks, two static edits and three launches from easy to hard. Each one shows the task, then how the reference
-            answer and the answers of three models fare in the simulator, then the reward each answer would receive in training.
-            Pick an example or a step; the animation also plays through all of them.</p>
+          <p>Three real launch tasks from easy to hard. Each one shows the task, then how the reference answer and the answers of three
+            models fare in the simulator, then the reward each answer would receive in training. Pick an example or a step; the
+            animation also plays through all of them.</p>
         </div>
         <div class="wm-anim pt-widget" id="pt-examples">
           <div class="pt-picker" role="group" aria-label="Choose an example"></div>
@@ -149,8 +149,8 @@
         <h3 class="title is-4">4. GRPO: learning from a group of its own answers</h3>
         <div class="content">
           <p>For each prompt the model writes a group of answers; each is scored, and the update favours the answers that beat their
-            group's average. Below, a real group of sixteen answers from the untrained 7B model on a static edit, and thirteen launches
-            the simulator has judged for one launch task.</p>
+            group's average. Below, thirteen launches the simulator has judged for one launch task: the reference, three models'
+            answers and random launches from the difficulty measurement.</p>
         </div>
         <div class="wm-anim pt-widget" id="pt-grpo">
           <div class="pt-picker" role="group" aria-label="Choose a task kind"></div>
@@ -197,7 +197,7 @@
             <svg class="pt-diagram" viewBox="0 0 900 360" role="img" aria-label="Frozen model with small trained adapters, the reward, the simulator, and the update loop">
               <defs><marker id="pt-arrowhead" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#55606e"></path></marker></defs>
               <rect class="box frozen" x="16" y="20" width="270" height="250" rx="10"></rect>
-              <text class="head" x="151" y="50" text-anchor="middle">Language model (7B)</text>
+              <text class="head" x="151" y="50" text-anchor="middle">Language model (7B, 8B)</text>
               <rect class="box frozen" x="36" y="72" width="120" height="96" rx="6"></rect>
               <text class="body" x="96" y="114" text-anchor="middle">W, frozen</text>
               <text class="fine" x="96" y="138" text-anchor="middle">every layer</text>
@@ -212,10 +212,10 @@
               <text class="fine" x="316" y="98" text-anchor="middle">answers</text>
               <rect class="box data" x="346" y="20" width="250" height="170" rx="10"></rect>
               <text class="head" x="471" y="50" text-anchor="middle">Reward</text>
-              <text class="body" x="471" y="82" text-anchor="middle">static edits: the benchmark's</text>
-              <text class="body" x="471" y="104" text-anchor="middle">checks, about a millisecond</text>
-              <text class="body" x="471" y="138" text-anchor="middle">launches: a full simulation</text>
-              <text class="body" x="471" y="160" text-anchor="middle">of each launch, about 50 s</text>
+              <text class="body" x="471" y="82" text-anchor="middle">launches: a full simulation</text>
+              <text class="body" x="471" y="104" text-anchor="middle">of each answer, about 50 s</text>
+              <text class="body" x="471" y="138" text-anchor="middle">Dataset V2: a lookup against</text>
+              <text class="body" x="471" y="160" text-anchor="middle">recorded measurements</text>
               <path class="arrow loop" d="M346,160 L286,160"></path>
               <text class="fine" x="316" y="182" text-anchor="middle">update</text>
               <rect class="box frozen" x="626" y="20" width="258" height="170" rx="10"></rect>
@@ -238,15 +238,16 @@
       <div class="wm-section" id="post_training-experiment">
         <h3 class="title is-4">7. The first experiment</h3>
         <div class="content">
-          <p>Static edits and launches of every difficulty from the benchmark, split into training tasks and held-out test tasks.
-            Difficulty is measured by guessing: a task is easy when at least half of random answers pass, hard when fewer than
-            15 percent do. The untrained 7B model, GRPO and DPO are each judged by the simulator on the test tasks, next to the larger
-            models below.</p>
+          <p>Launches of every difficulty from the benchmark, split into training tasks and held-out test tasks. Difficulty is
+            measured by guessing: a task is easy when at least half of random launches pass, hard when fewer than 15 percent do. The
+            untrained 7B model, GRPO and DPO are each judged by the simulator on the test tasks, next to the larger models below.</p>
         </div>
         <div class="table-container">
           <table class="table is-fullwidth is-narrow wm-table pt-experiment" id="pt-experiment-table"></table>
         </div>
-        <p class="wm-note">The trained models' numbers are in the Results tab.</p>
+        <p class="wm-note">The trained models' numbers are in the Results tab. The same run also covered the benchmark's static scene
+          edits, a task type now handled by code rather than by a trained model; those numbers stay in the Results tab and are not part
+          of this page.</p>
       </div>
 
       <div class="wm-section wm-math" id="post_training-wm-judge">
@@ -306,11 +307,9 @@
             balanced items (two real successes and two failures per task) its predicted motion lets reviewers, and the rule checks, agree
             with PhysX only 61 to 68 percent of the time, and only 29 to 43 percent of real successes are found
             (<a href="./improved-results-v5.html">Improved Results V5</a>): a judge built on it today would under-reward rather than
-            over-reward. Agreement and false successes on a policy's own answers are not measured yet. The switch is gated on \(\alpha\) and \(\mathrm{FS}\) measured on policy samples. Static edits
-            already work this way: their reward replaces the simulator with geometric checks that agree with PhysX on 60 of 61 stored
-            answers.</p>
-          <p><strong>Two places to use it.</strong> The benchmark's launch tasks, as above, and the scaled study's action planner, for
-            which GRPO with the learned simulator as the reward and PhysX checks on a quarter of the samples (\(q = 1/4\)) waits for a
+            over-reward. Agreement and false successes on a policy's own answers are not measured yet. The switch is gated on \(\alpha\) and \(\mathrm{FS}\) measured on policy samples.</p>
+          <p><strong>Three places to use it.</strong> The benchmark's launch tasks, as above, the Dataset V2 planner of section 9, and the
+            scaled study's action planner, for which GRPO with the learned simulator as the reward and PhysX checks on a quarter of the samples (\(q = 1/4\)) waits for a
             decision. Two world-model items decide how far such a judge can be trusted: actions written by language models in its
             training data (<a href="./index.html#WM-H1">WM-H1</a>; the policy's actions are what it must judge) and its speed at planning batch
             sizes (<a href="./index.html#WM-H3">WM-H3</a>).</p>
@@ -320,13 +319,13 @@
       <div class="wm-section wm-math" id="post_training-v2-models">
         <h3 class="title is-4">9. Two more models, trained on Dataset V2: a planner and a reasoner</h3>
         <div class="content">
-          <p>The sections above train one model to write a scene edit. <a href="./dataset-v2.html">Dataset V2</a> (46 mechanics
+          <p>The sections above train one model to choose a launch. <a href="./dataset-v2.html">Dataset V2</a> (46 mechanics
             families in scanned rooms, every action simulated together with its what-if branches) lets us train the two language-model
-            parts of the loop the project is heading for. A <strong>planner</strong> chooses an action for a wanted outcome. A
-            <strong>reasoner</strong> says what a changed world would do. The <strong>simulator</strong> sits between them, PhysX today
-            and the world model once it judges like PhysX (section 8). A <strong>verifier</strong> written in code closes the loop:
-            it checks the planner's outcome against the goal and the reasoner's answer against the changed run's record, and a model's
-            opinion never enters it.</p>
+            parts of the loop the project is heading for. A <strong>planner</strong> chooses the parameters of an action for a wanted
+            outcome. A <strong>reasoner</strong> says what a changed world would do. The <strong>simulator</strong> sits between them,
+            PhysX today and the world model once it judges like PhysX (section 8). A <strong>verifier</strong> written in code closes
+            the loop: it checks the planner's outcome against the goal and the reasoner's answer against the changed run's record, and
+            a model's opinion never enters it.</p>
         </div>
         <figure class="wm-figure">
           <div class="wm-svg-scroll">
@@ -429,39 +428,117 @@
               <text class="fine" x="668" y="128" text-anchor="middle" fill="#1f6feb">reasoner pair: factual run + one what-if, same program</text>
               <path d="M446,16 L438,16 L438,348 L446,348" fill="none" stroke="#d7263d" stroke-width="2"></path>
               <text class="fine" x="560" y="368" text-anchor="middle" fill="#d7263d">planner pair: a0, a1, a2 of one scene, judged against one goal</text>
-              </svg>
+            </svg>
           </div>
           <figcaption>One root of the dataset. The reasoner reads across a row: the factual run and one of its what-ifs make one example,
             and the what-if's own record holds the answer. The planner reads down the column of factual runs: the three programs of
             one scene are judged against one goal, and the recorded measurement says which of them succeed.</figcaption>
         </figure>
 
+        <h4 class="title is-6 wm-subhead">The planner: an action for a wanted outcome</h4>
+        <div class="content">
+          <p>The prompt holds the initial scene graph (every body and constraint with its collision shape, size, mass, friction,
+            restitution and pose, in tables with shared shapes so the geometry stays compact), the rig's baseline program (a piston
+            force window, a grasp and release, a declared velocity, a force field), the allowed parameters with their exact bounds, and
+            the required outcome in words, as the simulator will measure it. The answer is one JSON object with four fields: which
+            dimension to change and its value, a lateral offset of the push and a yaw. The dimensions are the dataset's own action
+            vocabulary: the drive (×0.7 to ×1.4 of the recorded program), a release height (±0.35 m) or angle (±20°), a ramp offset
+            (±0.35 m), a vertical tug (±0.4 m/s) or a force field (×0.7 to ×1.4); the offset (±0.25 of the payload's half width) and the
+            yaw (±8°) exist only on pushes that support them. An answer is parsed strictly (exactly four fields, finite numbers inside
+            the bounds), transcribed into the simulator's input, checked for a consistent start (inside the room's reserved zone, no
+            overlap, a consistent rig) and then simulated; nothing in an answer is ever repaired.</p>
+          <p>Below, two real roots of the dataset, each under two goals: the task as the model sees it, the three programs the dataset
+            recorded for the scene, their rollouts and measurements, the verifier's verdicts and what the planner is trained on.</p>
+        </div>
+        <div class="wm-anim pt-widget" id="pt-planner">
+          <div class="pt-picker" role="group" aria-label="Choose a scene and goal"></div>
+          <div class="pt-stage">
+            <div class="pt-canvas"><canvas width="560" height="460" aria-label="The scene from above, the recorded programs, their rollouts, the goal verdicts and the resulting training pairs"></canvas></div>
+            <div class="pt-side" aria-live="polite"></div>
+          </div>
+          <div class="wm-controls">
+            <button class="button is-small" data-action="toggle" aria-pressed="true">Pause</button>
+            <button class="button is-small" data-action="next">Next step</button>
+            <div class="pt-steps"></div>
+          </div>
+        </div>
+        <div class="wm-eqs">
+          <div class="wm-eq"><span class="wm-eq-name">The goal verdict</span>
+            \[ V_g(a) = \mathbb{1}\big[\, m_g\big(\Phi(G, a)\big) \in I_g \,\big] \]
+            <p>\(m_g\) is one of eight quantities the dataset already measures on every rollout (final displacement, toppled count,
+              containment, maximum height, maximum rotation, oscillation count, rebound height, time to rest) and \(I_g\) the required
+              interval. Per family and quantity, the intervals come from the quartiles of what the training roots' own programs
+              achieved: at least the 75th percentile, at most the 25th, or between the two; validation and test roots never set a
+              threshold, and a goal a scene cannot meet by construction is not asked. A missing or censored measurement gives no verdict
+              rather than a failure; a physically invalid rollout is excluded rather than counted as a failure.</p></div>
+          <div class="wm-eq"><span class="wm-eq-name">Training: copy successes, then prefer them over failures</span>
+            \[ \mathcal{L}_{\text{SFT}} = -\,\mathbb{E}_{V_g(a) = 1}\, \log \pi_\theta(a \mid G, g), \qquad
+               \mathcal{L}_{\text{DPO}} \text{ of section 2 on pairs } (a_w, a_l) \text{ with } V_g(a_w) = 1,\ V_g(a_l) = 0,\ \beta = 0.1 \]
+            <p>Both members of a pair act on the same scene toward the same goal and both were simulated and valid: a valid rollout that
+              misses the goal is the negative, an invalid or missing rollout is not. DPO starts from the SFT policy, which is also its
+              reference. Neither stage runs a simulation. A trained planner is judged by committing one greedy answer per held-out task
+              (held-out rooms, seeds and whole families) and simulating it in PhysX, next to three controls: the unchanged program,
+              random parameters inside the bounds, and the recorded programs rounded to three decimals.</p></div>
+          <div class="wm-eq"><span class="wm-eq-name">Planned: the learned simulator as the environment, with retries</span>
+            \[ R = B\, \mathbb{1}[\text{goal met within } K \text{ attempts}] - c\, n_{\text{attempts}}, \qquad B \gt cK \]
+            <p>Every attempt restarts from the same scene; the planner sees its earlier actions with their predicted measurements and
+              the shortfall ("0.34 m of the required 0.50 m") and proposes again. A GRPO-style update over whole episodes rewards reaching
+              the goal in fewer queries; only the planner's own tokens are credited, the predictions are conditioning. PhysX audits a
+              sample of the policy's actions, as in section 8: a gap between the two simulators is a result, not a reason to swap the
+              reward.</p></div>
+        </div>
+        <div class="content">
+          <p><strong>Why outcome-conditioned actions.</strong> A planner is the inverse of the simulator: given the outcome, find the
+            action. Training it on recorded successes needs no new simulation, and three simulated programs per scene give successes
+            and failures of the same scene and goal, which are exactly the pairs DPO needs. Keeping the answer to a few parameters of a
+            known mechanism makes every answer verifiable and comparable with the benchmark's launches. The learned simulator enters
+            only as the environment of the last stage, where its speed matters and PhysX keeps the final word.</p>
+        </div>
+
         <h4 class="title is-6 wm-subhead">The reasoner: counterfactual questions with measured answers</h4>
         <div class="content">
           <p>The prompt holds the scene (every movable object with its shape, size, mass, friction, restitution and pose, the joints
-            and the room furniture nearby), the action program as applied, the observed run (its event facts, end state, first
-            contacts and final positions), then the change in words together with every exact difference between the two manifests,
-            and the questions. The questions are fixed by the factual record and the declared change alone: every measured quantity of
-            the factual run is asked again for the changed run, and a comparison (more, less, about the same, not measurable) for every
-            comparable kind. The answer is one JSON object; its target is read from the what-if record, so the label is exact and costs
-            nothing beyond the dataset. A sentence of summary is asked for but carries no weight: the verifier scores only what it can
-            measure.</p>
+            and the furniture within 3 m), the program as applied, the observed run as timed facts (the push begins, two bodies touch,
+            a body comes to rest, with the end state, first contacts and final positions), then the change in words together with
+            every exact difference between the two scene files, and the questions. The questions are fixed by the observed run and the
+            declared change alone: every quantity measured on the observed run is asked again for the changed run, and a comparison
+            (more, less, about the same, not measurable) for every comparable kind. The answer is one JSON object with four parts:
+            the comparisons, the quantities (a number, or null when the changed clip cannot measure it), the outcome (which reported
+            objects move, which candidates topple, the first contacts with their times, the final positions) and one sentence of
+            summary that carries no weight. Its target is read from the what-if record, so the label is exact and costs nothing
+            beyond the dataset.</p>
+          <p>Below, the same two roots: a friction change that turns a short push into a slide across the room, and a restitution
+            change that changes almost nothing. Both answers are right, and the verifier knows why.</p>
+        </div>
+        <div class="wm-anim pt-widget" id="pt-reasoner">
+          <div class="pt-picker" role="group" aria-label="Choose a what-if"></div>
+          <div class="pt-stage">
+            <div class="pt-canvas"><canvas width="560" height="460" aria-label="The observed run, the changed object, the changed run, and how four answers are scored"></canvas></div>
+            <div class="pt-side" aria-live="polite"></div>
+          </div>
+          <div class="wm-controls">
+            <button class="button is-small" data-action="toggle" aria-pressed="true">Pause</button>
+            <button class="button is-small" data-action="next">Next step</button>
+            <div class="pt-steps"></div>
+          </div>
         </div>
         <div class="wm-eqs">
           <div class="wm-eq"><span class="wm-eq-name">The verified reward of an answer</span>
             \[ r(x, y) = 0.05\, r_{\text{format}} + 0.35\, r_{\text{compare}} + 0.35\, r_{\text{quantity}} + 0.25\, r_{\text{outcome}} \]
             <p>Each part is in \([0, 1]\): the share of required fields present and well formed; the share of comparisons that match;
-              the share of quantities within a tolerance (counts exactly, lengths within 5 cm or 10 percent, times within 0.15 s); and
-              for the outcome the overlap of the moved and toppled sets, the agreement of the first contacts in pairs, order and time,
-              and the share of final positions within 10 cm. An unfinished thinking block or no JSON scores zero. The same function is
-              the SFT check, the GRPO reward and the evaluation metric.</p></div>
+              the share of quantities within tolerance (counts exactly, lengths within 5 cm or 10 percent, times within 0.15 s, a null
+              only where the record has none); and for the outcome the mean of the moved-set and toppled-set overlaps, the first-contact
+              agreement in pairs, order and time, and the share of final positions within 10 cm. A part that breaks its contract scores
+              0 rather than disappearing from the mean; an unfinished thinking block or no JSON scores 0 overall. The same function is
+              the SFT check, the GRPO reward and the held-out metric.</p></div>
           <div class="wm-eq"><span class="wm-eq-name">Training</span>
-            \[ \mathcal{L}_{\text{SFT}} = -\,\mathbb{E}\, \log \pi_\theta(y^\star \mid x), \qquad \text{then GRPO of section 2 with } r(x, y),\ G = 8,\ \beta = 0.02 \]
-            <p>\(y^\star\) is the measured answer. GRPO then samples eight answers per prompt and moves toward the ones the verifier
-              scores higher than their siblings; the reward is a lookup against measurements already on disk, so no simulator runs
-              during training. Two baselines are scored on every evaluation row and are the numbers to beat: the no-change answer
-              (copy the observed run, say "about the same" everywhere) and the family prior (the most common answer per family and
-              question kind in the training split).</p></div>
+            \[ \mathcal{L}_{\text{SFT}} = -\,\mathbb{E}\, \log \pi_\theta(y^\star \mid x), \qquad \text{then GRPO of section 2 with } r(x, y):\ G = 8,\ \epsilon = 0.2,\ \beta = 0.02 \]
+            <p>\(y^\star\) is the measured answer. GRPO then samples eight answers per prompt at temperature 1, scores each by the
+              lookup above, normalises the token-level loss over the completion tokens of the batch (the DAPO form, so long answers are
+              not favoured) and keeps a small KL term toward the supervised start; answers are capped at 1,536 tokens and prompts at
+              10,240. No simulator runs during training. Two baselines are scored on every evaluation row and are the numbers to beat:
+              the no-change answer (copy the observed run, say "about the same" everywhere) and the family prior (the most common
+              comparison and the median quantity per family and question kind in the training split).</p></div>
         </div>
         <div class="content">
           <p><strong>Why counterfactual pairs.</strong> A what-if asks for the mechanism, not for a memory of the observed run: the
@@ -471,57 +548,13 @@
             numeric what-ifs the world model's re-run will be the stronger instrument; the reasoner's value is language and the
             comparison, and that comparison is part of the evaluation.</p>
         </div>
-
-        <h4 class="title is-6 wm-subhead">The planner: an action for a wanted outcome</h4>
-        <div class="content">
-          <p>The prompt holds the initial scene graph (every body and constraint, with shared shapes and tables so the geometry stays
-            compact), the rig's baseline program, the allowed parameters with their exact bounds, and the required outcome in words:
-            "within the 6 s rollout, make the straight-line travel of the cart at least 0.76 m". The answer is one JSON object with
-            four fields: which dimension to change (the drive, a release height or angle, a ramp offset, a vertical tug, a force field,
-            or none), its value, and for pushes a lateral shift and a yaw. These are the dataset's own action vocabulary: parameters of a
-            known mechanism, so every answer can be transcribed into the simulator and judged, and none can edit the scene itself.</p>
-        </div>
-        <div class="wm-eqs">
-          <div class="wm-eq"><span class="wm-eq-name">The goal verdict</span>
-            \[ V_g(a) = \mathbb{1}\big[\, m_g\big(\Phi(G, a)\big) \in I_g \,\big] \]
-            <p>\(m_g\) is one of eight measured quantities (final displacement, toppled count, containment, maximum height, maximum
-              rotation, oscillation count, rebound height, time to rest) and \(I_g\) the required interval. The intervals are set per
-              family from the quartiles of the training baselines' measurements, never from validation or test data. A missing or
-              censored measurement gives no verdict rather than a failure.</p></div>
-          <div class="wm-eq"><span class="wm-eq-name">Training: copy successes, then prefer them over failures</span>
-            \[ \mathcal{L}_{\text{SFT}} = -\,\mathbb{E}_{V_g(a) = 1}\, \log \pi_\theta(a \mid G, g), \qquad
-               \mathcal{L}_{\text{DPO}} \text{ of section 2 on pairs } (a_w, a_l) \text{ with } V_g(a_w) = 1,\ V_g(a_l) = 0,\ \beta = 0.1 \]
-            <p>Both actions of a pair act on the same scene toward the same goal, and both were simulated and physically valid: a valid
-              rollout that misses the goal is the negative, an invalid or missing rollout is not. DPO starts from the SFT policy, which
-              is also its reference. A trained planner is judged by committing one answer per held-out task and simulating it in
-              PhysX, next to three controls: the unchanged program, random parameters inside the bounds, and the recorded actions
-              rounded to three decimals.</p></div>
-          <div class="wm-eq"><span class="wm-eq-name">Planned: the learned simulator as the environment, with retries</span>
-            \[ R = B\, \mathbb{1}[\text{goal met within } K \text{ attempts}] - c\, n_{\text{attempts}}, \qquad B \gt cK \]
-            <p>Every attempt restarts from the same scene; the planner sees its earlier actions and their predicted measurements and
-              proposes again. A GRPO-style update over whole episodes rewards reaching the goal in fewer queries. PhysX audits a sample
-              of the policy's actions, as in section 8: a gap between the two simulators is a result, not a reason to swap the reward.</p></div>
-        </div>
-        <div class="content">
-          <p><strong>Why outcome-conditioned actions.</strong> A planner is the inverse of the simulator: given the outcome, find the
-            action. Training it on recorded successes needs no new simulation, and three simulated programs per scene give successes
-            and failures of the same scene and goal, which are exactly the pairs DPO needs. Keeping the answer to a few parameters of a
-            known mechanism makes every answer verifiable and keeps the comparison with the benchmark's static edits and launches
-            clean. The learned simulator enters only as the environment of the last stage, where its speed matters and PhysX keeps
-            the final word.</p>
-          <p><strong>Status, 2 November.</strong> Both pipelines are written and checked on CPU; nothing has been trained. From the
-            first 346 complete roots of the 10k run the reasoner build gave 5,526 examples (64 quarantined for physics validity or
-            ambiguous names); the planner build from 349 roots gave 2,151 supervised rows and 1,206 preference pairs (1 November,
-            before the goal-calibration change). Possible now: rebuild both sets when the run finishes and train the reasoner's SFT
-            and GRPO and the planner's SFT and DPO on one node each. Needs training: every number above is a plan until the held-out
-            rooms, seeds and families have been scored. Needs new data: the planner's learned-simulator stage waits for a world model
-            trained on Dataset V2 actions (section 8).</p>
-        </div>
       </div>
 
       <!-- this block's data and script (deferred: they run after the page is parsed, in this order, after project.js) -->
       <script defer src="./static/data/post_training.js?v=ab70106007"></script>
-      <script defer src="./static/js/post_training/main.js?v=65958dbaac"></script>
+      <script defer src="./static/js/post_training/main.js?v=ea9b199ba1"></script>
+      <script defer src="./static/data/post_training_v2.js?v=8344980a34"></script>
+      <script defer src="./static/js/post_training/v2_models.js?v=4642f7e911"></script>
     </div>
   </section>
   <!-- ---------- end proposal: post_training ---------- -->

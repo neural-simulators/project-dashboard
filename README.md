@@ -166,6 +166,9 @@ static/images/world_model/       the five explainer figures, PNG and SVG; web_*.
                                  section 5, 31 October); rerun the tool after editing a figure, it rewrites all of them
 static/images/favicon.svg        tab icon
 tools/extract_sample.py          regenerates static/data/world_model.js from the simagent repository
+tools/extract_v2_models_sample.py   regenerates static/data/post_training_v2.js (the planner and reasoner animations of the
+                                 Post-training tab, section 9) from two Dataset V2 roots through the simagent pipelines; needs
+                                 that checkout's numpy interpreter (.envs/visual_data) and the mechanics dataset next to it
 tools/check_page.py              tag balance, local links, ids and the block convention
 ```
 

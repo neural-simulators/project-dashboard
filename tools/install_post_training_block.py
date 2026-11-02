@@ -41,7 +41,9 @@ def install(index, block, kind, slug, anchor):
     return index.replace(anchor, block + "\n\n" + anchor, 1), "inserted"
 
 
-ASSETS = ("static/data/post_training.js", "static/js/post_training/main.js", "static/css/post_training.css")
+SCRIPTS = ("static/data/post_training.js", "static/js/post_training/main.js",
+           "static/data/post_training_v2.js", "static/js/post_training/v2_models.js")   # section 9: Dataset V2 planner and reasoner
+ASSETS = SCRIPTS + ("static/css/post_training.css",)
 
 
 def stamp_versions(root, text):
@@ -49,7 +51,7 @@ def stamp_versions(root, text):
     import hashlib
     import re
     digest = hashlib.sha256(b"".join((root / a).read_bytes() for a in ASSETS)).hexdigest()[:10]
-    for asset in ASSETS[:2]:
+    for asset in SCRIPTS:
         text = re.sub(r'src="\./%s(\?v=[0-9a-f]+)?"' % re.escape(asset), 'src="./%s?v=%s"' % (asset, digest), text)
     return text, digest
 

@@ -5,7 +5,7 @@
 
 Reuses the parser of tools/check_page.py: tag balance, local link targets,
 unique ids, the two block markers, the data file's global, and a bracket
-balance scan of static/js/post_training/main.js outside strings and comments
+balance scan of static/js/post_training/{main,v2_models}.js outside strings and comments
 (no JavaScript engine is available on the cluster; this catches truncated or
 mismatched blocks, not type errors).
 """
@@ -18,7 +18,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from check_page import Checker, is_local  # noqa: E402
 
 REQUIRED_IDS = ('proposal-post_training', 'result-post_training_poc', 'pt-examples', 'pt-grpo', 'pt-dpo', 'pt-experiment-table',
-                'pt-mixed-table', 'pt-mixed-findings')
+                'pt-mixed-table', 'pt-mixed-findings', 'post_training-v2-models', 'pt-planner', 'pt-reasoner')
 
 
 def js_balance(text):
@@ -93,11 +93,19 @@ def main(argv=None):
         first = next((ln for ln in data.read_text(encoding='utf-8').splitlines() if not ln.startswith('//')), '')
         if not first.startswith('window.POST_TRAINING_DATA'):
             errors.append('%s does not start with window.POST_TRAINING_DATA' % data)
-    script = root / 'static/js/post_training/main.js'
-    if not script.is_file():
-        errors.append('missing %s' % script)
+    data = root / 'static/data/post_training_v2.js'
+    if not data.is_file():
+        errors.append('missing %s' % data)
     else:
-        errors += ['main.js ' + p for p in js_balance(script.read_text(encoding='utf-8'))]
+        first = next((ln for ln in data.read_text(encoding='utf-8').splitlines() if not ln.startswith('//')), '')
+        if not first.startswith('window.POST_TRAINING_V2'):
+            errors.append('%s does not start with window.POST_TRAINING_V2' % data)
+    for name in ('main.js', 'v2_models.js'):
+        script = root / 'static/js/post_training' / name
+        if not script.is_file():
+            errors.append('missing %s' % script)
+        else:
+            errors += [name + ' ' + p for p in js_balance(script.read_text(encoding='utf-8'))]
     print('post_training.html: %d links, %d local, %d unique id(s), %d error(s)' % (len(checker.links), local, len(checker.ids), len(errors)))
     for err in errors:
         print('  ERROR ' + err)
