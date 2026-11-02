@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="description" content="Frozen learned physics checkpoints evaluated on unseen Dataset V2 scenes, with coverage, trajectory errors and synchronized PhysX comparisons.">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Checkpoint transfer to V2 · Neural Simulators</title>
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
+  <link rel="stylesheet" href="./static/css/bulma.min.css?v=58b2865922">
+  <link rel="stylesheet" href="./static/css/index.css?v=747bae5899">
+  <link rel="stylesheet" href="./static/css/project.css?v=861b29d9d0">
+  <link rel="icon" href="./static/images/favicon.svg">
+  <script defer src="./static/js/fontawesome.all.min.js?v=20a3ef6979"></script>
+  <script defer src="./static/js/site_nav.js?v=fe837a0d3f"></script>
+  <script defer src="./static/js/clip_groups.js?v=f426212538"></script>
+
+</head><body>
+<section class="section"><div class="container is-max-desktop">
+<nav class="tabs is-centered is-boxed wm-tabs" data-site-nav="results" aria-label="Project pages"></nav>
+<div id="transfer-v2"><h1 class="title is-2">Checkpoint transfer to Dataset V2</h1>
+<div class="wm-intro"><h2 class="title is-4">Can the old neural simulators predict new physical scenes?</h2>
+<p>Five frozen regression and flow checkpoints predict motion from the original initial scene and action of each unseen V2 example.
+Their outputs are compared with the saved PhysX trajectories. One case per supported family makes this an exploratory transfer comparison.</p>
+<p><strong>11 of 52 families scored · 55 of 55 primary predictions completed · 41 families unsupported by the action interface. Five additional moving-pulley predictions are reported separately.</strong></p></div>
+<div class="notification is-light">Condition: 30 Hz, original start, all four generation rules. Background triangle meshes are represented by static boxes;
+foreground collision descriptions are retained. Context is capped at 64 objects. The original reference physics is unchanged.
+Full rollouts last 5-8 seconds; the first three seconds are also scored. Longer rollouts chain 0.2-second blocks with the trained time input capped.</div>
+<h2 class="title is-4">Position and orientation transfer</h2>
+<p>Case macro means. Moving-object and orientation columns use 10 cases; all-body columns use 11. The selected pulley reference has no body translating more than 1 cm,
+so it contributes to all-body error but has no moving-object error. Position ADE averages framewise distance; FDE measures endpoint distance, in metres.
+The all-body ADE also penalizes motion hallucinated on bodies that stay still. Orientation is mean angular error in degrees for non-spheres. Lower is better. These are not task success rates.</p>
+<div class="table-container"><table class="table is-striped is-fullwidth"><thead><tr><th>Checkpoint + rules</th><th>Completed</th>
+<th>Moving ADE, 3 s (m)</th><th>Moving ADE, full (m)</th><th>All-body ADE, full (m)</th><th>Moving FDE, full (m)</th><th>Orientation, full (deg)</th></tr></thead><tbody><tr><td><code>reg23m_chain15</code></td><td>11/11</td><td>0.414</td><td>0.551</td><td>0.450</td><td>0.796</td><td>53.721</td></tr><tr><td><code>reg23m_chain20_6s</code></td><td>11/11</td><td>0.416</td><td>0.565</td><td>0.463</td><td>0.804</td><td>52.528</td></tr><tr><td><code>reg23m_geo_chain5</code></td><td>11/11</td><td>0.418</td><td>0.623</td><td>0.512</td><td>0.922</td><td>54.685</td></tr><tr><td><code>reg50m_geo_chain5</code></td><td>11/11</td><td>0.465</td><td>0.685</td><td>0.578</td><td>1.040</td><td>72.324</td></tr><tr><td><code>flow23m_control</code></td><td>11/11</td><td>0.622</td><td>0.883</td><td>0.790</td><td>1.343</td><td>74.879</td></tr></tbody></table></div>
+<details><summary>Which checkpoint has the lowest error on each example?</summary><p>Each row is one example, not a family-wide ranking. Position and orientation winners can differ.
+The sub-centimetre pulley reference measures false motion; it is not evidence of accurate moving-pulley dynamics.</p><div id="case-winners" class="table-container"></div></details>
+<details id="comparison-explorer"><summary>Explore ground truth and predictions</summary>
+<p>Open an example, choose a checkpoint, and play the pair. The moving-pulley supplement is excluded from the headline means; its five predictions use the same frozen models and rules. Both views use the original full room, a shared camera and the same clock. No prediction is resimulated or repaired for display.</p>
+<div id="transfer-cases"></div></details>
+<details><summary>Coverage of all 52 motion families</summary><p>A family remains unsupported when none of its audited valid factual variants has an encodable action program.
+The audit covers 429 completed roots and 1,282 factual records, including 1,267 physics-valid records. One valid factual representative was selected from each of the 11 action-compatible families.</p><div id="transfer-coverage" class="table-container"></div></details>
+<details><summary>What was measured, and what was approximated?</summary><div class="content">
+<p>Selection was frozen before predictions. It prefers an available measured rest time within four seconds, then stable record-id order. Outcome misses remain eligible.
+All checkpoints use their shared EMA weights and ten sampling steps per block. Every prediction starts at the recorded initial state; future states are used only for scoring.</p>
+<p>Untyped time-zero velocity boundaries use the legacy throw token when linear velocity is nonzero, spin when only angular velocity is nonzero, and drop otherwise.
+Their numerical values are unchanged. Records without an action keep the no-action input. Timed actuator programs are unsupported.</p>
+<p>The rule setting enables floor projection, contact projection, a motion-cause gate and analytic priors. These modify generation; the output is explicitly a model-plus-rules condition.
+Even the co-author's plain condition includes floor projection, and these checkpoints have built-in gravity and joint priors.</p>
+<p>Static background furniture uses its local bounding box. The geometry checkpoints retain their bounded convex/primitive representation for foreground objects.
+The contact-material fallback was independently verified in the pinned engine: friction 0.5, restitution 0, with exact fixture agreement against explicit material values.
+Recorded dynamic masses, inertia and centre of mass are preserved. Per-case context omissions appear in the explorer.</p>
+<p>A reference-moving body moves more than 0.01 m from its scene pose within the measurement window. The given initial frame is excluded from errors.
+Stationary spinning bodies can have small position error despite poor orientation. Additional per-case measures include velocity RMSE and contact-pair-frame F1;
+reference contacts are the union of the four 120 Hz intervals inside each 30 Hz interval.</p>
+<p>Source sampler: <code>4eff30944e4d6c95573566114067cdfddb6d43e2</code>. Checkpoint SHA256s and full-precision measurements are embedded in this page's data file.
+ReplicaCAD furniture was already present in training; this is transfer to new V2 configurations, not an asset-disjoint test.
+Four drop/mix specialists and twelve remaining chain-length models were deferred. Their V2 performance has not been measured.</p>
+</div></details>
+<p style="margin-top:2rem"><a href="./index.html#results">Back to project results</a> · <a href="./dataset-v2.html">Dataset V2</a></p>
+</div></div></section>
+<style>
+#transfer-v2 details{border-top:1px solid var(--wm-border,#ddd);padding:1rem 0}#transfer-v2 summary{cursor:pointer;font-weight:600;font-size:1.05rem}
+#transfer-v2 .pair{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1rem 0}#transfer-v2 video{width:100%;background:#171c22;border-radius:5px}
+#transfer-v2 .controls{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin:1rem 0}#transfer-v2 .note{font-size:.88rem;color:#526173}
+#transfer-v2 .chart{width:100%;max-height:240px}#transfer-v2 .legend{display:flex;flex-wrap:wrap;gap:1rem;font-size:.8rem}
+#transfer-v2 td{font-variant-numeric:tabular-nums}#transfer-v2 code{overflow-wrap:anywhere}#transfer-v2 .wm-intro{margin-bottom:1rem}
+@media(max-width:650px){#transfer-v2 .pair{grid-template-columns:1fr}#transfer-v2 .table-container{font-size:.8rem}}
+</style>
+<script defer src="./static/data/checkpoint_transfer_v2.js"></script>
+<script defer src="./static/js/checkpoint_transfer_v2/explorer.js"></script>
+</body></html>
