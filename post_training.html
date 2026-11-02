@@ -317,6 +317,208 @@
         </div>
       </div>
 
+      <div class="wm-section wm-math" id="post_training-v2-models">
+        <h3 class="title is-4">9. Two more models, trained on Dataset V2: a planner and a reasoner</h3>
+        <div class="content">
+          <p>The sections above train one model to write a scene edit. <a href="./dataset-v2.html">Dataset V2</a> (46 mechanics
+            families in scanned rooms, every action simulated together with its what-if branches) lets us train the two language-model
+            parts of the loop the project is heading for. A <strong>planner</strong> chooses an action for a wanted outcome. A
+            <strong>reasoner</strong> says what a changed world would do. The <strong>simulator</strong> sits between them, PhysX today
+            and the world model once it judges like PhysX (section 8). A <strong>verifier</strong> written in code closes the loop:
+            it checks the planner's outcome against the goal and the reasoner's answer against the changed run's record, and a model's
+            opinion never enters it.</p>
+        </div>
+        <figure class="wm-figure">
+          <div class="wm-svg-scroll">
+            <svg class="pt-diagram" viewBox="0 0 900 420" role="img" aria-label="Planner, simulator and reasoner in a row; the verifier below checks the simulator's measurements and the reasoner's answer and sends a verdict to the planner and a reward to the reasoner">
+              <rect class="box model" x="16" y="20" width="240" height="176" rx="10"></rect>
+              <text class="head" x="136" y="50" text-anchor="middle">Planner</text>
+              <text class="fine" x="136" y="72" text-anchor="middle">Qwen, LoRA adapters</text>
+              <text class="body" x="136" y="100" text-anchor="middle">in: scene graph, the rig's</text>
+              <text class="body" x="136" y="122" text-anchor="middle">program, the wanted outcome</text>
+              <text class="body" x="136" y="152" text-anchor="middle">out: the program's four</text>
+              <text class="body" x="136" y="174" text-anchor="middle">parameters, as JSON</text>
+              <path class="arrow" d="M256,108 L330,108"></path>
+              <text class="fine" x="293" y="96" text-anchor="middle">action</text>
+              <rect class="box physx" x="330" y="20" width="240" height="176" rx="10"></rect>
+              <text class="head" x="450" y="50" text-anchor="middle">Simulator</text>
+              <text class="fine" x="450" y="72" text-anchor="middle">PhysX; later the world model</text>
+              <text class="body" x="450" y="100" text-anchor="middle">in: scene and action</text>
+              <text class="body" x="450" y="130" text-anchor="middle">out: trajectory, events,</text>
+              <text class="body" x="450" y="152" text-anchor="middle">measured quantities,</text>
+              <text class="body" x="450" y="174" text-anchor="middle">and the what-if runs</text>
+              <path class="arrow" d="M570,108 L644,108"></path>
+              <text class="fine" x="607" y="86" text-anchor="middle">observed</text>
+              <text class="fine" x="607" y="102" text-anchor="middle">run</text>
+              <rect class="box model" x="644" y="20" width="240" height="176" rx="10"></rect>
+              <text class="head" x="764" y="50" text-anchor="middle">Reasoner</text>
+              <text class="fine" x="764" y="72" text-anchor="middle">Qwen, LoRA adapters</text>
+              <text class="body" x="764" y="100" text-anchor="middle">in: scene, program, the</text>
+              <text class="body" x="764" y="122" text-anchor="middle">observed run, one what-if</text>
+              <text class="body" x="764" y="152" text-anchor="middle">out: more, less or the same;</text>
+              <text class="body" x="764" y="174" text-anchor="middle">numbers; the end state</text>
+              <path class="arrow" d="M450,196 L450,276"></path>
+              <text class="fine" x="460" y="238">measurements</text>
+              <path class="arrow" d="M804,196 L804,276"></path>
+              <text class="fine" x="814" y="238">answer</text>
+              <path class="arrow loop" d="M136,276 L136,196"></path>
+              <text class="fine" x="146" y="238">verdict: SFT, DPO, later RL</text>
+              <path class="arrow loop" d="M700,276 L700,196"></path>
+              <text class="fine" x="690" y="238" text-anchor="end">reward: GRPO</text>
+              <rect class="box data" x="16" y="276" width="868" height="128" rx="10"></rect>
+              <text class="head" x="450" y="306" text-anchor="middle">Verifier: code, never a model's opinion</text>
+              <text class="body" x="236" y="340" text-anchor="middle">planner: does the measured outcome meet the goal?</text>
+              <text class="fine" x="236" y="364" text-anchor="middle">a yes or no per goal, read off the recorded measurement</text>
+              <text class="body" x="664" y="340" text-anchor="middle">reasoner: does the answer match the changed run?</text>
+              <text class="fine" x="664" y="364" text-anchor="middle">format, comparisons, quantities, outcome: a score in [0, 1]</text>
+              <text class="fine" x="450" y="390" text-anchor="middle">trained models are judged by PhysX on held-out rooms, seeds and families</text>
+            </svg>
+          </div>
+          <figcaption>The loop. Blue boxes are trained (LoRA adapters on a frozen Qwen); the red box is the simulator; the green box is
+            code. Every arrow carries data that exists in the dataset's records or that the simulator produces; no arrow carries a
+            model's judgment of another model.</figcaption>
+        </figure>
+
+        <h4 class="title is-6 wm-subhead">Where the training pairs come from</h4>
+        <div class="content">
+          <p>Dataset V2 records every action as a bundle: the factual run, and the same program run again in a changed world (a mass or
+            friction changed, another material, another shape, an object removed, the actuator's command changed while it acts, an
+            impulse or a thrust cut later). Each root has three such action programs on the same scene. The two models read the same
+            tree in two directions.</p>
+        </div>
+        <figure class="wm-figure">
+          <div class="wm-svg-scroll">
+            <svg class="pt-diagram" viewBox="0 0 900 384" role="img" aria-label="One root with three action programs; each program has a factual run and six what-if runs; the reasoner pairs a factual run with one what-if of the same program, the planner pairs the three programs of one scene against one goal">
+              <rect class="box frozen" x="16" y="140" width="170" height="110" rx="10"></rect>
+              <text class="head" x="101" y="170" text-anchor="middle">One root</text>
+              <text class="fine" x="101" y="198" text-anchor="middle">a scene in a scanned</text>
+              <text class="fine" x="101" y="218" text-anchor="middle">room, with its rig</text>
+              <path class="arrow" d="M186,180 L226,58"></path>
+              <path class="arrow" d="M186,195 L226,182"></path>
+              <path class="arrow" d="M186,210 L226,306"></path>
+              <rect class="box data" x="226" y="16" width="190" height="84" rx="8"></rect>
+              <text class="head" x="321" y="46" text-anchor="middle">a0</text>
+              <text class="fine" x="321" y="74" text-anchor="middle">the rig's own program</text>
+              <path class="arrow" d="M416,58 L452,58"></path>
+              <rect class="box physx" x="452" y="16" width="104" height="84" rx="8"></rect>
+              <text class="body" x="504" y="52" text-anchor="middle">factual run</text>
+              <text class="fine" x="504" y="76" text-anchor="middle">measured</text>
+              <rect class="box frozen" x="568" y="16" width="316" height="84" rx="8"></rect>
+              <text class="body" x="726" y="42" text-anchor="middle">six what-ifs of the same program</text>
+              <text class="fine" x="726" y="66" text-anchor="middle">mass, material, shape, removal,</text>
+              <text class="fine" x="726" y="84" text-anchor="middle">command change, late impulse</text>
+              <rect class="box data" x="226" y="140" width="190" height="84" rx="8"></rect>
+              <text class="head" x="321" y="170" text-anchor="middle">a1</text>
+              <text class="fine" x="321" y="198" text-anchor="middle">parameters redrawn</text>
+              <path class="arrow" d="M416,182 L452,182"></path>
+              <rect class="box physx" x="452" y="140" width="104" height="84" rx="8"></rect>
+              <text class="body" x="504" y="176" text-anchor="middle">factual run</text>
+              <text class="fine" x="504" y="200" text-anchor="middle">measured</text>
+              <rect class="box frozen" x="568" y="140" width="316" height="84" rx="8"></rect>
+              <text class="body" x="726" y="186" text-anchor="middle">six what-ifs</text>
+              <rect class="box data" x="226" y="264" width="190" height="84" rx="8"></rect>
+              <text class="head" x="321" y="294" text-anchor="middle">a2</text>
+              <text class="fine" x="321" y="322" text-anchor="middle">parameters redrawn</text>
+              <path class="arrow" d="M416,306 L452,306"></path>
+              <rect class="box physx" x="452" y="264" width="104" height="84" rx="8"></rect>
+              <text class="body" x="504" y="300" text-anchor="middle">factual run</text>
+              <text class="fine" x="504" y="324" text-anchor="middle">measured</text>
+              <rect class="box frozen" x="568" y="264" width="316" height="84" rx="8"></rect>
+              <text class="body" x="726" y="310" text-anchor="middle">six what-ifs</text>
+              <path d="M452,106 L452,114 L884,114 L884,106" fill="none" stroke="#1f6feb" stroke-width="2"></path>
+              <text class="fine" x="668" y="128" text-anchor="middle" fill="#1f6feb">reasoner pair: factual run + one what-if, same program</text>
+              <path d="M446,16 L438,16 L438,348 L446,348" fill="none" stroke="#d7263d" stroke-width="2"></path>
+              <text class="fine" x="560" y="368" text-anchor="middle" fill="#d7263d">planner pair: a0, a1, a2 of one scene, judged against one goal</text>
+              </svg>
+          </div>
+          <figcaption>One root of the dataset. The reasoner reads across a row: the factual run and one of its what-ifs make one example,
+            and the what-if's own record holds the answer. The planner reads down the column of factual runs: the three programs of
+            one scene are judged against one goal, and the recorded measurement says which of them succeed.</figcaption>
+        </figure>
+
+        <h4 class="title is-6 wm-subhead">The reasoner: counterfactual questions with measured answers</h4>
+        <div class="content">
+          <p>The prompt holds the scene (every movable object with its shape, size, mass, friction, restitution and pose, the joints
+            and the room furniture nearby), the action program as applied, the observed run (its event facts, end state, first
+            contacts and final positions), then the change in words together with every exact difference between the two manifests,
+            and the questions. The questions are fixed by the factual record and the declared change alone: every measured quantity of
+            the factual run is asked again for the changed run, and a comparison (more, less, about the same, not measurable) for every
+            comparable kind. The answer is one JSON object; its target is read from the what-if record, so the label is exact and costs
+            nothing beyond the dataset. A sentence of summary is asked for but carries no weight: the verifier scores only what it can
+            measure.</p>
+        </div>
+        <div class="wm-eqs">
+          <div class="wm-eq"><span class="wm-eq-name">The verified reward of an answer</span>
+            \[ r(x, y) = 0.05\, r_{\text{format}} + 0.35\, r_{\text{compare}} + 0.35\, r_{\text{quantity}} + 0.25\, r_{\text{outcome}} \]
+            <p>Each part is in \([0, 1]\): the share of required fields present and well formed; the share of comparisons that match;
+              the share of quantities within a tolerance (counts exactly, lengths within 5 cm or 10 percent, times within 0.15 s); and
+              for the outcome the overlap of the moved and toppled sets, the agreement of the first contacts in pairs, order and time,
+              and the share of final positions within 10 cm. An unfinished thinking block or no JSON scores zero. The same function is
+              the SFT check, the GRPO reward and the evaluation metric.</p></div>
+          <div class="wm-eq"><span class="wm-eq-name">Training</span>
+            \[ \mathcal{L}_{\text{SFT}} = -\,\mathbb{E}\, \log \pi_\theta(y^\star \mid x), \qquad \text{then GRPO of section 2 with } r(x, y),\ G = 8,\ \beta = 0.02 \]
+            <p>\(y^\star\) is the measured answer. GRPO then samples eight answers per prompt and moves toward the ones the verifier
+              scores higher than their siblings; the reward is a lookup against measurements already on disk, so no simulator runs
+              during training. Two baselines are scored on every evaluation row and are the numbers to beat: the no-change answer
+              (copy the observed run, say "about the same" everywhere) and the family prior (the most common answer per family and
+              question kind in the training split).</p></div>
+        </div>
+        <div class="content">
+          <p><strong>Why counterfactual pairs.</strong> A what-if asks for the mechanism, not for a memory of the observed run: the
+            observed run is in the prompt, so copying it is the obvious shortcut, and the no-change baseline measures exactly how far
+            that shortcut gets. The answer is discrete, the natural output of a language model, and it is the kind of question the
+            world model's input contract cannot encode (a changed material, a removed object, a command that changes mid-action). On
+            numeric what-ifs the world model's re-run will be the stronger instrument; the reasoner's value is language and the
+            comparison, and that comparison is part of the evaluation.</p>
+        </div>
+
+        <h4 class="title is-6 wm-subhead">The planner: an action for a wanted outcome</h4>
+        <div class="content">
+          <p>The prompt holds the initial scene graph (every body and constraint, with shared shapes and tables so the geometry stays
+            compact), the rig's baseline program, the allowed parameters with their exact bounds, and the required outcome in words:
+            "within the 6 s rollout, make the straight-line travel of the cart at least 0.76 m". The answer is one JSON object with
+            four fields: which dimension to change (the drive, a release height or angle, a ramp offset, a vertical tug, a force field,
+            or none), its value, and for pushes a lateral shift and a yaw. These are the dataset's own action vocabulary: parameters of a
+            known mechanism, so every answer can be transcribed into the simulator and judged, and none can edit the scene itself.</p>
+        </div>
+        <div class="wm-eqs">
+          <div class="wm-eq"><span class="wm-eq-name">The goal verdict</span>
+            \[ V_g(a) = \mathbb{1}\big[\, m_g\big(\Phi(G, a)\big) \in I_g \,\big] \]
+            <p>\(m_g\) is one of eight measured quantities (final displacement, toppled count, containment, maximum height, maximum
+              rotation, oscillation count, rebound height, time to rest) and \(I_g\) the required interval. The intervals are set per
+              family from the quartiles of the training baselines' measurements, never from validation or test data. A missing or
+              censored measurement gives no verdict rather than a failure.</p></div>
+          <div class="wm-eq"><span class="wm-eq-name">Training: copy successes, then prefer them over failures</span>
+            \[ \mathcal{L}_{\text{SFT}} = -\,\mathbb{E}_{V_g(a) = 1}\, \log \pi_\theta(a \mid G, g), \qquad
+               \mathcal{L}_{\text{DPO}} \text{ of section 2 on pairs } (a_w, a_l) \text{ with } V_g(a_w) = 1,\ V_g(a_l) = 0,\ \beta = 0.1 \]
+            <p>Both actions of a pair act on the same scene toward the same goal, and both were simulated and physically valid: a valid
+              rollout that misses the goal is the negative, an invalid or missing rollout is not. DPO starts from the SFT policy, which
+              is also its reference. A trained planner is judged by committing one answer per held-out task and simulating it in
+              PhysX, next to three controls: the unchanged program, random parameters inside the bounds, and the recorded actions
+              rounded to three decimals.</p></div>
+          <div class="wm-eq"><span class="wm-eq-name">Planned: the learned simulator as the environment, with retries</span>
+            \[ R = B\, \mathbb{1}[\text{goal met within } K \text{ attempts}] - c\, n_{\text{attempts}}, \qquad B \gt cK \]
+            <p>Every attempt restarts from the same scene; the planner sees its earlier actions and their predicted measurements and
+              proposes again. A GRPO-style update over whole episodes rewards reaching the goal in fewer queries. PhysX audits a sample
+              of the policy's actions, as in section 8: a gap between the two simulators is a result, not a reason to swap the reward.</p></div>
+        </div>
+        <div class="content">
+          <p><strong>Why outcome-conditioned actions.</strong> A planner is the inverse of the simulator: given the outcome, find the
+            action. Training it on recorded successes needs no new simulation, and three simulated programs per scene give successes
+            and failures of the same scene and goal, which are exactly the pairs DPO needs. Keeping the answer to a few parameters of a
+            known mechanism makes every answer verifiable and keeps the comparison with the benchmark's static edits and launches
+            clean. The learned simulator enters only as the environment of the last stage, where its speed matters and PhysX keeps
+            the final word.</p>
+          <p><strong>Status, 2 November.</strong> Both pipelines are written and checked on CPU; nothing has been trained. From the
+            first 346 complete roots of the 10k run the reasoner build gave 5,526 examples (64 quarantined for physics validity or
+            ambiguous names); the planner build from 349 roots gave 2,151 supervised rows and 1,206 preference pairs (1 November,
+            before the goal-calibration change). Possible now: rebuild both sets when the run finishes and train the reasoner's SFT
+            and GRPO and the planner's SFT and DPO on one node each. Needs training: every number above is a plan until the held-out
+            rooms, seeds and families have been scored. Needs new data: the planner's learned-simulator stage waits for a world model
+            trained on Dataset V2 actions (section 8).</p>
+        </div>
+      </div>
+
       <!-- this block's data and script (deferred: they run after the page is parsed, in this order, after project.js) -->
       <script defer src="./static/data/post_training.js?v=ab70106007"></script>
       <script defer src="./static/js/post_training/main.js?v=65958dbaac"></script>
