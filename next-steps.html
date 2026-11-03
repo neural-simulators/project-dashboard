@@ -224,7 +224,29 @@ In a real scene precise values are expensive to measure, so the model has to cop
     <p>They also predict pixels from one camera, so physical state is tangled with appearance and cannot be read off reliably.</p>
     <p>What they do have is an implicit sense of how heavy or slippery things are, learned from watching them move; our world model is told those properties instead,
     which is exact when the values are known and needs the robustness training in <a href="#ns-props">Imprecise or missing properties</a> when they are not.</p>
-    <p class="ns-link"><a href="./video-models.html">Video models tab &rarr;</a></p></div></div>
+    <p class="ns-link"><a href="./video-models.html">Video models tab &rarr;</a> · <a href="#ns-vdm-data">What our data could offer them &darr;</a></p></div></div>
+</div>
+<div class="ns-hyp" id="ns-vdm-data">
+  <p class="ns-kicker">A hypothesis we are not testing ourselves</p>
+  <h3 class="title is-5">Why video models may fail, and what this dataset could offer them</h3>
+  <p>A video model learns from RGB pixels alone, with a loss that rewards appearance at least as much as motion. Mass, friction, restitution and the forces acting are
+  never shown to it, and web video rarely shows the same scene twice with one thing changed. So it has little to separate "this looks right" from "this moves right".
+  Others report the same pattern: on controlled physics videos, diffusion video models generalize in distribution but fail out of distribution and appear to imitate
+  the nearest training example rather than learn the rule, and more data and parameters do not close that gap
+  (<a href="https://arxiv.org/abs/2411.02385" target="_blank" rel="noopener">Kang et al., ICML 2025</a>).</p>
+  <div class="ns-grid">
+    <div class="ns-card"><h3>Dense motion and geometry channels</h3><p>Every record can be replayed into depth, instance masks, motion masks, optical flow and scene flow, exact and
+      aligned with the RGB, because the states are known. Training a video model to predict motion alongside pixels already improves motion coherence
+      (<a href="https://arxiv.org/abs/2502.02492" target="_blank" rel="noopener">VideoJAM</a>), and depth and segmentation are standard control inputs
+      (<a href="https://arxiv.org/abs/2503.14492" target="_blank" rel="noopener">Cosmos-Transfer1</a>).</p></div>
+    <div class="ns-card"><h3>Known causes and counterfactual pairs</h3><p>These channels show geometry and motion, but not mass or friction; no image channel does. What separates
+      the hidden properties is the counterfactual branch: the same scene and action with one property, shape or field changed, labelled with the value and the timed action.
+      Video models fine-tuned on about 15,000 synthetic force-and-video pairs already learn force and wind controls that generalize
+      (<a href="https://arxiv.org/abs/2505.19386" target="_blank" rel="noopener">Force Prompting</a>).</p></div>
+  </div>
+  <p>We chose the cheaper route: object states and a scene-graph world model, not pixels. The same records could still fine-tune or condition a video model,
+  which makes the dataset useful beyond our own models. This is an argument for the dataset, not a measured result. At tens of thousands of records it is fine-tuning
+  and control scale, not pretraining scale, and the dense channels have so far been rendered for demonstration records only, not for all of Dataset V2.</p>
 </div>
 <p>No off-the-shelf model takes this input (a 3D scene, its properties and an action) and returns this output (a dense 3D trajectory, or the inverse).
 The comparison for the new world models is therefore PhysX itself as ground truth, a random-action chance rate, our own earlier checkpoints, and the language and video models above.</p>
@@ -291,6 +313,10 @@ The comparison for the new world models is therefore PhysX itself as ground trut
 #next-steps .ns-note{font-size:.95rem;margin:-.4rem 0 1rem}
 #next-steps .ns-tldr{background:#fff;border:1px solid var(--wm-border);border-left:5px solid var(--wm-blue);border-radius:10px;padding:1.1rem 1.4rem;margin:0 0 1.6rem}
 #next-steps .ns-tldr ol{margin:.2rem 0 0 1.3rem}
+#next-steps .ns-hyp{border:1px dashed #f5a623;background:#fffaf0;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+#next-steps .ns-hyp .ns-kicker{color:#8a5300}
+#next-steps .ns-hyp .ns-card{background:#fff}
+#next-steps .ns-hyp>p{font-size:.97rem}
 #next-steps .ns-tldr li{margin:.35rem 0;line-height:1.5}
 #next-steps .ns-tldr a{color:var(--ns-ink)}
 #next-steps .ns-tldr a b{color:var(--wm-blue)}
