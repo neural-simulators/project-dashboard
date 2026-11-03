@@ -154,6 +154,15 @@ The inputs marked <b>new</b> came with Dataset V2: actions are programs with an 
   <div><span class="tag is-info is-light">implemented</span> <b>Interventions and counterfactuals.</b> Every counterfactual and intervention branch of every Dataset V2 root (changed property, material, shape, removal, late push) is a training example: the changed scene goes in, its motion comes out. The reasoner trains on the same branches as factual and counterfactual pairs.</div>
   <div><span class="tag is-warning is-light">designed</span> <b>Counterfactuals from an observation.</b> Giving the world model the factual run as context while it answers the counterfactual, so that what it infers from the observation (an unknown mass, say) carries over to the what-if.</div>
 </div>
+<h3 class="title is-5" id="ns-props">Imprecise or missing properties</h3>
+<p>The world model is told each object's mass, friction and restitution and each spring's stiffness, and a forward prediction is only as good as those numbers.
+A video model learns the effect of such properties implicitly, from watching objects move, but it cannot be told a value and does not report one.
+In a real scene precise values are expensive to measure, so the model has to cope with values that are approximate or missing; training can make it robust to that, not guarantee it.</p>
+<div class="ns-status">
+  <div><span class="tag is-info is-light">implemented</span> <b>Training with missing values.</b> Some objects' properties are hidden during training while the true trajectory stays the target; the masked model also infers the properties of moving objects from observed motion.</div>
+  <div><span class="tag is-info is-light">implemented</span> <b>Training with imprecise values</b> (3 November). In a share of training examples the given properties are perturbed as a measurement error would perturb them: one standard deviation is a factor of about 1.6 on mass (with inertia and density moved consistently), 0.15 on friction and restitution, a factor of 1.6 on spring stiffness and damping. The target stays the true trajectory, and the model is told how precise each value is.</div>
+  <div><span class="tag is-warning is-light">planned</span> <b>Evaluation for the paper.</b> The same test records predicted with precise, perturbed (independently per object, or one common mass factor per scene) and partly or fully missing properties, by models trained with and without the corrupted inputs. PhysX re-run with the same wrong values is the reference for how much the true outcome itself changes, reported per family.</div>
+</div>
 </div>
 
 <!-- ============ 3. Planner and reasoner ============ -->
@@ -213,6 +222,8 @@ The inputs marked <b>new</b> came with Dataset V2: actions are programs with an 
     <p>Open video diffusion models (Wan2.2, Cosmos-Predict2.5), given the first frame of a PhysX rollout and a prompt, do not produce physically plausible object motion:
     objects drift, deform, appear or vanish, and contacts do not cause what they should.</p>
     <p>They also predict pixels from one camera, so physical state is tangled with appearance and cannot be read off reliably.</p>
+    <p>What they do have is an implicit sense of how heavy or slippery things are, learned from watching them move; our world model is told those properties instead,
+    which is exact when the values are known and needs the robustness training in <a href="#ns-props">Imprecise or missing properties</a> when they are not.</p>
     <p class="ns-link"><a href="./video-models.html">Video models tab &rarr;</a></p></div></div>
 </div>
 <p>No off-the-shelf model takes this input (a 3D scene, its properties and an action) and returns this output (a dense 3D trajectory, or the inverse).
@@ -226,6 +237,7 @@ The comparison for the new world models is therefore PhysX itself as ground trut
 <ol class="ns-steps">
   <li><b>Train on Dataset V2.</b> The world models, now with the property, backward and intervention questions, on the 7,173 training records; validation on 774.</li>
   <li><b>Test in distribution.</b> The 1,287 held-out test records: trajectory error in metres, contact and event agreement, and whether the predicted outcome gets the same verdict as PhysX, per question type.</li>
+  <li><b>Robustness to measured properties.</b> The same test with precise, perturbed and missing properties in the scene graph, for models trained with and without corrupted inputs, against PhysX re-run with the same wrong values (<a href="#ns-props">above</a>).</li>
   <li><b>Counterfactuals from an observation.</b> Let the world model see the factual run when it answers the counterfactual, and score the predicted difference between the two branches on held-out roots.</li>
   <li><b>Transfer to real scenes.</b> Run the trained models on scanned-room digital twins and compare with the real and simulated motion (<a href="./digital-twins.html">Digital twins</a>, <a href="./twins-v2.html">Twins v2</a>).</li>
   <li><b>Planner and reasoner.</b> Score the PhysX-trained planner on held-out scenes, then adapt it inside the trained world model with GRPO and DPO; finish the reasoner's GRPO. Both scored on held-out roots and audited in PhysX.</li>
