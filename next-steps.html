@@ -62,73 +62,81 @@ earlier datasets (Physion, MOVi) lack: they show what happens, not what would ha
 <div class="ns-slide" id="ns-model">
 <p class="ns-kicker">2 · What we are building</p>
 <h2 class="title is-3">One world model, many questions</h2>
-<p>The world model reads an object-centric scene (shapes, poses, velocities, properties) and an action. During training any part of the input can be hidden
+<p>The world model reads an object-centric scene (shapes, joints, poses, velocities, properties), a timed action program and any global fields, such as a change of gravity or a wind. During training any part of the input can be hidden
 and the network learns to generate it. Which part is hidden decides the question. Whether the generator is regression, flow matching or diffusion does not change
 the picture below; those are interchangeable choices inside the block.</p>
 <figure class="ns-figure">
-<svg viewBox="0 0 920 470" role="img" aria-labelledby="ns-fig-t ns-fig-d">
+<svg viewBox="0 0 920 548" role="img" aria-labelledby="ns-fig-t ns-fig-d">
   <title id="ns-fig-t">One world model answering several physical questions</title>
-  <desc id="ns-fig-d">Five kinds of input (scene, properties, action, start state, observed motion or end state) enter a single world model block, any of them may be hidden. Five kinds of answer come out: the forward trajectory, properties inferred from motion, the action and trajectory that explain an end state, the outcome of an intervention or counterfactual, and events and contacts. Below, a physics engine needs every property and runs only forward.</desc>
+  <desc id="ns-fig-d">Seven kinds of input (shapes and poses, joints and springs, physical properties, a timed action program, global fields such as a gravity change or wind, the start state, and observed motion or an end state) enter a single world model block; any of them may be hidden. The timed action program and the global fields are marked as new with Dataset V2. Five kinds of answer come out: the forward trajectory, properties inferred from motion, the action and trajectory that explain an end state, the outcome of an intervention or counterfactual, and events and contacts. Below, a physics engine needs every property and runs only forward.</desc>
   <defs>
     <marker id="ns-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#55606e"/></marker>
     <pattern id="ns-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#c9d2dd" stroke-width="2"/></pattern>
   </defs>
   <text x="20" y="22" class="t-h">Given (any subset)</text>
   <g class="in">
-    <rect x="20" y="36" width="210" height="46" rx="6"/><text x="34" y="58">Scene: shapes, poses</text><text x="34" y="74" class="t-s">every object, metric 3D</text>
-    <rect x="20" y="92" width="210" height="46" rx="6"/><text x="34" y="114">Physical properties</text><text x="34" y="130" class="t-s">mass, friction, restitution</text>
-    <rect x="20" y="148" width="210" height="46" rx="6"/><text x="34" y="170">Action</text><text x="34" y="186" class="t-s">push, throw, strike, tool force</text>
-    <rect x="20" y="204" width="210" height="46" rx="6"/><text x="34" y="226">Start state</text><text x="34" y="242" class="t-s">or an observed prefix</text>
-    <rect x="20" y="260" width="210" height="46" rx="6" class="hid"/><text x="34" y="282">Observed motion / end state</text><text x="34" y="298" class="t-s">only for backward questions</text>
+    <rect x="20" y="36" width="236" height="44" rx="6"/><text x="34" y="55">Scene: shapes, poses</text><text x="34" y="71" class="t-s">collision parts and surface points</text>
+    <rect x="20" y="88" width="236" height="44" rx="6"/><text x="34" y="107">Joints and springs</text><text x="34" y="123" class="t-s">hinges, ropes, limits, stiffness</text>
+    <rect x="20" y="140" width="236" height="44" rx="6"/><text x="34" y="159">Physical properties</text><text x="34" y="175" class="t-s">mass, friction, restitution</text>
+    <rect x="20" y="192" width="236" height="44" rx="6" class="new"/><text x="34" y="211">Timed action program</text><text x="34" y="227" class="t-s">onset · duration · force · torque</text>
+    <rect x="20" y="244" width="236" height="44" rx="6" class="new"/><text x="34" y="263">Global fields</text><text x="34" y="279" class="t-s">gravity change, wind, drag</text>
+    <rect x="20" y="296" width="236" height="44" rx="6"/><text x="34" y="315">Start state</text><text x="34" y="331" class="t-s">or an observed prefix</text>
+    <rect x="20" y="348" width="236" height="44" rx="6" class="hid"/><text x="34" y="367">Observed motion / end state</text><text x="34" y="383" class="t-s">only for backward questions</text>
   </g>
+  <rect x="216" y="198" width="32" height="15" rx="7.5" class="pill"/><text x="232" y="209" text-anchor="middle" class="t-pill">new</text>
+  <rect x="216" y="250" width="32" height="15" rx="7.5" class="pill"/><text x="232" y="261" text-anchor="middle" class="t-pill">new</text>
   <g fill="none" stroke="#55606e" stroke-width="1.6">
-    <path d="M230 59 C 270 59, 270 171, 305 171" marker-end="url(#ns-arr)"/>
-    <path d="M230 115 C 265 115, 265 171, 305 171"/>
-    <path d="M230 171 L 305 171"/>
-    <path d="M230 227 C 265 227, 265 171, 305 171"/>
-    <path d="M230 283 C 270 283, 270 171, 305 171"/>
+    <path d="M256 58 C 292 58, 290 214, 318 214"/>
+    <path d="M256 110 C 290 110, 290 214, 318 214"/>
+    <path d="M256 162 C 288 162, 290 214, 318 214"/>
+    <path d="M256 214 L 318 214" marker-end="url(#ns-arr)"/>
+    <path d="M256 266 C 288 266, 290 214, 318 214"/>
+    <path d="M256 318 C 290 318, 290 214, 318 214"/>
+    <path d="M256 370 C 292 370, 290 214, 318 214"/>
   </g>
-  <rect x="308" y="70" width="270" height="202" rx="12" class="wm"/>
-  <text x="443" y="104" text-anchor="middle" class="t-wm">World model</text>
-  <text x="443" y="128" text-anchor="middle" class="t-wms">one network over object tokens</text>
-  <g transform="translate(338,146)">
+  <rect x="320" y="110" width="260" height="208" rx="12" class="wm"/>
+  <text x="450" y="143" text-anchor="middle" class="t-wm">World model</text>
+  <text x="450" y="165" text-anchor="middle" class="t-wms">one network over tokens for objects,</text>
+  <text x="450" y="182" text-anchor="middle" class="t-wms">joints, actions and fields</text>
+  <g transform="translate(345,194)">
     <rect x="0" y="0" width="30" height="22" rx="3" class="tok"/><rect x="36" y="0" width="30" height="22" rx="3" class="tok"/>
     <rect x="72" y="0" width="30" height="22" rx="3" class="tok mask"/><rect x="108" y="0" width="30" height="22" rx="3" class="tok"/>
     <rect x="144" y="0" width="30" height="22" rx="3" class="tok mask"/><rect x="180" y="0" width="30" height="22" rx="3" class="tok"/>
   </g>
-  <text x="443" y="192" text-anchor="middle" class="t-wms">hidden tokens are generated</text>
-  <text x="443" y="214" text-anchor="middle" class="t-wms">regression · flow matching · diffusion</text>
-  <text x="443" y="236" text-anchor="middle" class="t-wms">(interchangeable generators)</text>
-  <text x="443" y="258" text-anchor="middle" class="t-wmx">trained on PhysX, judged by PhysX</text>
+  <text x="450" y="238" text-anchor="middle" class="t-wms">hidden tokens are generated</text>
+  <text x="450" y="257" text-anchor="middle" class="t-wms">regression · flow matching · diffusion</text>
+  <text x="450" y="275" text-anchor="middle" class="t-wms">(interchangeable generators)</text>
+  <text x="450" y="300" text-anchor="middle" class="t-wmx">trained on PhysX, judged by PhysX</text>
   <g fill="none" stroke="#1f6feb" stroke-width="1.6">
-    <path d="M578 171 C 615 171, 615 59, 652 59" marker-end="url(#ns-arr)"/>
-    <path d="M578 171 C 612 171, 612 115, 652 115" marker-end="url(#ns-arr)"/>
-    <path d="M578 171 L 652 171" marker-end="url(#ns-arr)"/>
-    <path d="M578 171 C 612 171, 612 227, 652 227" marker-end="url(#ns-arr)"/>
-    <path d="M578 171 C 615 171, 615 283, 652 283" marker-end="url(#ns-arr)"/>
+    <path d="M580 214 C 618 214, 618 94, 652 94" marker-end="url(#ns-arr)"/>
+    <path d="M580 214 C 616 214, 616 154, 652 154" marker-end="url(#ns-arr)"/>
+    <path d="M580 214 L 652 214" marker-end="url(#ns-arr)"/>
+    <path d="M580 214 C 616 214, 616 274, 652 274" marker-end="url(#ns-arr)"/>
+    <path d="M580 214 C 618 214, 618 334, 652 334" marker-end="url(#ns-arr)"/>
   </g>
-  <text x="656" y="22" class="t-h">Asked for</text>
+  <text x="656" y="58" class="t-h">Asked for</text>
   <g class="out">
-    <rect x="656" y="36" width="250" height="46" rx="6"/><text x="670" y="58">Forward: the whole trajectory</text><text x="670" y="74" class="t-s">every object, every frame</text>
-    <rect x="656" y="92" width="250" height="46" rx="6"/><text x="670" y="114">Properties from motion</text><text x="670" y="130" class="t-s">how heavy, how slippery, how bouncy</text>
-    <rect x="656" y="148" width="250" height="46" rx="6"/><text x="670" y="170">Backward: action + trajectory</text><text x="670" y="186" class="t-s">from the start and the end state</text>
-    <rect x="656" y="204" width="250" height="46" rx="6"/><text x="670" y="226">Intervention / counterfactual</text><text x="670" y="242" class="t-s">edit a mass, shape or action; rerun</text>
-    <rect x="656" y="260" width="250" height="46" rx="6"/><text x="670" y="282">Events and contacts</text><text x="670" y="298" class="t-s">what hit what, and when</text>
+    <rect x="656" y="71" width="250" height="46" rx="6"/><text x="670" y="93">Forward: the whole trajectory</text><text x="670" y="109" class="t-s">every object, every frame</text>
+    <rect x="656" y="131" width="250" height="46" rx="6"/><text x="670" y="153">Properties from motion</text><text x="670" y="169" class="t-s">how heavy, how slippery, how bouncy</text>
+    <rect x="656" y="191" width="250" height="46" rx="6"/><text x="670" y="213">Backward: action + trajectory</text><text x="670" y="229" class="t-s">from the start and the end state</text>
+    <rect x="656" y="251" width="250" height="46" rx="6"/><text x="670" y="273">Intervention / counterfactual</text><text x="670" y="289" class="t-s">edit a mass, shape, field or action</text>
+    <rect x="656" y="311" width="250" height="46" rx="6"/><text x="670" y="333">Events and contacts</text><text x="670" y="349" class="t-s">what hit what, and when</text>
   </g>
-  <line x1="20" y1="336" x2="906" y2="336" stroke="#d9dee5"/>
-  <rect x="20" y="352" width="430" height="104" rx="8" class="eng"/>
-  <text x="38" y="378" class="t-h">A physics engine (PhysX)</text>
-  <text x="38" y="402" class="t-b">needs every property of every object up front</text>
-  <text x="38" y="422" class="t-b">runs forward only: 1,920 small steps per simulated second</text>
-  <text x="38" y="442" class="t-b">backward and property questions only by repeated search</text>
-  <rect x="476" y="352" width="430" height="104" rx="8" class="wm2"/>
-  <text x="494" y="378" class="t-h">The learned world model</text>
-  <text x="494" y="402" class="t-b">any subset in, the rest out, from one trained network</text>
-  <text x="494" y="422" class="t-b">one batched pass for the whole horizon</text>
-  <text x="494" y="442" class="t-b">same model for forward, backward and what-if questions</text>
+  <line x1="20" y1="414" x2="906" y2="414" stroke="#d9dee5"/>
+  <rect x="20" y="430" width="430" height="104" rx="8" class="eng"/>
+  <text x="38" y="456" class="t-h">A physics engine (PhysX)</text>
+  <text x="38" y="480" class="t-b">needs every property of every object up front</text>
+  <text x="38" y="500" class="t-b">runs forward only: 1,920 small steps per simulated second</text>
+  <text x="38" y="520" class="t-b">backward and property questions only by repeated search</text>
+  <rect x="476" y="430" width="430" height="104" rx="8" class="wm2"/>
+  <text x="494" y="456" class="t-h">The learned world model</text>
+  <text x="494" y="480" class="t-b">any subset in, the rest out, from one trained network</text>
+  <text x="494" y="500" class="t-b">one batched pass for the whole horizon</text>
+  <text x="494" y="520" class="t-b">same model for forward, backward and what-if questions</text>
 </svg>
 <figcaption>The block is deliberately abstract. Inputs on the left can each be given or hidden; the hidden ones are generated. The bottom row is the contrast with the engine
-that produced the data, which remains the reference for every verdict.</figcaption>
+that produced the data, which remains the reference for every verdict.
+The inputs marked <b>new</b> came with Dataset V2: actions are programs with an onset, a duration and an end (pushes, sustained forces and torques, grasp and release, in several timed segments), and global fields (a gravity change, a constant force, wind and drag, a central attraction) switch on and off at stated times. Objects can also be removed at a scheduled time, and a robot tool's path can be given as input or predicted.</figcaption>
 </figure>
 <h3 class="title is-5">Why learn the simulator (each argued on the <a href="./index.html#overview">Overview</a> and <a href="./index.html#design">World model</a> tabs)</h3>
 <ul class="ns-list">
@@ -255,6 +263,9 @@ The comparison for the new world models is therefore PhysX itself as ground trut
 #next-steps svg .t-s{font-size:12px;fill:#55606e}
 #next-steps svg .t-b{font-size:13.5px;fill:#333}
 #next-steps svg .in rect{fill:#fff;stroke:#9aa5b1;stroke-width:1.3}
+#next-steps svg .in rect.new{stroke:#f5a623;stroke-width:2.2}
+#next-steps svg rect.pill{fill:#f5a623}
+#next-steps svg .t-pill{font-size:10px;font-weight:700;fill:#fff}
 #next-steps svg .in rect.hid{fill:url(#ns-hatch);stroke-dasharray:5 4}
 #next-steps svg .out rect{fill:#eef4ff;stroke:#1f6feb;stroke-width:1.3}
 #next-steps svg rect.wm{fill:#1f6feb}
