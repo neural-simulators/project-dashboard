@@ -7,6 +7,7 @@
   'use strict';
   var TABS = [
     { key: 'overview', label: 'Overview', icon: 'fa-home', href: './index.html#overview' },
+    { key: 'next-steps', label: 'Next steps', icon: 'fa-flag-checkered', href: './next-steps.html' },
     { key: 'dataset', label: 'Dataset', icon: 'fa-database', href: './dataset.html' },
     { key: 'dataset-v2', label: 'Dataset V2', icon: 'fa-cubes', href: './dataset-v2.html' },
     { key: 'design', label: 'World model', icon: 'fa-drafting-compass', href: './index.html#design' },

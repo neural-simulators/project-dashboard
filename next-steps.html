@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="description" content="Status and next steps: the Dataset V2 simulations, one world model that answers forward, backward, property and intervention questions, why language and video models fall short, and the plan for training and testing.">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Next steps · Neural Simulators</title>
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
+  <link rel="stylesheet" href="./static/css/bulma.min.css?v=58b2865922">
+  <link rel="stylesheet" href="./static/css/index.css?v=747bae5899">
+  <link rel="stylesheet" href="./static/css/project.css?v=861b29d9d0">
+  <link rel="icon" href="./static/images/favicon.svg">
+  <script defer src="./static/js/fontawesome.all.min.js?v=20a3ef6979"></script>
+  <script defer src="./static/js/site_nav.js?v=aff8ddaf1e"></script>
+</head><body>
+<section class="section"><div class="container is-max-desktop">
+<nav class="tabs is-centered is-boxed wm-tabs" data-site-nav="next-steps" aria-label="Project pages"></nav>
+<div id="next-steps">
+<h1 class="title is-2">Next steps</h1>
+<p class="ns-lead">Where the project stands on 3 November 2026 and what comes next.</p>
+<div class="ns-tldr">
+  <p class="ns-kicker">The story in five lines</p>
+  <ol>
+    <li><a href="#ns-data"><b>Data is in place.</b></a> 52 motion families simulated in PhysX, each scene with its counterfactuals, interventions, negatives and measured questions.</li>
+    <li><a href="#ns-model"><b>One world model, many questions.</b></a> Forward, backward, property inference and what-if from one network, much faster than the engine.</li>
+    <li><a href="#ns-agents"><b>Two language models on top.</b></a> A planner that picks actions to reach an outcome, and a reasoner that answers "what if" in plain text; both in training now.</li>
+    <li><a href="#ns-baselines"><b>Off-the-shelf models fall short.</b></a> Language models cannot write dense motion; video models do not move objects plausibly.</li>
+    <li><a href="#ns-plan"><b>Next:</b></a> train on Dataset V2, test on held-out records, transfer to real rooms through digital twins.</li>
+  </ol>
+</div>
+
+<!-- ============ 1. Data ============ -->
+<div class="ns-slide" id="ns-data">
+<p class="ns-kicker">1 · What is done</p>
+<h2 class="title is-3">A simulation dataset built for causal questions</h2>
+<div class="ns-stats">
+  <div><b>52</b><span>motion families</span></div>
+  <div><b>520</b><span>root scenes</span></div>
+  <div><b>10,011</b><span>simulated records, first run</span></div>
+  <div><b>7,173 / 774 / 1,287</b><span>train / validation / test</span></div>
+</div>
+<p class="ns-note"><span class="tag is-info is-light">running</span> A second run is simulating 20,000 more records of the same 52 families into the same dataset (toward about 30,000).</p>
+<p>Each root scene is one manifest in a scanned room, simulated in PhysX as a bundle of related runs rather than a single clip. That bundle is what
+earlier datasets (Physion, MOVi) lack: they show what happens, not what would have happened otherwise.</p>
+<div class="ns-grid">
+  <div class="ns-card"><h3>Counterfactual worlds</h3><p>The same scene and action with one thing changed: a property (mass, friction, restitution, stiffness),
+    a material, or the shape of the moving object at equal volume and mass.</p></div>
+  <div class="ns-card"><h3>Interventions and removals</h3><p>The action changed while the tool is still acting, a late push after an observed prefix,
+    and the removal of a causal link, so the downstream event should disappear.</p></div>
+  <div class="ns-card"><h3>Variations per root</h3><p>Up to eight branches per root and several action programs per root, plus an unchanged replay that
+    proves every difference between branches comes from the edit.</p></div>
+  <div class="ns-card"><h3>Positives and negatives</h3><p>Action variations that achieve the family's intended outcome and ones that miss it;
+    the misses are kept as labelled negatives, not thrown away.</p></div>
+  <div class="ns-card ns-wide"><h3>Questions measured from the simulation</h3><p>Every record carries timed contact events and question-answer pairs whose
+    answers are read off the saved states, including comparisons across the counterfactual branches (shape, object type, mass, material). No human labels and
+    no language model in the loop.</p></div>
+</div>
+<p class="ns-link"><a href="./dataset-v2.html">Families, branches and record gallery: Dataset V2 tab &rarr;</a></p>
+</div>
+
+<!-- ============ 2. World model ============ -->
+<div class="ns-slide" id="ns-model">
+<p class="ns-kicker">2 · What we are building</p>
+<h2 class="title is-3">One world model, many questions</h2>
+<p>The world model reads an object-centric scene (shapes, poses, velocities, properties) and an action. During training any part of the input can be hidden
+and the network learns to generate it. Which part is hidden decides the question. Whether the generator is regression, flow matching or diffusion does not change
+the picture below; those are interchangeable choices inside the block.</p>
+<figure class="ns-figure">
+<svg viewBox="0 0 920 470" role="img" aria-labelledby="ns-fig-t ns-fig-d">
+  <title id="ns-fig-t">One world model answering several physical questions</title>
+  <desc id="ns-fig-d">Five kinds of input (scene, properties, action, start state, observed motion or end state) enter a single world model block, any of them may be hidden. Five kinds of answer come out: the forward trajectory, properties inferred from motion, the action and trajectory that explain an end state, the outcome of an intervention or counterfactual, and events and contacts. Below, a physics engine needs every property and runs only forward.</desc>
+  <defs>
+    <marker id="ns-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#55606e"/></marker>
+    <pattern id="ns-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#c9d2dd" stroke-width="2"/></pattern>
+  </defs>
+  <text x="20" y="22" class="t-h">Given (any subset)</text>
+  <g class="in">
+    <rect x="20" y="36" width="210" height="46" rx="6"/><text x="34" y="58">Scene: shapes, poses</text><text x="34" y="74" class="t-s">every object, metric 3D</text>
+    <rect x="20" y="92" width="210" height="46" rx="6"/><text x="34" y="114">Physical properties</text><text x="34" y="130" class="t-s">mass, friction, restitution</text>
+    <rect x="20" y="148" width="210" height="46" rx="6"/><text x="34" y="170">Action</text><text x="34" y="186" class="t-s">push, throw, strike, tool force</text>
+    <rect x="20" y="204" width="210" height="46" rx="6"/><text x="34" y="226">Start state</text><text x="34" y="242" class="t-s">or an observed prefix</text>
+    <rect x="20" y="260" width="210" height="46" rx="6" class="hid"/><text x="34" y="282">Observed motion / end state</text><text x="34" y="298" class="t-s">only for backward questions</text>
+  </g>
+  <g fill="none" stroke="#55606e" stroke-width="1.6">
+    <path d="M230 59 C 270 59, 270 171, 305 171" marker-end="url(#ns-arr)"/>
+    <path d="M230 115 C 265 115, 265 171, 305 171"/>
+    <path d="M230 171 L 305 171"/>
+    <path d="M230 227 C 265 227, 265 171, 305 171"/>
+    <path d="M230 283 C 270 283, 270 171, 305 171"/>
+  </g>
+  <rect x="308" y="70" width="270" height="202" rx="12" class="wm"/>
+  <text x="443" y="104" text-anchor="middle" class="t-wm">World model</text>
+  <text x="443" y="128" text-anchor="middle" class="t-wms">one network over object tokens</text>
+  <g transform="translate(338,146)">
+    <rect x="0" y="0" width="30" height="22" rx="3" class="tok"/><rect x="36" y="0" width="30" height="22" rx="3" class="tok"/>
+    <rect x="72" y="0" width="30" height="22" rx="3" class="tok mask"/><rect x="108" y="0" width="30" height="22" rx="3" class="tok"/>
+    <rect x="144" y="0" width="30" height="22" rx="3" class="tok mask"/><rect x="180" y="0" width="30" height="22" rx="3" class="tok"/>
+  </g>
+  <text x="443" y="192" text-anchor="middle" class="t-wms">hidden tokens are generated</text>
+  <text x="443" y="214" text-anchor="middle" class="t-wms">regression · flow matching · diffusion</text>
+  <text x="443" y="236" text-anchor="middle" class="t-wms">(interchangeable generators)</text>
+  <text x="443" y="258" text-anchor="middle" class="t-wmx">trained on PhysX, judged by PhysX</text>
+  <g fill="none" stroke="#1f6feb" stroke-width="1.6">
+    <path d="M578 171 C 615 171, 615 59, 652 59" marker-end="url(#ns-arr)"/>
+    <path d="M578 171 C 612 171, 612 115, 652 115" marker-end="url(#ns-arr)"/>
+    <path d="M578 171 L 652 171" marker-end="url(#ns-arr)"/>
+    <path d="M578 171 C 612 171, 612 227, 652 227" marker-end="url(#ns-arr)"/>
+    <path d="M578 171 C 615 171, 615 283, 652 283" marker-end="url(#ns-arr)"/>
+  </g>
+  <text x="656" y="22" class="t-h">Asked for</text>
+  <g class="out">
+    <rect x="656" y="36" width="250" height="46" rx="6"/><text x="670" y="58">Forward: the whole trajectory</text><text x="670" y="74" class="t-s">every object, every frame</text>
+    <rect x="656" y="92" width="250" height="46" rx="6"/><text x="670" y="114">Properties from motion</text><text x="670" y="130" class="t-s">how heavy, how slippery, how bouncy</text>
+    <rect x="656" y="148" width="250" height="46" rx="6"/><text x="670" y="170">Backward: action + trajectory</text><text x="670" y="186" class="t-s">from the start and the end state</text>
+    <rect x="656" y="204" width="250" height="46" rx="6"/><text x="670" y="226">Intervention / counterfactual</text><text x="670" y="242" class="t-s">edit a mass, shape or action; rerun</text>
+    <rect x="656" y="260" width="250" height="46" rx="6"/><text x="670" y="282">Events and contacts</text><text x="670" y="298" class="t-s">what hit what, and when</text>
+  </g>
+  <line x1="20" y1="336" x2="906" y2="336" stroke="#d9dee5"/>
+  <rect x="20" y="352" width="430" height="104" rx="8" class="eng"/>
+  <text x="38" y="378" class="t-h">A physics engine (PhysX)</text>
+  <text x="38" y="402" class="t-b">needs every property of every object up front</text>
+  <text x="38" y="422" class="t-b">runs forward only: 1,920 small steps per simulated second</text>
+  <text x="38" y="442" class="t-b">backward and property questions only by repeated search</text>
+  <rect x="476" y="352" width="430" height="104" rx="8" class="wm2"/>
+  <text x="494" y="378" class="t-h">The learned world model</text>
+  <text x="494" y="402" class="t-b">any subset in, the rest out, from one trained network</text>
+  <text x="494" y="422" class="t-b">one batched pass for the whole horizon</text>
+  <text x="494" y="442" class="t-b">same model for forward, backward and what-if questions</text>
+</svg>
+<figcaption>The block is deliberately abstract. Inputs on the left can each be given or hidden; the hidden ones are generated. The bottom row is the contrast with the engine
+that produced the data, which remains the reference for every verdict.</figcaption>
+</figure>
+<h3 class="title is-5">Why learn the simulator (each argued on the <a href="./index.html#overview">Overview</a> and <a href="./index.html#design">World model</a> tabs)</h3>
+<ul class="ns-list">
+  <li><b>Fast.</b> One network pass predicts the whole horizon instead of thousands of sequential solver steps, and many candidate actions run in one batch.</li>
+  <li><b>Dense.</b> The output is the full trajectory of every object, so timing questions (a contact before a deadline, time to rest) are checked on it directly.</li>
+  <li><b>Backward and what-if.</b> Properties and actions inferred from observed motion; interventions and counterfactuals are edits of the conditioning.</li>
+  <li><b>Physical representation.</b> Metric 3D, object-centric, no camera, so objects persist through occlusion and conservation and non-penetration can be measured and trained.</li>
+  <li><b>Real scenes.</b> Applies to scene graphs estimated from photographs, with perception uncertainty carried into error bands on the prediction.</li>
+  <li><b>Rewards for language models.</b> A fast judge for planning and post-training, trusted only as far as it agrees with PhysX.</li>
+</ul>
+<h3 class="title is-5">Status of each question</h3>
+<div class="ns-status">
+  <div><span class="tag is-success is-light">trained</span> <b>Forward trajectory.</b> Several model families trained on earlier data (Improved Results tabs); a first transfer check of frozen checkpoints to Dataset V2 is on the <a href="./checkpoint-transfer-v2.html">checkpoint-transfer page</a>.</div>
+  <div><span class="tag is-info is-light">implemented</span> <b>Property inference, backward (action and trajectory from start and end), unknown properties.</b> Built into the masked world model and run on the earlier data; not yet trained or tested on Dataset V2. Dataset V2 is already converted into the world model's training format.</div>
+  <div><span class="tag is-info is-light">implemented</span> <b>Interventions.</b> A changed action or property is an edited input to the forward question.</div>
+  <div><span class="tag is-warning is-light">designed</span> <b>Paired counterfactuals.</b> Dataset V2 holds the factual and counterfactual branches of each root; tying them into one training example is designed, not yet built.</div>
+</div>
+</div>
+
+<!-- ============ 3. Planner and reasoner ============ -->
+<div class="ns-slide" id="ns-agents">
+<p class="ns-kicker">3 · What we build on top</p>
+<h2 class="title is-3">A planner and a reasoner, post-trained from Qwen 8B</h2>
+<figure class="ns-figure">
+<svg viewBox="0 0 920 250" role="img" aria-labelledby="ns-loop-t ns-loop-d">
+  <title id="ns-loop-t">Planner, world model, reasoner and PhysX in one loop</title>
+  <desc id="ns-loop-d">A requested outcome goes to the planner, which proposes an action; the world model predicts the motion and scores the proposal, feeding back to the planner. Separately, an observed simulation plus a change goes to the reasoner, which answers in text what would happen. PhysX trains the first stage and audits both.</desc>
+  <defs><marker id="ns-arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#55606e"/></marker></defs>
+  <rect x="10" y="20" width="170" height="56" rx="8" class="eng"/><text x="95" y="44" text-anchor="middle" class="t-h">Goal</text><text x="95" y="63" text-anchor="middle" class="t-s">"move the ball onto the ramp"</text>
+  <rect x="230" y="14" width="190" height="68" rx="10" class="ag"/><text x="325" y="42" text-anchor="middle" class="t-ag">Planner</text><text x="325" y="62" text-anchor="middle" class="t-ags">proposes an action</text>
+  <rect x="490" y="14" width="190" height="68" rx="10" class="wm"/><text x="585" y="42" text-anchor="middle" class="t-wm2">World model</text><text x="585" y="62" text-anchor="middle" class="t-wms">predicts the motion</text>
+  <rect x="740" y="20" width="170" height="56" rx="8" class="out2"/><text x="825" y="44" text-anchor="middle" class="t-h">Goal reached?</text><text x="825" y="63" text-anchor="middle" class="t-s">reward, in a network pass</text>
+  <g fill="none" stroke="#55606e" stroke-width="1.6">
+    <path d="M180 48 L 228 48" marker-end="url(#ns-arr2)"/><path d="M420 48 L 488 48" marker-end="url(#ns-arr2)"/><path d="M680 48 L 738 48" marker-end="url(#ns-arr2)"/>
+    <path d="M825 76 C 825 112, 325 112, 325 84" stroke-dasharray="5 4" marker-end="url(#ns-arr2)"/>
+  </g>
+  <text x="575" y="122" text-anchor="middle" class="t-s">GRPO / DPO feedback</text>
+  <rect x="10" y="158" width="170" height="68" rx="8" class="eng"/><text x="95" y="184" text-anchor="middle" class="t-h">One simulation</text><text x="95" y="203" text-anchor="middle" class="t-s">+ a change: "twice as heavy?"</text>
+  <rect x="230" y="158" width="190" height="68" rx="10" class="ag"/><text x="325" y="186" text-anchor="middle" class="t-ag">Reasoner</text><text x="325" y="206" text-anchor="middle" class="t-ags">thinks it through in text</text>
+  <rect x="490" y="158" width="420" height="68" rx="8" class="out2"/><text x="508" y="184" class="t-h">"It would stop short of the second domino,</text><text x="508" y="205" class="t-h">so the chain would not complete."</text>
+  <g fill="none" stroke="#55606e" stroke-width="1.6"><path d="M180 192 L 228 192" marker-end="url(#ns-arr2)"/><path d="M420 192 L 488 192" marker-end="url(#ns-arr2)"/></g>
+  <text x="910" y="246" text-anchor="end" class="t-s">PhysX trains the first stage and checks both answers</text>
+</svg>
+</figure>
+<div class="columns">
+  <div class="column"><div class="ns-card ns-tall"><h3><i class="fas fa-crosshairs" aria-hidden="true"></i> Planner</h3>
+    <p><b>Job:</b> given a scene and the outcome an experiment should produce, propose the action (its parameters) that makes it happen.</p>
+    <p><b>Stage 1, PhysX:</b> learn from actions whose saved PhysX runs reached the goal, and prefer them over valid actions that missed it (the labelled negatives of Dataset V2).</p>
+    <p><b>Stage 2, world model:</b> fine-tune with GRPO and DPO on fresh proposals scored by the world model, which costs a network pass per try instead of a full simulation. PhysX checks that the gain transfers.</p></div></div>
+  <div class="column"><div class="ns-card ns-tall"><h3><i class="fas fa-lightbulb" aria-hidden="true"></i> Reasoner</h3>
+    <p><b>Job:</b> like a person shown one simulation and asked "what if the ball were heavier, the domino removed, the push reversed?", say in plain text what would happen, without running the simulator again.</p>
+    <p><b>Training:</b> the factual and counterfactual branches of each Dataset V2 root give the question and the measured answer, so every answer is graded against PhysX, not against a human or another model. Supervised fine-tuning first, then GRPO with the measured answer as the reward.</p>
+    <p><b>Why:</b> explanations and questions the world model's numeric input cannot express.</p></div></div>
+</div>
+<div class="ns-status">
+  <div><span class="tag is-success is-light">trained</span> <b>Planner, PhysX stage:</b> fine-tuned on successful actions, then DPO against the misses; its held-out PhysX evaluation is queued. The world-model stage follows once a world model is trained on Dataset V2.</div>
+  <div><span class="tag is-success is-light">trained</span> <b>Reasoner, supervised stage:</b> fine-tuned and evaluated against the untrained base model on held-out rooms.</div>
+  <div><span class="tag is-info is-light">running</span> <b>Reasoner GRPO</b> from the fine-tuned model.</div>
+</div>
+<p class="ns-link"><a href="./index.html#post-training">Earlier post-training with simulator rewards: Post-training tab &rarr;</a></p>
+</div>
+
+<!-- ============ 4. LLMs and video models ============ -->
+<div class="ns-slide" id="ns-baselines">
+<p class="ns-kicker">4 · What does not work</p>
+<h2 class="title is-3">Language and video models are not physical simulators</h2>
+<div class="columns">
+  <div class="column"><div class="ns-card ns-tall"><h3><i class="fas fa-comment-dots" aria-hidden="true"></i> Language models</h3>
+    <p>A dense multi-object trajectory does not fit in an output token budget, so a language model can state an end point but cannot write the motion.</p>
+    <p>The best route we found is to have the model write code and choose the parameters of an action that should satisfy the task, and let PhysX run it.
+    The strongest closed model does well on simple edits and launches; the open-source Qwen models fail on most of them.</p>
+    <p class="ns-link"><a href="./how-it-works.html">How models are prompted</a> · <a href="./index.html#results">Results</a></p></div></div>
+  <div class="column"><div class="ns-card ns-tall"><h3><i class="fas fa-film" aria-hidden="true"></i> Video models</h3>
+    <p>Open video diffusion models (Wan2.2, Cosmos-Predict2.5), given the first frame of a PhysX rollout and a prompt, do not produce physically plausible object motion:
+    objects drift, deform, appear or vanish, and contacts do not cause what they should.</p>
+    <p>They also predict pixels from one camera, so physical state is tangled with appearance and cannot be read off reliably.</p>
+    <p class="ns-link"><a href="./video-models.html">Video models tab &rarr;</a></p></div></div>
+</div>
+<p>No off-the-shelf model takes this input (a 3D scene, its properties and an action) and returns this output (a dense 3D trajectory, or the inverse).
+The comparison for the new world models is therefore PhysX itself as ground truth, a random-action chance rate, our own earlier checkpoints, and the language and video models above.</p>
+</div>
+
+<!-- ============ 4. Plan ============ -->
+<div class="ns-slide" id="ns-plan">
+<p class="ns-kicker">5 · Next</p>
+<h2 class="title is-3">Plan</h2>
+<ol class="ns-steps">
+  <li><b>Train on Dataset V2.</b> The world models, now with the property, backward and intervention questions, on the 7,173 training records; validation on 774.</li>
+  <li><b>Test in distribution.</b> The 1,287 held-out test records: trajectory error in metres, contact and event agreement, and whether the predicted outcome gets the same verdict as PhysX, per question type.</li>
+  <li><b>Paired counterfactuals.</b> Build the training example that ties a factual run to its counterfactual branch, then test it on the held-out branches.</li>
+  <li><b>Transfer to real scenes.</b> Run the trained models on scanned-room digital twins and compare with the real and simulated motion (<a href="./digital-twins.html">Digital twins</a>, <a href="./twins-v2.html">Twins v2</a>).</li>
+  <li><b>Planner and reasoner.</b> Score the PhysX-trained planner on held-out scenes, then adapt it inside the trained world model with GRPO and DPO; finish the reasoner's GRPO. Both scored on held-out roots and audited in PhysX.</li>
+  <li><b>Later.</b> Key events first and the motion between them, error bands on predictions, and explanations in words (World model tab, sections 8 and 9).</li>
+</ol>
+</div>
+
+<p style="margin-top:2rem"><a href="./index.html#overview">Back to the overview</a> · <a href="./dataset-v2.html">Dataset V2</a> · <a href="./index.html#design">World model</a></p>
+</div></div></section>
+<style>
+#next-steps{--ns-ink:#222;--ns-soft:#55606e}
+#next-steps .ns-lead{font-size:1.08rem;color:var(--wm-text);margin-bottom:1.5rem}
+#next-steps .ns-slide{background:#fff;border:1px solid var(--wm-border);border-radius:10px;padding:1.6rem 1.7rem 1.4rem;margin:0 0 1.6rem}
+#next-steps .ns-kicker{font-family:'Google Sans',sans-serif;text-transform:uppercase;letter-spacing:.08em;font-size:.8rem;color:var(--wm-blue);margin-bottom:.3rem;font-weight:600}
+#next-steps .title{font-family:'Google Sans',sans-serif;color:var(--ns-ink)}
+#next-steps p{line-height:1.6}
+#next-steps .ns-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem;margin:1rem 0 1.2rem}
+#next-steps .ns-stats div{border:1px solid var(--wm-border);border-radius:8px;padding:.75rem .8rem;background:var(--wm-bg)}
+#next-steps .ns-stats b{display:block;font-family:'Google Sans',sans-serif;font-size:1.45rem;color:var(--wm-blue);font-variant-numeric:tabular-nums;line-height:1.2}
+#next-steps .ns-stats span{font-size:.85rem;color:var(--ns-soft)}
+#next-steps .ns-grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin:1rem 0}
+#next-steps .ns-card{border:1px solid var(--wm-border);border-radius:8px;padding:.85rem 1rem;background:var(--wm-bg)}
+#next-steps .ns-card h3{font-family:'Google Sans',sans-serif;font-weight:600;color:var(--ns-ink);margin-bottom:.3rem}
+#next-steps .ns-card p{font-size:.95rem;margin:0}
+#next-steps .ns-card p+p{margin-top:.55rem}
+#next-steps .ns-wide{grid-column:1/-1}
+#next-steps .ns-tall{height:100%}
+#next-steps .ns-link{margin-top:.8rem}
+#next-steps .ns-link a,#next-steps a{color:var(--wm-blue)}
+#next-steps .ns-figure{margin:1.2rem 0 1.4rem}
+#next-steps .ns-figure svg{width:100%;height:auto;display:block}
+#next-steps figcaption{font-size:.88rem;color:var(--wm-muted);margin-top:.5rem}
+#next-steps svg text{font-family:'Google Sans','Noto Sans',sans-serif;font-size:14px;fill:#222}
+#next-steps svg .t-h{font-size:15px;font-weight:600}
+#next-steps svg .t-s{font-size:12px;fill:#55606e}
+#next-steps svg .t-b{font-size:13.5px;fill:#333}
+#next-steps svg .in rect{fill:#fff;stroke:#9aa5b1;stroke-width:1.3}
+#next-steps svg .in rect.hid{fill:url(#ns-hatch);stroke-dasharray:5 4}
+#next-steps svg .out rect{fill:#eef4ff;stroke:#1f6feb;stroke-width:1.3}
+#next-steps svg rect.wm{fill:#1f6feb}
+#next-steps svg .t-wm{font-size:22px;font-weight:700;fill:#fff}
+#next-steps svg .t-wms{font-size:13px;fill:#e6efff}
+#next-steps svg .t-wmx{font-size:12px;fill:#ffd88a}
+#next-steps svg rect.tok{fill:#5d97f2;stroke:#cfe0ff}
+#next-steps svg rect.tok.mask{fill:#f5a623;stroke:#fff}
+#next-steps svg rect.eng{fill:#f4f5f7;stroke:#9aa5b1}
+#next-steps svg rect.wm2{fill:#eef4ff;stroke:#1f6feb}
+#next-steps .ns-note{font-size:.95rem;margin:-.4rem 0 1rem}
+#next-steps .ns-tldr{background:#fff;border:1px solid var(--wm-border);border-left:5px solid var(--wm-blue);border-radius:10px;padding:1.1rem 1.4rem;margin:0 0 1.6rem}
+#next-steps .ns-tldr ol{margin:.2rem 0 0 1.3rem}
+#next-steps .ns-tldr li{margin:.35rem 0;line-height:1.5}
+#next-steps .ns-tldr a{color:var(--ns-ink)}
+#next-steps .ns-tldr a b{color:var(--wm-blue)}
+#next-steps svg rect.ag{fill:#fff4e0;stroke:#f5a623;stroke-width:1.6}
+#next-steps svg rect.out2{fill:#eef4ff;stroke:#1f6feb}
+#next-steps svg .t-ag{font-size:19px;font-weight:700;fill:#8a5300}
+#next-steps svg .t-ags{font-size:12.5px;fill:#6b4a12}
+#next-steps svg .t-wm2{font-size:19px;font-weight:700;fill:#fff}
+#next-steps .ns-list{list-style:disc;margin:0 0 1.2rem 1.3rem}
+#next-steps .ns-list li{margin:.3rem 0;line-height:1.55}
+#next-steps .ns-status div{margin:.5rem 0;line-height:1.55}
+#next-steps .ns-status .tag{min-width:7.3rem;justify-content:center;margin-right:.35rem}
+#next-steps .ns-steps{margin:.4rem 0 0 1.3rem}
+#next-steps .ns-steps li{margin:.5rem 0;line-height:1.55}
+@media(max-width:700px){#next-steps .ns-stats{grid-template-columns:1fr 1fr}#next-steps .ns-grid{grid-template-columns:1fr}#next-steps .ns-slide{padding:1.1rem 1rem}}
+</style>
+</body></html>
