@@ -33,7 +33,7 @@
         el('p', {class: 'wm-note', html: '<b>Measured questions</b> (' + r.qa.length + ' of ' + r.qa_total + '; answers from the saved states, never a model):'}),
         table(['question', 'answer', 'unit', 'status'], r.qa.map(function (q) { return [q.q, q.a, q.unit, q.status]; })),
         el('p', {class: 'wm-note', html: '<b>Template explanation</b> (written from the event ledger): ' + (r.explanation || 'none written')}),
-        el('p', {class: 'wm-note', html: '<b>Camera</b> fitted to the action: eye ' + JSON.stringify(r.camera.eye) + ' m, target ' + JSON.stringify(r.camera.target) + ' m, focal ' + r.camera.focal_mm + ' mm (camera_v1.json in the action folder).'})
+        el('p', {class: 'wm-note', html: '<b>Camera</b> inside the room, fitted to the action: eye ' + JSON.stringify(r.camera.eye) + ' m, target ' + JSON.stringify(r.camera.target) + ' m, focal ' + r.camera.focal_mm + ' mm' + (r.camera.fits === false ? ' (the widest lens at the front wall: the full sweep does not fit from inside the room)' : '') + (r.camera.context && r.camera.context.length ? ', framed with ' + r.camera.context.join(', ') : '') + ' (camera_v2.json in the action folder).'})
       ])
     ]);
   }
