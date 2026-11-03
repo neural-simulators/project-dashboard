@@ -143,8 +143,8 @@ that produced the data, which remains the reference for every verdict.</figcapti
 <div class="ns-status">
   <div><span class="tag is-success is-light">trained</span> <b>Forward trajectory.</b> Several model families trained on earlier data (Improved Results tabs); a first transfer check of frozen checkpoints to Dataset V2 is on the <a href="./checkpoint-transfer-v2.html">checkpoint-transfer page</a>.</div>
   <div><span class="tag is-info is-light">implemented</span> <b>Property inference, backward (action and trajectory from start and end), unknown properties.</b> Built into the masked world model and run on the earlier data; not yet trained or tested on Dataset V2. Dataset V2 is already converted into the world model's training format.</div>
-  <div><span class="tag is-info is-light">implemented</span> <b>Interventions.</b> A changed action or property is an edited input to the forward question.</div>
-  <div><span class="tag is-warning is-light">designed</span> <b>Paired counterfactuals.</b> Dataset V2 holds the factual and counterfactual branches of each root; tying them into one training example is designed, not yet built.</div>
+  <div><span class="tag is-info is-light">implemented</span> <b>Interventions and counterfactuals.</b> Every counterfactual and intervention branch of every Dataset V2 root (changed property, material, shape, removal, late push) is a training example: the changed scene goes in, its motion comes out. The reasoner trains on the same branches as factual and counterfactual pairs.</div>
+  <div><span class="tag is-warning is-light">designed</span> <b>Counterfactuals from an observation.</b> Giving the world model the factual run as context while it answers the counterfactual, so that what it infers from the observation (an unknown mass, say) carries over to the what-if.</div>
 </div>
 </div>
 
@@ -218,7 +218,7 @@ The comparison for the new world models is therefore PhysX itself as ground trut
 <ol class="ns-steps">
   <li><b>Train on Dataset V2.</b> The world models, now with the property, backward and intervention questions, on the 7,173 training records; validation on 774.</li>
   <li><b>Test in distribution.</b> The 1,287 held-out test records: trajectory error in metres, contact and event agreement, and whether the predicted outcome gets the same verdict as PhysX, per question type.</li>
-  <li><b>Paired counterfactuals.</b> Build the training example that ties a factual run to its counterfactual branch, then test it on the held-out branches.</li>
+  <li><b>Counterfactuals from an observation.</b> Let the world model see the factual run when it answers the counterfactual, and score the predicted difference between the two branches on held-out roots.</li>
   <li><b>Transfer to real scenes.</b> Run the trained models on scanned-room digital twins and compare with the real and simulated motion (<a href="./digital-twins.html">Digital twins</a>, <a href="./twins-v2.html">Twins v2</a>).</li>
   <li><b>Planner and reasoner.</b> Score the PhysX-trained planner on held-out scenes, then adapt it inside the trained world model with GRPO and DPO; finish the reasoner's GRPO. Both scored on held-out roots and audited in PhysX.</li>
   <li><b>Later.</b> Key events first and the motion between them, error bands on predictions, and explanations in words (World model tab, sections 8 and 9).</li>
