@@ -12,6 +12,7 @@
     { key: 'dataset-v2', label: 'Dataset V2', icon: 'fa-cubes', href: './dataset-v2.html' },
     { key: 'design', label: 'World model', icon: 'fa-drafting-compass', href: './index.html#design' },
     { key: 'post-training', label: 'Post-training', icon: 'fa-graduation-cap', href: './index.html#post-training' },
+    { key: 'planner-grpo', label: 'Planner GRPO', icon: 'fa-robot', href: './planner-grpo.html' },
     { key: 'how-it-works', label: 'How models are prompted', icon: 'fa-comment-dots', href: './how-it-works.html' },
     { key: 'results', label: 'Results', icon: 'fa-chart-bar', href: './index.html#results' },
     { key: 'end-to-end', label: 'End-to-end study', icon: 'fa-route', href: './end-to-end.html' },
