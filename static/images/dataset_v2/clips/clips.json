@@ -526,5 +526,45 @@
   "jpg_bytes": 27711,
   "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_mvp_20261026/videos_r2c_heavy5/chair_row_domino/factual",
   "note": "heavy furniture pilot (videos_r2c_heavy5)"
+ },
+ {
+  "family": "circular_track",
+  "title": "Ball rounds a curved wall and leaves along the tangent",
+  "group": "Circular motion",
+  "mp4_bytes": 42622,
+  "jpg_bytes": 21135,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_newfam_pilot_ref_other_renders/circular_track__r0/a0/factual",
+  "gamma": 1.4,
+  "note": "reference rig of the latest pilot (4 November), room-interior camera v2"
+ },
+ {
+  "family": "funnel",
+  "title": "Ball orbits and spirals down a funnel",
+  "group": "Circular motion",
+  "mp4_bytes": 50071,
+  "jpg_bytes": 23171,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_newfam_pilot_ref_funnel_renders/funnel__r0/a0/factual",
+  "gamma": 1.4,
+  "note": "reference rig of the latest pilot (4 November), room-interior camera v2"
+ },
+ {
+  "family": "rolling_race",
+  "title": "Rolling race: a ball, a solid cylinder and a hollow tube",
+  "group": "Rotation and inertia",
+  "mp4_bytes": 42307,
+  "jpg_bytes": 23842,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_newfam_pilot2_ref_race_renders/rolling_race__r0/a0/factual",
+  "gamma": 1.4,
+  "note": "reference rig of the latest pilot (4 November), room-interior camera v2"
+ },
+ {
+  "family": "spinning_rod",
+  "title": "Spinning rod: masses pulled inward make it spin faster",
+  "group": "Rotation and inertia",
+  "mp4_bytes": 54441,
+  "jpg_bytes": 22603,
+  "source": "/weka/projects/ayuille1/spaul27/datasets/mechanics_newfam_pilot3_rod_ref_renders/spinning_rod__r0/a0/factual",
+  "gamma": 1.4,
+  "note": "reference rig of the latest pilot (4 November), room-interior camera v2"
  }
 ]

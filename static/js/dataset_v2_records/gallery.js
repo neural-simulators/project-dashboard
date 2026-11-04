@@ -24,7 +24,7 @@
   function meta(r) {   /* the record's metadata, full width under the clip row: its tables do not fit inside a card */
     var valid = r.physics_valid === true ? 'valid physics' : (r.physics_valid === false ? 'invalid physics' : 'unlabelled');
     return el('details', {class: 'meta'}, [
-      el('summary', {html: '<b>' + r.category + '</b> · ' + r.record_id + ': events, questions, explanation, camera'}),
+      el('summary', {style: 'overflow-wrap:anywhere', html: '<b>' + r.category + '</b> · ' + r.record_id + ': events, questions, explanation, camera'}),   // long record ids wrap on a phone (4 November: 36 px over)
       el('div', {class: 'inner'}, [
         el('p', {class: 'wm-note', html: '<b>' + r.record_id + '</b> · tier ' + r.tier + ' · ' + r.split + ' split · ' + valid + ' · expectation ' + (r.expectation_met ? 'met' : 'not met' + (r.failed_checks.length ? ' (' + r.failed_checks.join(', ') + ')' : '')) + ' · ' + r.bodies + ' dynamic bodies · ' + r.horizon_s + ' s at ' + r.fps_saved + ' Hz'}),
         el('p', {class: 'wm-note', html: '<b>Action:</b> ' + r.action_text + '. <b>This branch:</b> ' + r.change + '.'}),
@@ -45,7 +45,7 @@
   names.forEach(function (name) {
     var f = D.families[name];
     var det = el('details', {id: 'dv2-rec-' + name}, [
-      el('summary', {text: name + ': ' + f.root + ' / ' + f.action + ', ' + f.records.length + ' records'}),
+      el('summary', {style: 'overflow-wrap:anywhere', text: name + ': ' + f.root + ' / ' + f.action + ', ' + f.records.length + ' records'}),
       el('div', {class: 'inner'}, [el('div', {class: 'clips'}, f.records.map(card))].concat(f.records.map(meta)))
     ]);
     host.appendChild(det);
