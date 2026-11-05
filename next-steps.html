@@ -139,21 +139,21 @@ that produced the data, which remains the reference for every verdict.
 The inputs marked <b>new</b> came with Dataset V2: actions are programs with an onset, a duration and an end (pushes, sustained forces and torques, grasp and release, in several timed segments), and global fields (a gravity change, a constant force, wind and drag, a central attraction) switch on and off at stated times. Objects can also be removed at a scheduled time, and a robot tool's path can be given as input or predicted.</figcaption>
 </figure>
 <h3 class="title is-5" id="ns-masked">The same network, six questions</h3>
-<p>This is the masked flow-matching model. Pick a question to see what gets hidden, what stays as a condition, how the hidden part is denoised and what comes out.</p>
+<p>This is the masked flow-matching model. Each question decides which tokens are known and which are hidden; pick one to see them go through the model.</p>
 <div id="masked-anim" class="ma"></div>
 <p class="ns-note ma-honest">The simulation is a real PhysX record. The denoising is drawn as the straight path from noise to that record, so it shows the process and is not a model's output: no masked model has been trained on Dataset V2 yet.</p>
 <details class="ma-more"><summary>Details for each question</summary>
 <ul class="ns-list">
   <li><b>Forward</b> (<code>fwd</code>): only the motion is hidden. An approximate physics reference (gravity, joints, fields, up to the first unsupported contact) is also supplied.</li>
-  <li><b>Property inference</b> (<code>prop</code>): mass, friction, restitution and three inertia terms are hidden for every movable object. Only objects that moved are scored, and the tool never is.</li>
+  <li><b>Property inference</b> (<code>prop</code>): mass, friction, restitution and three inertia terms are hidden for every movable object (three are drawn here). Only objects that moved are scored, and the tool never is; static furniture is never hidden.</li>
   <li><b>Backward</b> (<code>cause</code>): the action and all motion are hidden, the tool's path too. The final frame enters as a timed token, and the hidden action carries no pointer to its object. Inference samples several candidates and keeps the most consistent; that is not proof of a unique cause.</li>
-  <li><b>Completion</b> (<code>prefix</code>) and <b>infilling</b> (<code>bridge</code>): the given patches are clamped; their number is drawn at random per example (4, and 4 + 8, in this picture). The physics reference is supplied here too.</li>
+  <li><b>Completion</b> (<code>prefix</code>) and <b>infilling</b> (<code>bridge</code>): the given patches are clamped; their number is drawn at random per example (10, and 10 + 8, in this picture). The physics reference is supplied here too.</li>
   <li><b>Unknown properties</b> (<code>unk</code>): the hidden share grows from 30% to 70% over training. Whenever a property or the action is hidden, the physics reference is switched off for the whole scene.</li>
 </ul>
 <p>Planned final share of training examples: forward 30%, properties 15%, backward 20%, unknown properties 15%, completion 10%, infilling 10%. Two other masks stay out of training because the answer is not determined: properties and action together from start and end (twice the mass with twice the impulse gives the same motion), and properties from start, action and end alone. Recipe: 8 blocks, width 384, 60 Hz, 0.2 s patches, 10 denoising steps. Code: <code>simagent/unified/wm/masked.py</code>, <code>configs/wm/mechanics_v5/masked_oneshot_prior.json</code>; sample: <code>billiards__r3/a0/factual</code>.</p>
 </details>
-<script defer src="./static/data/masked_anim.js?v=8abd2c3dc7"></script>
-<script defer src="./static/js/masked_anim/main.js?v=2031c204ed"></script>
+<script defer src="./static/data/masked_anim.js?v=a6c9e96e5d"></script>
+<script defer src="./static/js/masked_anim/main.js?v=d41119231d"></script>
 <h3 class="title is-5">Why learn the simulator (each argued on the <a href="./index.html#overview">Overview</a> and <a href="./index.html#design">World model</a> tabs)</h3>
 <ul class="ns-list">
   <li><b>Fast.</b> One network pass predicts the whole horizon instead of thousands of sequential solver steps, and many candidate actions run in one batch.</li>
@@ -421,27 +421,33 @@ The comparison for the new world models is therefore PhysX itself as ground trut
 #next-steps .ns-scope{font-size:.95rem;color:var(--ns-soft);border-left:3px solid var(--wm-border);padding-left:.8rem}
 #masked-anim{margin:.9rem 0 .4rem;font-family:'Google Sans','Noto Sans',sans-serif}
 #masked-anim button{font:inherit;cursor:pointer;border:1px solid var(--wm-border);background:#fff;color:#333;border-radius:6px}
-#masked-anim button:hover:not(:disabled){border-color:var(--wm-blue)}
 #masked-anim button:disabled{opacity:.4;cursor:default}
-#masked-anim .ma-q{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.6rem}
-#masked-anim .ma-qb{padding:.42rem .85rem;font-size:.95rem;font-weight:500}
-#masked-anim .ma-qb.on{background:var(--wm-blue);border-color:var(--wm-blue);color:#fff}
-#masked-anim .ma-head{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap}
-#masked-anim .ma-ask{font-size:1.08rem;font-weight:500;color:#222;margin:0}
-#masked-anim .ma-mode{display:flex}
-#masked-anim .ma-mb{padding:.22rem .7rem;font-size:.85rem;border-radius:0}
+#masked-anim .ma-table{display:grid;gap:3px}
+#masked-anim .ma-row{display:grid;grid-template-columns:150px minmax(0,1fr) 74px 42px 186px;gap:12px;align-items:center;text-align:left;padding:.32rem .6rem;width:100%}
+#masked-anim button.ma-row:hover{border-color:var(--wm-blue)}
+#masked-anim button.ma-row.on{border-color:var(--wm-blue);box-shadow:inset 0 0 0 1px var(--wm-blue);background:#f5f9ff}
+#masked-anim .ma-row b{font-weight:600;font-size:.95rem;color:#222}
+#masked-anim .ma-row .ma-a{font-size:.88rem;color:#55606e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#masked-anim .ma-th{padding:0 .6rem;border:1px solid transparent;font-size:.78rem;color:#767676}
+#masked-anim .ma-g{display:flex;gap:1px;height:16px}
+#masked-anim .ma-g i{flex:1 1 0;display:block;min-width:0}
+#masked-anim i.k{background:#1f6feb}
+#masked-anim i.h{background:repeating-linear-gradient(135deg,#d67808 0 2px,#ffe1b0 2px 4px)}
+#masked-anim .ma-g i.e{flex:0 0 4px;background:#1f6feb;margin-left:1px}
+#masked-anim .ma-legend{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem 1.1rem;margin:.5rem 0 .7rem;font-size:.86rem;color:#333}
+#masked-anim .ma-key{display:inline-flex;align-items:center;gap:.35rem;font-weight:500}
+#masked-anim .ma-key i{display:inline-block;width:18px;height:12px}
+#masked-anim .ma-always{color:#55606e}
+#masked-anim .ma-mode{display:flex;margin-left:auto}
+#masked-anim .ma-mb{padding:.2rem .7rem;font-size:.85rem;border-radius:0}
 #masked-anim .ma-mb:first-child{border-radius:6px 0 0 6px}
 #masked-anim .ma-mb:last-child{border-radius:0 6px 6px 0;margin-left:-1px}
 #masked-anim .ma-mb.on{background:#55606e;border-color:#55606e;color:#fff}
-#masked-anim .ma-gg{font-size:.93rem;margin:.35rem 0 .6rem;min-height:1.5em;color:#333}
-#masked-anim .ma-g,#masked-anim .ma-h{font-size:.76rem;font-weight:600;color:#fff;border-radius:4px;padding:.08rem .4rem;margin-right:.15rem}
-#masked-anim .ma-g{background:#1f6feb}
-#masked-anim .ma-h{background:#d67808;margin-left:.7rem}
 #masked-anim .ma-scroll{position:relative;overflow-x:auto}
 #masked-anim canvas{display:block;width:100%;min-width:720px}
-#masked-anim .ma-tip{position:absolute;z-index:3;max-width:250px;background:#222;color:#fff;font-size:.78rem;line-height:1.35;padding:.3rem .5rem;border-radius:5px;pointer-events:none}
 #masked-anim .ma-steps{display:flex;flex-wrap:wrap;align-items:center;gap:.3rem;margin-top:.6rem}
 #masked-anim .ma-sb{padding:.25rem .6rem;font-size:.85rem;color:#55606e}
+#masked-anim .ma-sb:hover,#masked-anim .ma-nav:hover:not(:disabled){border-color:var(--wm-blue)}
 #masked-anim .ma-sb.on{border-color:var(--wm-blue);color:var(--wm-blue);font-weight:600}
 #masked-anim .ma-nav{padding:.25rem .5rem;font-size:.75rem}
 #masked-anim .ma-play{margin-left:auto;padding:.25rem .95rem;font-size:.88rem;font-weight:600;background:#222;border-color:#222;color:#fff}
@@ -449,6 +455,7 @@ The comparison for the new world models is therefore PhysX itself as ground trut
 #masked-anim .ma-slider[hidden]{display:none}
 #masked-anim .ma-slider input{flex:1;max-width:300px}
 #masked-anim .ma-cap{margin:.55rem 0 0;font-size:1rem;line-height:1.5;min-height:3em;color:#222}
+@media(max-width:700px){#masked-anim .ma-row{grid-template-columns:112px 60px 14px minmax(0,1fr);gap:8px}#masked-anim .ma-row .ma-a{display:none}}
 #next-steps .ma-honest{margin:.3rem 0 .4rem;font-size:.88rem;color:var(--wm-muted)}
 #next-steps .ma-more{margin:0 0 1.2rem;font-size:.92rem}
 #next-steps .ma-more summary{cursor:pointer;color:var(--ns-soft);font-weight:500}
