@@ -62,18 +62,18 @@ earlier datasets (Physion, MOVi) lack: they show what happens, not what would ha
 <div class="ns-slide" id="ns-model">
 <p class="ns-kicker">2 · What we are building</p>
 <h2 class="title is-3">One world model, many questions</h2>
-<p>The world model reads an object-centric scene (shapes, joints, poses, velocities, properties), a timed action program and any global fields, such as a change of gravity or a wind. During training any part of the input can be hidden
-and the network learns to generate it. Which part is hidden decides the question. Whether the generator is regression, flow matching or diffusion does not change
+<p>The world model reads an object-centric scene (shapes, joints, poses, velocities, properties), a timed action program and any global fields, such as a change of gravity or a wind. During training a mask hides
+some of it and the network learns to generate what is hidden. Which part is hidden decides the question. Whether the generator is regression, flow matching or diffusion does not change
 the picture below; those are interchangeable choices inside the block.</p>
 <figure class="ns-figure">
 <svg viewBox="0 0 920 548" role="img" aria-labelledby="ns-fig-t ns-fig-d">
   <title id="ns-fig-t">One world model answering several physical questions</title>
-  <desc id="ns-fig-d">Seven kinds of input (shapes and poses, joints and springs, physical properties, a timed action program, global fields such as a gravity change or wind, the start state, and observed motion or an end state) enter a single world model block; any of them may be hidden. The timed action program and the global fields are marked as new with Dataset V2. Five kinds of answer come out: the forward trajectory, properties inferred from motion, the action and trajectory that explain an end state, the outcome of an intervention or counterfactual, and events and contacts. Below, a physics engine needs every property and runs only forward.</desc>
+  <desc id="ns-fig-d">Seven kinds of input (shapes and poses, joints and springs, physical properties, a timed action program, global fields such as a gravity change or wind, the start state, and observed motion or an end state) enter a single world model block; the question decides which are hidden. The timed action program and the global fields are marked as new with Dataset V2. Five kinds of answer come out: the forward trajectory, properties inferred from motion, the action and trajectory that explain an end state, the outcome of an intervention or counterfactual, and events and contacts. Below, a physics engine needs every property and runs only forward.</desc>
   <defs>
     <marker id="ns-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#55606e"/></marker>
     <pattern id="ns-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#c9d2dd" stroke-width="2"/></pattern>
   </defs>
-  <text x="20" y="22" class="t-h">Given (any subset)</text>
+  <text x="20" y="22" class="t-h">Given (depends on the question)</text>
   <g class="in">
     <rect x="20" y="36" width="236" height="44" rx="6"/><text x="34" y="55">Scene: shapes, poses</text><text x="34" y="71" class="t-s">collision parts and surface points</text>
     <rect x="20" y="88" width="236" height="44" rx="6"/><text x="34" y="107">Joints and springs</text><text x="34" y="123" class="t-s">hinges, ropes, limits, stiffness</text>
@@ -130,14 +130,30 @@ the picture below; those are interchangeable choices inside the block.</p>
   <text x="38" y="520" class="t-b">backward and property questions only by repeated search</text>
   <rect x="476" y="430" width="430" height="104" rx="8" class="wm2"/>
   <text x="494" y="456" class="t-h">The learned world model</text>
-  <text x="494" y="480" class="t-b">any subset in, the rest out, from one trained network</text>
+  <text x="494" y="480" class="t-b">one trained network; the question decides what is hidden</text>
   <text x="494" y="500" class="t-b">one batched pass for the whole horizon</text>
   <text x="494" y="520" class="t-b">same model for forward, backward and what-if questions</text>
 </svg>
-<figcaption>The block is deliberately abstract. Inputs on the left can each be given or hidden; the hidden ones are generated. The bottom row is the contrast with the engine
+<figcaption>The block is deliberately abstract. Which inputs are hidden depends on the question, and the hidden ones are generated; the scene and the start state are always given. The bottom row is the contrast with the engine
 that produced the data, which remains the reference for every verdict.
 The inputs marked <b>new</b> came with Dataset V2: actions are programs with an onset, a duration and an end (pushes, sustained forces and torques, grasp and release, in several timed segments), and global fields (a gravity change, a constant force, wind and drag, a central attraction) switch on and off at stated times. Objects can also be removed at a scheduled time, and a robot tool's path can be given as input or predicted.</figcaption>
 </figure>
+<h3 class="title is-5" id="ns-masked">The same network, six questions</h3>
+<p>This is the masked flow-matching model. Pick a question to see what gets hidden, what stays as a condition, how the hidden part is denoised and what comes out.</p>
+<div id="masked-anim" class="ma"></div>
+<p class="ns-note ma-honest">The simulation is a real PhysX record. The denoising is drawn as the straight path from noise to that record, so it shows the process and is not a model's output: no masked model has been trained on Dataset V2 yet.</p>
+<details class="ma-more"><summary>Details for each question</summary>
+<ul class="ns-list">
+  <li><b>Forward</b> (<code>fwd</code>): only the motion is hidden. An approximate physics reference (gravity, joints, fields, up to the first unsupported contact) is also supplied.</li>
+  <li><b>Property inference</b> (<code>prop</code>): mass, friction, restitution and three inertia terms are hidden for every movable object. Only objects that moved are scored, and the tool never is.</li>
+  <li><b>Backward</b> (<code>cause</code>): the action and all motion are hidden, the tool's path too. The final frame enters as a timed token, and the hidden action carries no pointer to its object. Inference samples several candidates and keeps the most consistent; that is not proof of a unique cause.</li>
+  <li><b>Completion</b> (<code>prefix</code>) and <b>infilling</b> (<code>bridge</code>): the given patches are clamped; their number is drawn at random per example (4, and 4 + 8, in this picture). The physics reference is supplied here too.</li>
+  <li><b>Unknown properties</b> (<code>unk</code>): the hidden share grows from 30% to 70% over training. Whenever a property or the action is hidden, the physics reference is switched off for the whole scene.</li>
+</ul>
+<p>Planned final share of training examples: forward 30%, properties 15%, backward 20%, unknown properties 15%, completion 10%, infilling 10%. Two other masks stay out of training because the answer is not determined: properties and action together from start and end (twice the mass with twice the impulse gives the same motion), and properties from start, action and end alone. Recipe: 8 blocks, width 384, 60 Hz, 0.2 s patches, 10 denoising steps. Code: <code>simagent/unified/wm/masked.py</code>, <code>configs/wm/mechanics_v5/masked_oneshot_prior.json</code>; sample: <code>billiards__r3/a0/factual</code>.</p>
+</details>
+<script defer src="./static/data/masked_anim.js?v=8abd2c3dc7"></script>
+<script defer src="./static/js/masked_anim/main.js?v=2031c204ed"></script>
 <h3 class="title is-5">Why learn the simulator (each argued on the <a href="./index.html#overview">Overview</a> and <a href="./index.html#design">World model</a> tabs)</h3>
 <ul class="ns-list">
   <li><b>Fast.</b> One network pass predicts the whole horizon instead of thousands of sequential solver steps, and many candidate actions run in one batch.</li>
@@ -403,6 +419,40 @@ The comparison for the new world models is therefore PhysX itself as ground trut
 #next-steps svg .t-badge{font-size:10px;font-weight:700;fill:#fff}
 #next-steps svg rect.b-built{fill:#48a868}
 #next-steps .ns-scope{font-size:.95rem;color:var(--ns-soft);border-left:3px solid var(--wm-border);padding-left:.8rem}
+#masked-anim{margin:.9rem 0 .4rem;font-family:'Google Sans','Noto Sans',sans-serif}
+#masked-anim button{font:inherit;cursor:pointer;border:1px solid var(--wm-border);background:#fff;color:#333;border-radius:6px}
+#masked-anim button:hover:not(:disabled){border-color:var(--wm-blue)}
+#masked-anim button:disabled{opacity:.4;cursor:default}
+#masked-anim .ma-q{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.6rem}
+#masked-anim .ma-qb{padding:.42rem .85rem;font-size:.95rem;font-weight:500}
+#masked-anim .ma-qb.on{background:var(--wm-blue);border-color:var(--wm-blue);color:#fff}
+#masked-anim .ma-head{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap}
+#masked-anim .ma-ask{font-size:1.08rem;font-weight:500;color:#222;margin:0}
+#masked-anim .ma-mode{display:flex}
+#masked-anim .ma-mb{padding:.22rem .7rem;font-size:.85rem;border-radius:0}
+#masked-anim .ma-mb:first-child{border-radius:6px 0 0 6px}
+#masked-anim .ma-mb:last-child{border-radius:0 6px 6px 0;margin-left:-1px}
+#masked-anim .ma-mb.on{background:#55606e;border-color:#55606e;color:#fff}
+#masked-anim .ma-gg{font-size:.93rem;margin:.35rem 0 .6rem;min-height:1.5em;color:#333}
+#masked-anim .ma-g,#masked-anim .ma-h{font-size:.76rem;font-weight:600;color:#fff;border-radius:4px;padding:.08rem .4rem;margin-right:.15rem}
+#masked-anim .ma-g{background:#1f6feb}
+#masked-anim .ma-h{background:#d67808;margin-left:.7rem}
+#masked-anim .ma-scroll{position:relative;overflow-x:auto}
+#masked-anim canvas{display:block;width:100%;min-width:720px}
+#masked-anim .ma-tip{position:absolute;z-index:3;max-width:250px;background:#222;color:#fff;font-size:.78rem;line-height:1.35;padding:.3rem .5rem;border-radius:5px;pointer-events:none}
+#masked-anim .ma-steps{display:flex;flex-wrap:wrap;align-items:center;gap:.3rem;margin-top:.6rem}
+#masked-anim .ma-sb{padding:.25rem .6rem;font-size:.85rem;color:#55606e}
+#masked-anim .ma-sb.on{border-color:var(--wm-blue);color:var(--wm-blue);font-weight:600}
+#masked-anim .ma-nav{padding:.25rem .5rem;font-size:.75rem}
+#masked-anim .ma-play{margin-left:auto;padding:.25rem .95rem;font-size:.88rem;font-weight:600;background:#222;border-color:#222;color:#fff}
+#masked-anim .ma-slider{display:flex;align-items:center;gap:.6rem;font-size:.82rem;color:#55606e;margin-top:.5rem}
+#masked-anim .ma-slider[hidden]{display:none}
+#masked-anim .ma-slider input{flex:1;max-width:300px}
+#masked-anim .ma-cap{margin:.55rem 0 0;font-size:1rem;line-height:1.5;min-height:3em;color:#222}
+#next-steps .ma-honest{margin:.3rem 0 .4rem;font-size:.88rem;color:var(--wm-muted)}
+#next-steps .ma-more{margin:0 0 1.2rem;font-size:.92rem}
+#next-steps .ma-more summary{cursor:pointer;color:var(--ns-soft);font-weight:500}
+#next-steps .ma-more ul{margin-top:.5rem}
 #next-steps .ns-hyp{border:1px dashed #f5a623;background:#fffaf0;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
 #next-steps .ns-hyp .ns-kicker{color:#8a5300}
 #next-steps .ns-hyp .ns-card{background:#fff}
