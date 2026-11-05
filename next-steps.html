@@ -146,7 +146,84 @@ The inputs marked <b>new</b> came with Dataset V2: actions are programs with an 
   <li><b>Physical representation.</b> Metric 3D, object-centric, no camera, so objects persist through occlusion and conservation and non-penetration can be measured and trained.</li>
   <li><b>Real scenes.</b> Applies to scene graphs estimated from photographs, with perception uncertainty carried into error bands on the prediction.</li>
   <li><b>Rewards for language models.</b> A fast judge for planning and post-training, trusted only as far as it agrees with PhysX.</li>
+  <li><b>Not limited to what a camera sees.</b> The state can carry quantities that never appear in pixels (<a href="#ns-beyond">below</a>).</li>
 </ul>
+<h3 class="title is-5" id="ns-beyond">Beyond what a camera can see</h3>
+<p>Physical and chemical processes are not all visible. Charge, current and field strength, temperature, concentration, stress, bond structure or the decay of a
+radioactive sample leave no trace in an RGB frame, or only an indirect one through whatever an instrument or a renderer chooses to display. A model that predicts pixels
+can learn only what was rendered, from one camera. A model that predicts a structured state can carry each quantity directly, in its own units, as an attribute of the
+entity it belongs to.</p>
+<figure class="ns-figure">
+<svg viewBox="0 0 920 236" role="img" aria-labelledby="ns-dom-t ns-dom-d">
+  <title id="ns-dom-t">One structured state across four domains</title>
+  <desc id="ns-dom-d">Four panels drawn as graphs of entities and relations. Rigid bodies, which our model handles today: boxes and a ball joined by contacts and a joint; hidden from a camera are mass, friction, restitution and forces. Fluids, cloth and soft matter: a mesh of nodes; hidden are pressure and stress. Electric circuits: a source, a resistor and a capacitor joined by wires; hidden are voltage, current and charge. Molecules and reactions: atoms joined by bonds, with one bond forming; hidden are partial charge, bond order and energy, and a reaction rewires the graph.</desc>
+  <g class="dom">
+    <rect x="1" y="1" width="218" height="232" rx="10"/><rect x="234" y="1" width="218" height="232" rx="10"/>
+    <rect x="467" y="1" width="218" height="232" rx="10"/><rect x="700" y="1" width="218" height="232" rx="10"/>
+  </g>
+  <text x="16" y="28" class="t-h">Rigid bodies</text><rect x="148" y="14" width="56" height="19" rx="9.5" class="b-built"/><text x="176" y="28" text-anchor="middle" class="t-badge">ours, built</text>
+  <text x="249" y="28" class="t-h">Fluids, cloth, soft matter</text>
+  <text x="482" y="28" class="t-h">Electric circuits</text>
+  <text x="715" y="28" class="t-h">Molecules, reactions</text>
+  <!-- rigid bodies -->
+  <line x1="20" y1="140" x2="200" y2="140" class="floor"/>
+  <line x1="62" y1="115" x2="110" y2="122" class="e"/><line x1="160" y1="72" x2="160" y2="44" class="e dash"/>
+  <text x="168" y="56" class="t-amber">joint</text><text x="66" y="88" class="t-amber">contact</text>
+  <rect x="40" y="94" width="44" height="44" rx="3" class="n"/><circle cx="114" cy="122" r="17" class="n"/><rect x="146" y="58" width="28" height="28" rx="3" class="n"/>
+  <line x1="150" y1="44" x2="170" y2="44" class="e"/>
+  <!-- fluids / mesh -->
+  <g class="e">
+    <line x1="262" y1="60" x2="312" y2="56"/><line x1="312" y1="56" x2="362" y2="62"/><line x1="362" y1="62" x2="420" y2="58"/>
+    <line x1="266" y1="100" x2="318" y2="98"/><line x1="318" y1="98" x2="368" y2="104"/><line x1="368" y1="104" x2="424" y2="98"/>
+    <line x1="262" y1="138" x2="314" y2="140"/><line x1="314" y1="140" x2="366" y2="136"/><line x1="366" y1="136" x2="420" y2="140"/>
+    <line x1="262" y1="60" x2="266" y2="100"/><line x1="266" y1="100" x2="262" y2="138"/><line x1="312" y1="56" x2="318" y2="98"/><line x1="318" y1="98" x2="314" y2="140"/>
+    <line x1="362" y1="62" x2="368" y2="104"/><line x1="368" y1="104" x2="366" y2="136"/><line x1="420" y1="58" x2="424" y2="98"/><line x1="424" y1="98" x2="420" y2="140"/>
+    <line x1="262" y1="60" x2="318" y2="98"/><line x1="312" y1="56" x2="368" y2="104"/><line x1="362" y1="62" x2="424" y2="98"/>
+    <line x1="266" y1="100" x2="314" y2="140"/><line x1="318" y1="98" x2="366" y2="136"/><line x1="368" y1="104" x2="420" y2="140"/>
+  </g>
+  <g class="n"><circle cx="262" cy="60" r="5"/><circle cx="312" cy="56" r="5"/><circle cx="362" cy="62" r="5"/><circle cx="420" cy="58" r="5"/>
+    <circle cx="266" cy="100" r="5"/><circle cx="318" cy="98" r="5"/><circle cx="368" cy="104" r="5"/><circle cx="424" cy="98" r="5"/>
+    <circle cx="262" cy="138" r="5"/><circle cx="314" cy="140" r="5"/><circle cx="366" cy="136" r="5"/><circle cx="420" cy="140" r="5"/></g>
+  <!-- circuit -->
+  <path d="M510 60 H 650 V 132 H 510 Z" class="e"/>
+  <rect x="492" y="78" width="36" height="36" rx="4" class="n"/><text x="510" y="101" text-anchor="middle" class="t-n">V</text>
+  <rect x="562" y="42" width="36" height="36" rx="4" class="n"/><text x="580" y="65" text-anchor="middle" class="t-n">R</text>
+  <rect x="632" y="78" width="36" height="36" rx="4" class="n"/><text x="650" y="101" text-anchor="middle" class="t-n">C</text>
+  <rect x="562" y="114" width="36" height="36" rx="4" class="n"/><text x="580" y="137" text-anchor="middle" class="t-n">L</text>
+  <!-- molecule -->
+  <line x1="770" y1="96" x2="824" y2="96" class="e"/><line x1="770" y1="100" x2="824" y2="100" class="e"/>
+  <line x1="770" y1="98" x2="742" y2="58" class="e"/><line x1="770" y1="98" x2="742" y2="138" class="e"/>
+  <line x1="824" y1="98" x2="872" y2="70" class="e new-bond"/>
+  <circle cx="770" cy="98" r="16" class="n"/><text x="770" y="103" text-anchor="middle" class="t-n">C</text>
+  <circle cx="824" cy="98" r="16" class="n"/><text x="824" y="103" text-anchor="middle" class="t-n">O</text>
+  <circle cx="742" cy="58" r="11" class="n"/><text x="742" y="62" text-anchor="middle" class="t-ns">H</text>
+  <circle cx="742" cy="138" r="11" class="n"/><text x="742" y="142" text-anchor="middle" class="t-ns">H</text>
+  <circle cx="878" cy="66" r="11" class="n"/><text x="878" y="70" text-anchor="middle" class="t-ns">H</text>
+  <text x="838" y="128" class="t-amber">bond forms</text>
+  <!-- what a camera does not show -->
+  <g class="t-cap">
+    <text x="16" y="176">not in the pixels:</text><text x="249" y="176">not in the pixels:</text><text x="482" y="176">not in the pixels:</text><text x="715" y="176">not in the pixels:</text>
+  </g>
+  <g class="t-b">
+    <text x="16" y="196">mass, friction, restitution,</text><text x="16" y="214">the forces acting</text>
+    <text x="249" y="196">pressure, stress,</text><text x="249" y="214">internal energy</text>
+    <text x="482" y="196">voltage, current, charge,</text><text x="482" y="214">field strength</text>
+    <text x="715" y="196">partial charge, bond order,</text><text x="715" y="214">energy; reactions rewire bonds</text>
+  </g>
+</svg>
+<figcaption>The same pattern in each domain: typed entities, relations between them, global fields and actions, and a learned transition on that state.
+Only the first panel is what our model does today.</figcaption>
+</figure>
+<p>That is how learned simulators are already built outside rigid-body mechanics: particles and their neighbours for fluids and granular flow
+(<a href="https://proceedings.mlr.press/v119/sanchez-gonzalez20a.html" target="_blank" rel="noopener">GNS</a>), mesh nodes and edges for cloth, aerodynamics and elastic solids
+(<a href="https://arxiv.org/abs/2010.03409" target="_blank" rel="noopener">MeshGraphNets</a>), atoms and their neighbours for interatomic forces in molecular dynamics
+(<a href="https://arxiv.org/abs/2206.07697" target="_blank" rel="noopener">MACE</a>), and a multi-scale graph over the globe for weather
+(<a href="https://arxiv.org/abs/2212.12794" target="_blank" rel="noopener">GraphCast</a>). Our world model follows the same pattern, with object, joint, action and field tokens.
+Moving to a new domain means a new schema of entities, relations and fields and new simulation data, not a new kind of model.</p>
+<p class="ns-scope"><b>Scope.</b> Today the model covers rigid bodies, joints, springs and a few global fields. Processes that change the structure itself, such as a reaction that
+forms or breaks bonds, a phase change or fracture, need entities and relations that appear and disappear over time; our scheduled removals are the simplest case of that,
+not a solution. Pixels remain the natural input for perception, since a camera is how a real scene's state gets estimated. The argument is about the space in which
+dynamics are modelled, not against video models.</p>
 <h3 class="title is-5">Status of each question</h3>
 <div class="ns-status">
   <div><span class="tag is-success is-light">trained</span> <b>Forward trajectory.</b> Several model families trained on earlier data (Improved Results tabs); a first transfer check of frozen checkpoints to Dataset V2 is on the <a href="./checkpoint-transfer-v2.html">checkpoint-transfer page</a>.</div>
@@ -313,6 +390,19 @@ The comparison for the new world models is therefore PhysX itself as ground trut
 #next-steps .ns-note{font-size:.95rem;margin:-.4rem 0 1rem}
 #next-steps .ns-tldr{background:#fff;border:1px solid var(--wm-border);border-left:5px solid var(--wm-blue);border-radius:10px;padding:1.1rem 1.4rem;margin:0 0 1.6rem}
 #next-steps .ns-tldr ol{margin:.2rem 0 0 1.3rem}
+#next-steps svg .dom rect{fill:#fff;stroke:#d9dee5}
+#next-steps svg .n,#next-steps svg .n circle{fill:#eef4ff;stroke:#1f6feb;stroke-width:1.4}
+#next-steps svg .e,#next-steps svg .e line{stroke:#55606e;stroke-width:1.5;fill:none}
+#next-steps svg .dash{stroke-dasharray:4 3}
+#next-steps svg .floor{stroke:#9aa5b1;stroke-width:2}
+#next-steps svg .new-bond{stroke:#f5a623;stroke-width:2.2;stroke-dasharray:5 3}
+#next-steps svg .t-n{font-size:14px;font-weight:600;fill:#1f3d7a}
+#next-steps svg .t-ns{font-size:11px;font-weight:600;fill:#1f3d7a}
+#next-steps svg .t-amber{font-size:11px;fill:#8a5300}
+#next-steps svg .t-cap text{font-size:11.5px;fill:#767676;text-transform:uppercase;letter-spacing:.04em}
+#next-steps svg .t-badge{font-size:10px;font-weight:700;fill:#fff}
+#next-steps svg rect.b-built{fill:#48a868}
+#next-steps .ns-scope{font-size:.95rem;color:var(--ns-soft);border-left:3px solid var(--wm-border);padding-left:.8rem}
 #next-steps .ns-hyp{border:1px dashed #f5a623;background:#fffaf0;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
 #next-steps .ns-hyp .ns-kicker{color:#8a5300}
 #next-steps .ns-hyp .ns-card{background:#fff}
