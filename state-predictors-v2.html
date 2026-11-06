@@ -19,7 +19,7 @@
 <section class="section"><div class="container is-max-desktop">
 <nav class="tabs is-centered is-boxed wm-tabs" data-site-nav="state-predictors-v2" aria-label="Project pages"></nav>
 <h1 class="title is-2">State predictors on V2</h1>
-<p>Our state predictors, trained only on the simple set, run on Dataset V2's furnished rooms they have never seen. A first qualitative look; updated 06 November 2026, 11:51 UTC.</p>
+<p>Our state predictors, trained only on the simple set, run on Dataset V2's furnished rooms they have never seen. A first qualitative look; updated 06 November 2026, 13:51 UTC.</p>
 <h2 class="title is-5 mt-5">In short</h2>
 <ol><li><b>Furnished rooms cost about 2.5 times the error.</b> regression 100M, chain of 10: 0.16 m on the simple set's test rooms, 0.40 m on V2, per clip.</li><li><b>Invented motion rises too:</b> 19.0% of still objects moved on the simple set, 31.5% on V2.</li><li><b>Hardest on V2:</b> orbital (1.94 m), rocket (1.37 m), coupled springs (1.22 m), balloon (1.03 m). <b>Easiest:</b> books ball catch (0.04 m), trampoline (0.04 m), crate drop table (0.05 m), diving board (0.07 m).</li><li>The models never saw furniture or these rooms in training; this is how far they carry over, before any training on V2.</li></ol>
 <h2 class="title is-5 mt-5">Simple set against V2 (1,533 sampled V2 simulations)</h2>
