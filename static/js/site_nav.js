@@ -15,6 +15,7 @@
     { key: 'planner-grpo', label: 'Planner GRPO', icon: 'fa-robot', href: './planner-grpo.html' },
     { key: 'state-predictors', label: 'State predictors', icon: 'fa-wave-square', href: './state-predictors.html' },
     { key: 'state-predictors-v2', label: 'State predictors on V2', icon: 'fa-couch', href: './state-predictors-v2.html' },
+    { key: 'state-predictors-visual', label: 'Visual review', icon: 'fa-eye', href: './state-predictors-visual.html' },
     { key: 'how-it-works', label: 'How models are prompted', icon: 'fa-comment-dots', href: './how-it-works.html' },
     { key: 'results', label: 'Results', icon: 'fa-chart-bar', href: './index.html#results' },
     { key: 'end-to-end', label: 'End-to-end study', icon: 'fa-route', href: './end-to-end.html' },

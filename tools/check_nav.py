@@ -29,7 +29,8 @@ PAGES = {"end-to-end.html": "end-to-end", "scaled-results.html": "scaled-results
          "video-models.html": "video-models", "twins-v2.html": "twins-v2",
          "next-steps.html": "next-steps", "planner-grpo.html": "planner-grpo",
          "state-predictors.html": "state-predictors",
-         "state-predictors-v2.html": "state-predictors-v2"}
+         "state-predictors-v2.html": "state-predictors-v2",
+         "state-predictors-visual.html": "state-predictors-visual"}
 
 
 def site_tabs(root):
