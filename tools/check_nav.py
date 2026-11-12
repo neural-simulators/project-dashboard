@@ -30,6 +30,7 @@ PAGES = {"end-to-end.html": "end-to-end", "scaled-results.html": "scaled-results
          "next-steps.html": "next-steps", "planner-grpo.html": "planner-grpo",
          "state-predictors.html": "state-predictors",
          "state-predictors-v2.html": "state-predictors-v2",
+         "state-predictors-test.html": "state-predictors-test",
          "state-predictors-visual.html": "state-predictors-visual"}
 
 
