@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="description" content="The 200M state predictors against PhysX on actions in eight digital-twin rooms.">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Twin evals · Neural Simulators</title>
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
+  <link rel="stylesheet" href="./static/css/bulma.min.css?v=58b2865922">
+  <link rel="stylesheet" href="./static/css/index.css?v=747bae5899">
+  <link rel="stylesheet" href="./static/css/project.css?v=861b29d9d0">
+  <link rel="icon" href="./static/images/favicon.svg">
+  <script defer src="./static/js/fontawesome.all.min.js?v=20a3ef6979"></script>
+  <script defer src="./static/js/site_nav.js?v=1ba70bd4cf"></script>
+  <script defer src="./static/js/clip_groups.js?v=f426212538"></script>
+  <style>details.box summary{cursor:pointer} details.box[open] summary{margin-bottom:.75rem}
+  .sp-clips{display:grid;grid-template-columns:1fr;gap:12px;margin:0 .8rem .8rem} .sp-clip{box-shadow:none;border:1px solid #e4e3df}</style>
+</head>
+<body>
+<section class="section"><div class="container is-max-desktop">
+<nav class="tabs is-centered is-boxed wm-tabs" data-site-nav="twin-evals" aria-label="Project pages"></nav>
+<h1 class="title is-2">Twin evals</h1>
+<p class="subtitle is-6 has-text-grey">The four 200M state predictors against PhysX on actions in eight digital twins: six scanned rooms, a garden and a park bench · 13 November 2026</p>
+<div class="box"><h2 class="title is-5">In short</h2><ol>
+<li><b>Barely better than standing still.</b> Over the bodies PhysX moves, the models are off by 0.62 to 0.68 m on average, against 0.82 m for a prediction where nothing moves. On the same four families in their own test scenes they are off by 0.17 to 0.24 m.</li>
+<li><b>They move furniture that stays still.</b> In 51 to 66 of 70 records a model moves twin furniture PhysX keeps still; the regression model most (still bodies drift up to 0.56 m), the flow model least (0.20 m).</li>
+<li><b>The masked flow model is best on the twins</b> (ADE 0.62 m, the same topples as PhysX in 83% of records), although the regression model is best in the families' own test scenes.</li>
+<li><b>Crate drops go well, tips do not.</b> Crate drops: 0.17 m against 0.28 m standing still. Chair and table tips are no better than standing still.</li>
+</ol><p class="is-size-7 has-text-grey">Each record is one action in one twin: a training family's rig (chair spill, table topple, projectile, crate drop) placed among the scanned furniture, with the family's own action (a0) and the same action at the top of its range (a1). The model reads the first frame and the program and predicts 5 s; PhysX runs the same scene with the furniture's real colliders. 70 records, 35 scenarios.</p></div>
+<p class="is-size-7 has-text-grey mb-4"><b>The clips:</b> 17 of the 70 records, picked greedily so every room, every scenario, both action strengths, toppling and not toppling, and good and bad predictions appear (at most three per scenario, every room at least twice). Each grid: PhysX, then the four models on the same camera and clock; each label gives that model's error (ADE over the bodies PhysX moves), and the last panel the record's numbers. Rendered in the paper look (path tracing); the scanned twins keep the colours of their physics stage, static scanned furniture is drawn as its fitted box, the outdoor scenes get a sky and a sun. A model's body that sinks below the floor is lifted back onto it in the clips (deeper than PhysX's own box ever goes); the numbers are for the raw predictions. Clips play on hover or tap.</p>
+<details class="box"><summary><b>Crate drops</b> <span class="has-text-grey">· 3 clips · A crate falls onto a twin table or the floor (crate_drop_table rig); the case the models handle best. Standing still: 0.28 m; models 0.27 / 0.17 / 0.18 / 0.18 m (regression / flow / diffusion / noise flow) over all 14 records.</span></summary>
+<div class="card sp-clip mb-3"><video src="./static/images/twin_evals/twin_bedroom__drop_crate__a1__factual.mp4" poster="./static/images/twin_evals/twin_bedroom__drop_crate__a1__factual.jpg" controls muted loop playsinline preload="none" style="width:100%;border-radius:4px"></video><p class="lab is-size-7 p-2">bedroom · top of the range · nothing topples · best model 60% of the standing-still error</p></div>
+<div class="card sp-clip mb-3"><video src="./static/images/twin_evals/twin_conference_b__drop_crate__a1__factual.mp4" poster="./static/images/twin_evals/twin_conference_b__drop_crate__a1__factual.jpg" controls muted loop playsinline preload="none" style="width:100%;border-radius:4px"></video><p class="lab is-size-7 p-2">conference room B · top of the range · nothing topples · best model 66% of the standing-still error</p></div>
+<div class="card sp-clip mb-3"><video src="./static/images/twin_evals/twin_kitchen__drop_crate__a0__factual.mp4" poster="./static/images/twin_evals/twin_kitchen__drop_crate__a0__factual.jpg" controls muted loop playsinline preload="none" style="width:100%;border-radius:4px"></video><p class="lab is-size-7 p-2">kitchen · family&#x27;s own action · nothing topples · best model 23% of the standing-still error</p></div>
+</details>
+<details class="box"><summary><b>Ball throws</b> <span class="has-text-grey">· 3 clips · A ball is thrown across the room at a target (projectile rig), about 2.5 m of travel, 3.6 m at the top of the range. Standing still: 0.91 m; models 0.82 / 0.74 / 0.88 / 0.85 m (regression / flow / diffusion / noise flow) over all 14 records.</span></summary>
+<div class="card sp-clip mb-3"><video src="./static/images/twin_evals/twin_garden__throw_ball__a0__factual.mp4" poster="./static/images/twin_evals/twin_garden__throw_ball__a0__factual.jpg" controls muted loop playsinline preload="none" style="width:100%;border-radius:4px"></video><p class="lab is-size-7 p-2">garden (outdoor) · family&#x27;s own action · nothing topples · best model 88% of the standing-still error</p></div>
+<div class="card sp-clip mb-3"><video src="./static/images/twin_evals/twin_kitchen__throw_ball__a0__factual.mp4" poster="./static/images/twin_evals/twin_kitchen__throw_ball__a0__factual.jpg" controls muted loop playsinline preload="none" style="width:100%;border-radius:4px"></video><p class="lab is-size-7 p-2">kitchen · family&#x27;s own action · nothing topples · best model 159% of the standing-still error</p></div>
+<div class="card sp-clip mb-3"><video src="./static/images/twin_evals/twin_office__throw_ball__a1__factual.mp4" poster="./static/images/twin_evals/twin_office__throw_ball__a1__factual.jpg" controls muted loop playsinline preload="none" style="width:100%;border-radius:4px"></video><p class="lab is-size-7 p-2">office · top of the range · nothing topples · best model 59% of the standing-still error</p></div>
+</details>
+<details class="box"><summary><b>Cube throws outdoors</b> <span class="has-text-grey">· 2 clips · The park bench scene (open, terrain): a cube is thrown past the twin bench and bicycle. Standing still: 1.91 m; models 1.41 / 1.01 / 0.62 / 0.54 m (regression / flow / diffusion / noise flow) over all 2 records.</span></summary>
+<div class="card sp-clip mb-3"><video src="./static/images/twin_evals/twin_park_bench__throw_cube__a0__factual.mp4" poster="./static/images/twin_evals/twin_park_bench__throw_cube__a0__factual.jpg" controls muted loop playsinline preload="none" style="width:100%;border-radius:4px"></video><p class="lab is-size-7 p-2">park bench (outdoor) · family&#x27;s own action · nothing topples · best model 18% of the standing-still error</p></div>
+<div class="card sp-clip mb-3"><video src="./static/images/twin_evals/twin_park_bench__throw_cube__a1__factual.mp4" poster="./static/images/twin_evals/twin_park_bench__throw_cube__a1__factual.jpg" controls muted loop playsinline preload="none" style="width:100%;border-radius:4px"></video><p class="lab is-size-7 p-2">park bench (outdoor) · top of the range · nothing topples · best model 42% of the standing-still error</p></div>
+</details>
+<details class="box"><summary><b>Cones knocked off a table</b> <span class="has-text-grey">· 3 clips · A cone is launched off a twin table (table_topple_items rig), about 2.4 m of travel. Standing still: 1.69 m; models 0.95 / 1.07 / 1.22 / 1.14 m (regression / flow / diffusion / noise flow) over all 14 records.</span></summary>
+<div class="card sp-clip mb-3"><video src="./static/images/twin_evals/twin_conference_a__throw_from_table__a1__factual.mp4" poster="./static/images/twin_evals/twin_conference_a__throw_from_table__a1__factual.jpg" controls muted loop playsinline preload="none" style="width:100%;border-radius:4px"></video><p class="lab is-size-7 p-2">conference room A · top of the range · nothing topples · best model 43% of the standing-still error</p></div>
+<div class="card sp-clip mb-3"><video src="./static/images/twin_evals/twin_conference_b__throw_from_table__a0__factual.mp4" poster="./static/images/twin_evals/twin_conference_b__throw_from_table__a0__factual.jpg" controls muted loop playsinline preload="none" style="width:100%;border-radius:4px"></video><p class="lab is-size-7 p-2">conference room B · family&#x27;s own action · nothing topples · best model 73% of the standing-still error</p></div>
+<div class="card sp-clip mb-3"><video src="./static/images/twin_evals/twin_garden__throw_from_table__a0__factual.mp4" poster="./static/images/twin_evals/twin_garden__throw_from_table__a0__factual.jpg" controls muted loop playsinline preload="none" style="width:100%;border-radius:4px"></video><p class="lab is-size-7 p-2">garden (outdoor) · family&#x27;s own action · nothing topples · best model 89% of the standing-still error</p></div>
+</details>
+<details class="box"><summary><b>Chair tips</b> <span class="has-text-grey">· 3 clips · A ball hits a twin chair (chair_spill rig): it slides and tilts, and at the top of the range some chairs topple. Standing still: 0.50 m; models 0.62 / 0.52 / 0.60 / 0.56 m (regression / flow / diffusion / noise flow) over all 12 records.</span></summary>
+<div class="card sp-clip mb-3"><video src="./static/images/twin_evals/twin_conference_a__tip_chair__a0__factual.mp4" poster="./static/images/twin_evals/twin_conference_a__tip_chair__a0__factual.jpg" controls muted loop playsinline preload="none" style="width:100%;border-radius:4px"></video><p class="lab is-size-7 p-2">conference room A · family&#x27;s own action · nothing topples · best model 291% of the standing-still error</p></div>
+<div class="card sp-clip mb-3"><video src="./static/images/twin_evals/twin_living_room__tip_chair__a1__factual.mp4" poster="./static/images/twin_evals/twin_living_room__tip_chair__a1__factual.jpg" controls muted loop playsinline preload="none" style="width:100%;border-radius:4px"></video><p class="lab is-size-7 p-2">living room · top of the range · PhysX topples actor · best model 85% of the standing-still error</p></div>
+<div class="card sp-clip mb-3"><video src="./static/images/twin_evals/twin_office__tip_chair__a0__factual.mp4" poster="./static/images/twin_evals/twin_office__tip_chair__a0__factual.jpg" controls muted loop playsinline preload="none" style="width:100%;border-radius:4px"></video><p class="lab is-size-7 p-2">office · family&#x27;s own action · nothing topples · best model 105% of the standing-still error</p></div>
+</details>
+<details class="box"><summary><b>Table tips</b> <span class="has-text-grey">· 3 clips · A push tips a twin table (table_topple_items rig), and what stands on it moves. Standing still: 0.52 m; models 0.51 / 0.51 / 0.53 / 0.57 m (regression / flow / diffusion / noise flow) over all 14 records.</span></summary>
+<div class="card sp-clip mb-3"><video src="./static/images/twin_evals/twin_bedroom__tip_table__a0__factual.mp4" poster="./static/images/twin_evals/twin_bedroom__tip_table__a0__factual.jpg" controls muted loop playsinline preload="none" style="width:100%;border-radius:4px"></video><p class="lab is-size-7 p-2">bedroom · family&#x27;s own action · nothing topples · best model 106% of the standing-still error</p></div>
+<div class="card sp-clip mb-3"><video src="./static/images/twin_evals/twin_bedroom__tip_table__a1__factual.mp4" poster="./static/images/twin_evals/twin_bedroom__tip_table__a1__factual.jpg" controls muted loop playsinline preload="none" style="width:100%;border-radius:4px"></video><p class="lab is-size-7 p-2">bedroom · top of the range · nothing topples · best model 59% of the standing-still error</p></div>
+<div class="card sp-clip mb-3"><video src="./static/images/twin_evals/twin_living_room__tip_table__a1__factual.mp4" poster="./static/images/twin_evals/twin_living_room__tip_table__a1__factual.jpg" controls muted loop playsinline preload="none" style="width:100%;border-radius:4px"></video><p class="lab is-size-7 p-2">living room · top of the range · PhysX topples actor · best model 93% of the standing-still error</p></div>
+</details>
+<details class="box"><summary><b>Per scenario, every model</b> <span class="has-text-grey">· twin_compare over all 70 records; each cell regression / flow / diffusion / noise flow</span></summary><div class="table-container"><table class="table is-narrow is-size-7"><thead><tr><th>scenario</th><th>records</th><th>ADE m</th><th>standing still m</th><th>FDE m</th><th>acted object end m</th><th>still-body drift m</th><th>records with invented motion</th><th>same topples</th></tr></thead><tbody>
+<tr><td>all</td><td>70</td><td>0.66 / 0.62 / 0.68 / 0.66</td><td>0.82</td><td>0.82 / 0.75 / 0.81 / 0.79</td><td>1.09 / 1.11 / 1.14 / 1.12</td><td>0.56 / 0.20 / 0.38 / 0.39</td><td>66 / 51 / 58 / 63</td><td>0.70 / 0.83 / 0.76 / 0.76</td></tr>
+<tr><td>all, PhysX screen passed</td><td>68</td><td>0.65 / 0.61 / 0.67 / 0.65</td><td>0.82</td><td>0.80 / 0.73 / 0.78 / 0.77</td><td>1.10 / 1.13 / 1.16 / 1.14</td><td>0.58 / 0.20 / 0.39 / 0.40</td><td>64 / 50 / 56 / 61</td><td>0.71 / 0.84 / 0.76 / 0.76</td></tr>
+<tr><td>drop_crate</td><td>14</td><td>0.27 / 0.17 / 0.18 / 0.18</td><td>0.28</td><td>0.33 / 0.21 / 0.20 / 0.21</td><td>0.53 / 0.47 / 0.44 / 0.45</td><td>0.46 / 0.05 / 0.05 / 0.08</td><td>14 / 6 / 8 / 11</td><td>1.00 / 1.00 / 1.00 / 1.00</td></tr>
+<tr><td>throw_ball</td><td>14</td><td>0.82 / 0.74 / 0.88 / 0.85</td><td>0.91</td><td>1.19 / 1.07 / 1.19 / 1.19</td><td>2.79 / 2.88 / 2.95 / 2.99</td><td>0.52 / 0.23 / 0.34 / 0.37</td><td>14 / 14 / 13 / 14</td><td>0.71 / 0.79 / 0.86 / 0.79</td></tr>
+<tr><td>throw_cube</td><td>2</td><td>1.41 / 1.01 / 0.62 / 0.54</td><td>1.91</td><td>1.64 / 1.09 / 0.50 / 0.44</td><td>1.64 / 1.09 / 0.50 / 0.44</td><td>- / - / - / -</td><td>0 / 0 / 0 / 0</td><td>1.00 / 1.00 / 1.00 / 1.00</td></tr>
+<tr><td>throw_from_table</td><td>14</td><td>0.95 / 1.07 / 1.22 / 1.14</td><td>1.69</td><td>0.98 / 1.09 / 1.25 / 1.14</td><td>1.07 / 1.27 / 1.40 / 1.33</td><td>0.83 / 0.44 / 0.80 / 0.79</td><td>14 / 13 / 14 / 14</td><td>0.50 / 0.86 / 0.50 / 0.50</td></tr>
+<tr><td>tip_chair</td><td>12</td><td>0.62 / 0.52 / 0.60 / 0.56</td><td>0.50</td><td>0.91 / 0.74 / 0.85 / 0.82</td><td>0.30 / 0.26 / 0.34 / 0.29</td><td>0.39 / 0.11 / 0.25 / 0.19</td><td>12 / 8 / 11 / 12</td><td>0.67 / 0.83 / 0.75 / 0.83</td></tr>
+<tr><td>tip_table</td><td>14</td><td>0.51 / 0.51 / 0.53 / 0.57</td><td>0.52</td><td>0.58 / 0.58 / 0.59 / 0.65</td><td>0.54 / 0.55 / 0.54 / 0.54</td><td>0.61 / 0.13 / 0.45 / 0.53</td><td>12 / 10 / 12 / 12</td><td>0.57 / 0.64 / 0.64 / 0.64</td></tr>
+</tbody></table></div><p class="is-size-7 has-text-grey">ADE and FDE over the bodies PhysX moves; standing still: the ADE of a prediction where nothing moves; still-body drift: how far the bodies PhysX keeps still get; invented motion: an object PhysX keeps still moves more than 5 cm. "all, PhysX screen passed" leaves out the two kitchen chair-tip records whose PhysX run fails the generator's overlap screen.</p></details>
+<details class="box"><summary><b>The evaluator's own forward scores</b> <span class="has-text-grey">· eval_checkpoint over the 70 twin records, beside the same model on the four families in their own test scenes</span></summary><div class="table-container"><table class="table is-narrow is-size-7"><thead><tr><th>model</th><th>set</th><th>ADE</th><th>FDE</th><th>velocity m/s</th><th>orientation deg</th><th>false motion</th><th>contact F1</th><th>event F1</th><th>overlap cm</th><th>floor sink cm</th></tr></thead><tbody>
+<tr><td>200M masked regression</td><td>twins</td><td>0.530</td><td>0.673</td><td>0.164</td><td>23.351</td><td>0.879</td><td>0.169</td><td>0.085</td><td>40.729</td><td>26.633</td></tr>
+<tr><td></td><td class="has-text-grey">own test scenes (1336)</td><td class="has-text-grey">0.175</td><td class="has-text-grey">0.244</td><td class="has-text-grey">0.120</td><td class="has-text-grey">25.489</td><td class="has-text-grey">0.108</td><td class="has-text-grey">0.737</td><td class="has-text-grey">0.282</td><td class="has-text-grey">7.033</td><td class="has-text-grey">5.238</td></tr>
+<tr><td>200M masked flow</td><td>twins</td><td>0.472</td><td>0.590</td><td>0.119</td><td>18.226</td><td>0.302</td><td>0.233</td><td>0.141</td><td>21.602</td><td>10.424</td></tr>
+<tr><td></td><td class="has-text-grey">own test scenes (1336)</td><td class="has-text-grey">0.236</td><td class="has-text-grey">0.319</td><td class="has-text-grey">0.133</td><td class="has-text-grey">30.547</td><td class="has-text-grey">0.068</td><td class="has-text-grey">0.700</td><td class="has-text-grey">0.305</td><td class="has-text-grey">8.470</td><td class="has-text-grey">4.615</td></tr>
+<tr><td>200M masked diffusion</td><td>twins</td><td>0.525</td><td>0.642</td><td>0.140</td><td>25.681</td><td>0.525</td><td>0.221</td><td>0.118</td><td>29.578</td><td>13.355</td></tr>
+<tr><td></td><td class="has-text-grey">own test scenes (1336)</td><td class="has-text-grey">0.236</td><td class="has-text-grey">0.320</td><td class="has-text-grey">0.134</td><td class="has-text-grey">30.504</td><td class="has-text-grey">0.069</td><td class="has-text-grey">0.693</td><td class="has-text-grey">0.296</td><td class="has-text-grey">8.148</td><td class="has-text-grey">4.137</td></tr>
+<tr><td>200M flow, property noise</td><td>twins</td><td>0.515</td><td>0.640</td><td>0.143</td><td>23.753</td><td>0.596</td><td>0.224</td><td>0.127</td><td>28.414</td><td>17.253</td></tr>
+<tr><td></td><td class="has-text-grey">own test scenes (1336)</td><td class="has-text-grey">0.233</td><td class="has-text-grey">0.312</td><td class="has-text-grey">0.136</td><td class="has-text-grey">30.813</td><td class="has-text-grey">0.061</td><td class="has-text-grey">0.703</td><td class="has-text-grey">0.302</td><td class="has-text-grey">8.667</td><td class="has-text-grey">4.547</td></tr>
+</tbody></table></div><p class="is-size-7 has-text-grey">Own test scenes: the same checkpoint on chair spill, table topple, projectile and crate drop in its own test evaluation (25,413-record test split), record-weighted over the four data sources. The gap is what the twin domain costs: real furniture shapes and arrangements, furniture seen as boxes, an 8 m room.</p></details>
+<details class="box"><summary><b>All 70 records</b> <span class="has-text-grey">· ADE per model, standing still, and what PhysX does</span></summary><div class="table-container"><table class="table is-narrow is-size-7"><thead><tr><th>record</th><th>regression</th><th>flow</th><th>diffusion</th><th>noise flow</th><th>standing still</th><th>PhysX moves</th><th>PhysX topples</th><th>clip</th></tr></thead><tbody>
+<tr><td>twin_bedroom__drop_crate/a0</td><td>0.49</td><td>0.53</td><td>0.50</td><td>0.54</td><td>0.68</td><td>3 of 7</td><td>-</td><td></td></tr>
+<tr><td>twin_bedroom__drop_crate/a1</td><td>0.33</td><td>0.38</td><td>0.35</td><td>0.37</td><td>0.55</td><td>4 of 7</td><td>-</td><td>yes</td></tr>
+<tr><td>twin_bedroom__throw_ball/a0</td><td>1.13</td><td>0.63</td><td>0.70</td><td>0.77</td><td>0.95</td><td>2 of 6</td><td>-</td><td></td></tr>
+<tr><td>twin_bedroom__throw_ball/a1</td><td>0.79</td><td>0.44</td><td>1.03</td><td>0.89</td><td>1.19</td><td>2 of 6</td><td>-</td><td></td></tr>
+<tr><td>twin_bedroom__throw_from_table/a0</td><td>1.09</td><td>0.86</td><td>1.55</td><td>0.91</td><td>1.80</td><td>1 of 6</td><td>-</td><td></td></tr>
+<tr><td>twin_bedroom__throw_from_table/a1</td><td>0.96</td><td>0.48</td><td>1.05</td><td>1.00</td><td>2.28</td><td>1 of 6</td><td>-</td><td></td></tr>
+<tr><td>twin_bedroom__tip_chair/a0</td><td>0.71</td><td>0.49</td><td>0.60</td><td>0.59</td><td>0.48</td><td>4 of 6</td><td>-</td><td></td></tr>
+<tr><td>twin_bedroom__tip_chair/a1</td><td>0.82</td><td>0.50</td><td>0.53</td><td>0.59</td><td>0.51</td><td>4 of 6</td><td>-</td><td></td></tr>
+<tr><td>twin_bedroom__tip_table/a0</td><td>0.31</td><td>0.30</td><td>0.30</td><td>0.34</td><td>0.28</td><td>4 of 7</td><td>-</td><td>yes</td></tr>
+<tr><td>twin_bedroom__tip_table/a1</td><td>0.87</td><td>0.56</td><td>0.47</td><td>0.72</td><td>0.78</td><td>3 of 7</td><td>-</td><td>yes</td></tr>
+<tr><td>twin_conference_a__drop_crate/a0</td><td>0.15</td><td>0.03</td><td>0.03</td><td>0.04</td><td>0.14</td><td>4 of 14</td><td>-</td><td></td></tr>
+<tr><td>twin_conference_a__drop_crate/a1</td><td>0.26</td><td>0.06</td><td>0.05</td><td>0.05</td><td>0.29</td><td>3 of 14</td><td>-</td><td></td></tr>
+<tr><td>twin_conference_a__throw_ball/a0</td><td>0.40</td><td>0.42</td><td>0.41</td><td>0.72</td><td>0.46</td><td>4 of 13</td><td>-</td><td></td></tr>
+<tr><td>twin_conference_a__throw_ball/a1</td><td>0.60</td><td>0.51</td><td>0.66</td><td>0.82</td><td>1.39</td><td>2 of 13</td><td>-</td><td></td></tr>
+<tr><td>twin_conference_a__throw_from_table/a0</td><td>0.77</td><td>0.55</td><td>0.67</td><td>0.58</td><td>1.94</td><td>1 of 13</td><td>-</td><td></td></tr>
+<tr><td>twin_conference_a__throw_from_table/a1</td><td>1.48</td><td>2.45</td><td>1.56</td><td>1.81</td><td>3.45</td><td>1 of 13</td><td>-</td><td>yes</td></tr>
+<tr><td>twin_conference_a__tip_chair/a0</td><td>0.45</td><td>0.32</td><td>0.63</td><td>0.40</td><td>0.11</td><td>3 of 13</td><td>-</td><td>yes</td></tr>
+<tr><td>twin_conference_a__tip_chair/a1</td><td>0.46</td><td>0.26</td><td>0.58</td><td>0.43</td><td>0.26</td><td>5 of 13</td><td>-</td><td></td></tr>
+<tr><td>twin_conference_a__tip_table/a0</td><td>0.41</td><td>0.21</td><td>0.18</td><td>0.50</td><td>0.13</td><td>6 of 14</td><td>-</td><td></td></tr>
+<tr><td>twin_conference_a__tip_table/a1</td><td>0.58</td><td>0.68</td><td>0.61</td><td>0.61</td><td>0.75</td><td>6 of 14</td><td>-</td><td></td></tr>
+<tr><td>twin_conference_b__drop_crate/a0</td><td>0.31</td><td>0.24</td><td>0.26</td><td>0.26</td><td>0.29</td><td>5 of 22</td><td>-</td><td></td></tr>
+<tr><td>twin_conference_b__drop_crate/a1</td><td>0.24</td><td>0.14</td><td>0.15</td><td>0.16</td><td>0.21</td><td>8 of 22</td><td>-</td><td>yes</td></tr>
+<tr><td>twin_conference_b__throw_ball/a0</td><td>0.46</td><td>0.74</td><td>0.87</td><td>0.76</td><td>0.32</td><td>4 of 21</td><td>-</td><td></td></tr>
+<tr><td>twin_conference_b__throw_ball/a1</td><td>0.87</td><td>0.28</td><td>0.54</td><td>0.30</td><td>0.87</td><td>4 of 21</td><td>-</td><td></td></tr>
+<tr><td>twin_conference_b__throw_from_table/a0</td><td>0.56</td><td>0.41</td><td>0.51</td><td>0.42</td><td>0.56</td><td>3 of 21</td><td>-</td><td>yes</td></tr>
+<tr><td>twin_conference_b__throw_from_table/a1</td><td>1.51</td><td>1.71</td><td>1.79</td><td>1.61</td><td>2.56</td><td>1 of 21</td><td>-</td><td></td></tr>
+<tr><td>twin_conference_b__tip_chair/a0</td><td>0.35</td><td>0.16</td><td>0.19</td><td>0.19</td><td>0.18</td><td>5 of 21</td><td>-</td><td></td></tr>
+<tr><td>twin_conference_b__tip_chair/a1</td><td>0.26</td><td>0.19</td><td>0.20</td><td>0.22</td><td>0.19</td><td>6 of 21</td><td>-</td><td></td></tr>
+<tr><td>twin_conference_b__tip_table/a0</td><td>0.16</td><td>0.03</td><td>0.12</td><td>0.05</td><td>0.02</td><td>9 of 20</td><td>-</td><td></td></tr>
+<tr><td>twin_conference_b__tip_table/a1</td><td>0.19</td><td>0.06</td><td>0.22</td><td>0.08</td><td>0.06</td><td>11 of 20</td><td>-</td><td></td></tr>
+<tr><td>twin_garden__drop_crate/a0</td><td>0.49</td><td>0.19</td><td>0.20</td><td>0.20</td><td>0.24</td><td>4 of 4</td><td>-</td><td></td></tr>
+<tr><td>twin_garden__drop_crate/a1</td><td>0.53</td><td>0.33</td><td>0.34</td><td>0.31</td><td>0.46</td><td>4 of 4</td><td>-</td><td></td></tr>
+<tr><td>twin_garden__throw_ball/a0</td><td>0.92</td><td>1.11</td><td>1.54</td><td>1.15</td><td>1.05</td><td>2 of 3</td><td>-</td><td>yes</td></tr>
+<tr><td>twin_garden__throw_ball/a1</td><td>0.62</td><td>0.67</td><td>0.73</td><td>0.59</td><td>0.74</td><td>3 of 3</td><td>-</td><td></td></tr>
+<tr><td>twin_garden__throw_from_table/a0</td><td>1.09</td><td>1.33</td><td>1.52</td><td>1.52</td><td>1.22</td><td>2 of 3</td><td>-</td><td>yes</td></tr>
+<tr><td>twin_garden__throw_from_table/a1</td><td>1.06</td><td>1.18</td><td>1.10</td><td>1.15</td><td>1.31</td><td>2 of 3</td><td>-</td><td></td></tr>
+<tr><td>twin_garden__tip_table/a0</td><td>0.33</td><td>0.60</td><td>0.56</td><td>0.72</td><td>0.19</td><td>2 of 2</td><td>-</td><td></td></tr>
+<tr><td>twin_garden__tip_table/a1</td><td>0.92</td><td>0.82</td><td>0.90</td><td>1.00</td><td>1.27</td><td>2 of 2</td><td>actor</td><td></td></tr>
+<tr><td>twin_kitchen__drop_crate/a0</td><td>0.19</td><td>0.03</td><td>0.03</td><td>0.05</td><td>0.14</td><td>4 of 10</td><td>-</td><td>yes</td></tr>
+<tr><td>twin_kitchen__drop_crate/a1</td><td>0.23</td><td>0.06</td><td>0.07</td><td>0.08</td><td>0.22</td><td>4 of 10</td><td>-</td><td></td></tr>
+<tr><td>twin_kitchen__throw_ball/a0</td><td>0.66</td><td>0.83</td><td>0.88</td><td>0.99</td><td>0.42</td><td>4 of 9</td><td>-</td><td>yes</td></tr>
+<tr><td>twin_kitchen__throw_ball/a1</td><td>1.18</td><td>1.31</td><td>1.59</td><td>1.51</td><td>1.52</td><td>3 of 9</td><td>-</td><td></td></tr>
+<tr><td>twin_kitchen__throw_from_table/a0</td><td>0.61</td><td>0.36</td><td>0.58</td><td>0.48</td><td>0.80</td><td>2 of 9</td><td>-</td><td></td></tr>
+<tr><td>twin_kitchen__throw_from_table/a1</td><td>0.73</td><td>1.30</td><td>1.59</td><td>1.33</td><td>1.35</td><td>2 of 9</td><td>-</td><td></td></tr>
+<tr><td>twin_kitchen__tip_chair/a0</td><td>0.59</td><td>0.54</td><td>0.55</td><td>0.49</td><td>0.60</td><td>2 of 9</td><td>-</td><td></td></tr>
+<tr><td>twin_kitchen__tip_chair/a1</td><td>1.29</td><td>1.50</td><td>1.53</td><td>1.57</td><td>1.53</td><td>2 of 9</td><td>actor</td><td></td></tr>
+<tr><td>twin_kitchen__tip_table/a0</td><td>0.34</td><td>0.28</td><td>0.39</td><td>0.33</td><td>0.11</td><td>5 of 10</td><td>-</td><td></td></tr>
+<tr><td>twin_kitchen__tip_table/a1</td><td>0.69</td><td>0.79</td><td>0.80</td><td>0.82</td><td>0.87</td><td>5 of 10</td><td>actor</td><td></td></tr>
+<tr><td>twin_living_room__drop_crate/a0</td><td>0.12</td><td>0.06</td><td>0.07</td><td>0.06</td><td>0.15</td><td>4 of 9</td><td>-</td><td></td></tr>
+<tr><td>twin_living_room__drop_crate/a1</td><td>0.11</td><td>0.06</td><td>0.06</td><td>0.05</td><td>0.16</td><td>6 of 9</td><td>-</td><td></td></tr>
+<tr><td>twin_living_room__throw_ball/a0</td><td>0.96</td><td>1.23</td><td>1.53</td><td>1.11</td><td>0.74</td><td>2 of 8</td><td>-</td><td></td></tr>
+<tr><td>twin_living_room__throw_ball/a1</td><td>0.33</td><td>0.23</td><td>0.38</td><td>0.16</td><td>0.75</td><td>4 of 8</td><td>-</td><td></td></tr>
+<tr><td>twin_living_room__throw_from_table/a0</td><td>1.11</td><td>1.43</td><td>1.52</td><td>1.57</td><td>1.86</td><td>1 of 8</td><td>-</td><td></td></tr>
+<tr><td>twin_living_room__throw_from_table/a1</td><td>0.91</td><td>1.15</td><td>1.65</td><td>1.80</td><td>2.44</td><td>1 of 8</td><td>-</td><td></td></tr>
+<tr><td>twin_living_room__tip_chair/a0</td><td>0.67</td><td>0.69</td><td>0.64</td><td>0.61</td><td>0.82</td><td>3 of 8</td><td>-</td><td></td></tr>
+<tr><td>twin_living_room__tip_chair/a1</td><td>0.89</td><td>0.99</td><td>1.02</td><td>0.95</td><td>1.05</td><td>3 of 8</td><td>actor</td><td>yes</td></tr>
+<tr><td>twin_living_room__tip_table/a0</td><td>0.35</td><td>0.16</td><td>0.17</td><td>0.17</td><td>0.16</td><td>5 of 9</td><td>-</td><td></td></tr>
+<tr><td>twin_living_room__tip_table/a1</td><td>0.91</td><td>1.02</td><td>1.08</td><td>1.04</td><td>0.98</td><td>6 of 9</td><td>actor</td><td>yes</td></tr>
+<tr><td>twin_office__drop_crate/a0</td><td>0.18</td><td>0.19</td><td>0.21</td><td>0.20</td><td>0.27</td><td>5 of 10</td><td>-</td><td></td></tr>
+<tr><td>twin_office__drop_crate/a1</td><td>0.20</td><td>0.14</td><td>0.14</td><td>0.14</td><td>0.21</td><td>8 of 10</td><td>-</td><td></td></tr>
+<tr><td>twin_office__throw_ball/a0</td><td>0.82</td><td>0.59</td><td>0.39</td><td>0.66</td><td>0.68</td><td>3 of 9</td><td>-</td><td></td></tr>
+<tr><td>twin_office__throw_ball/a1</td><td>1.69</td><td>1.36</td><td>1.01</td><td>1.52</td><td>1.70</td><td>3 of 9</td><td>-</td><td>yes</td></tr>
+<tr><td>twin_office__throw_from_table/a0</td><td>0.68</td><td>1.01</td><td>1.15</td><td>1.06</td><td>0.89</td><td>2 of 9</td><td>-</td><td></td></tr>
+<tr><td>twin_office__throw_from_table/a1</td><td>0.79</td><td>0.73</td><td>0.89</td><td>0.63</td><td>1.23</td><td>2 of 9</td><td>-</td><td></td></tr>
+<tr><td>twin_office__tip_chair/a0</td><td>0.41</td><td>0.16</td><td>0.20</td><td>0.14</td><td>0.13</td><td>5 of 9</td><td>-</td><td>yes</td></tr>
+<tr><td>twin_office__tip_chair/a1</td><td>0.58</td><td>0.44</td><td>0.47</td><td>0.56</td><td>0.17</td><td>5 of 9</td><td>-</td><td></td></tr>
+<tr><td>twin_office__tip_table/a0</td><td>0.53</td><td>0.84</td><td>0.78</td><td>0.82</td><td>0.83</td><td>5 of 10</td><td>actor</td><td></td></tr>
+<tr><td>twin_office__tip_table/a1</td><td>0.62</td><td>0.85</td><td>0.80</td><td>0.84</td><td>0.85</td><td>5 of 10</td><td>actor</td><td></td></tr>
+<tr><td>twin_park_bench__throw_cube/a0</td><td>1.85</td><td>0.63</td><td>0.39</td><td>0.39</td><td>2.19</td><td>1 of 1</td><td>-</td><td>yes</td></tr>
+<tr><td>twin_park_bench__throw_cube/a1</td><td>0.97</td><td>1.39</td><td>0.86</td><td>0.69</td><td>1.63</td><td>1 of 1</td><td>-</td><td>yes</td></tr>
+</tbody></table></div><p class="is-size-7 has-text-grey">Results: the shared folder twins_v2/eval/&lt;model&gt;/ (twin_compare.md, summary.json, per_family.csv). Data, scoring and the handoff: branch mvp18/dev, docs/TWINS_EVAL_HANDOFF.md.</p></details>
+</div></section>
+</body></html>
