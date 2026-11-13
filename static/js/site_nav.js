@@ -16,6 +16,7 @@
     { key: 'state-predictors', label: 'State predictors', icon: 'fa-wave-square', href: './state-predictors.html' },
     { key: 'state-predictors-v2', label: 'State predictors on V2', icon: 'fa-couch', href: './state-predictors-v2.html' },
     { key: 'state-predictors-test', label: 'State predictors on V2 test', icon: 'fa-vial', href: './state-predictors-test.html' },
+    { key: 'rendering-preview', label: 'Rendering preview', icon: 'fa-lightbulb', href: './rendering-preview.html' },
     { key: 'state-predictors-visual', label: 'Visual review', icon: 'fa-eye', href: './state-predictors-visual.html' },
     { key: 'how-it-works', label: 'How models are prompted', icon: 'fa-comment-dots', href: './how-it-works.html' },
     { key: 'results', label: 'Results', icon: 'fa-chart-bar', href: './index.html#results' },
