@@ -34,6 +34,7 @@
     { key: 'failure-analysis', label: 'Failure analysis', icon: 'fa-stethoscope', href: './failure-analysis.html' },
     { key: 'rubble-demo', label: 'Rubble demo', icon: 'fa-hard-hat', href: './rubble-demo.html' },
     { key: 'video-models', label: 'Video models', icon: 'fa-film', href: './video-models.html' },
+    { key: 'vla-vlm-check', label: 'VLA/VLM check', icon: 'fa-user-check', href: './vla-vlm-check.html' },
     { key: 'digital-twins', label: 'Digital twins', icon: 'fa-cube', href: './digital-twins.html' },
     { key: 'twins-v2', label: 'Twins v2', icon: 'fa-couch', href: './twins-v2.html' }
   ];
