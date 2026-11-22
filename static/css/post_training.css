@@ -73,3 +73,21 @@
 .pt-findings li { margin: 0.35rem 0; line-height: 1.5; }
 .pt-mixed-table td:first-child { white-space: nowrap; }
 .pt-mixed-table td:last-child { white-space: nowrap; }
+
+/* planner input/output diagram (blind_v1), section 9 */
+.pt-io .box.code { fill: #f8f9fb; stroke: var(--wm-border); }
+.pt-io .box.wm { fill: #fff6e5; stroke: var(--wm-amber); }
+.pt-io .mono { font-family: 'DejaVu Sans Mono', Menlo, Consolas, monospace; font-size: 12.5px; fill: #1f2933; white-space: pre; }
+.pt-io .mono.dim { fill: #8a94a3; font-style: italic; }
+.pt-io .strong { font-weight: 600; fill: #222; }
+.pt-io .chosen { fill: var(--wm-blue); font-weight: 600; }
+.pt-io .rig { fill: #55606e; font-weight: 600; }
+.pt-io .arrow { marker-end: url(#pt-io-arrow); }
+.pt-io .bracket, .pt-io .rule { stroke: #c3cad4; stroke-width: 1.2; fill: none; }
+.pt-io .pill.yes { fill: #e9f1ff; stroke: var(--wm-blue); stroke-width: 1; }
+.pt-io .pill.part { fill: #fff6e5; stroke: var(--wm-amber); stroke-width: 1; }
+.pt-io .pilltext { font-size: 12.5px; fill: #222; }
+.pt-io .note { font-size: 13.5px; fill: #55606e; }
+.pt-io-prompt { max-width: 900px; margin: 0.5rem auto 1.25rem; text-align: left; }
+.pt-io-prompt summary { cursor: pointer; color: var(--wm-blue); }
+.pt-io-prompt pre { white-space: pre-wrap; font-size: 0.78rem; line-height: 1.35; max-height: 32rem; overflow: auto; }
